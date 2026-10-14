@@ -36,7 +36,7 @@ Only specify metadata keys that exist in your files. The --label-col option defa
 - **report.json** — complete machine-readable summary.
 - **composition.csv** — cell count and fraction for every label in each stage.
 - **metadata-coverage.csv** — missingness and distinct-value counts for the requested metadata keys.
-- **sample-composition.csv** — optional per-sample label counts when --sample-col is supplied.
+- **sample-composition.csv** — optional per-sample label counts when --sample-col is supplied. Sample names are replaced with per-report codes such as sample-0001; the original identifiers are not written.
 
 Labels and sample IDs are treated as categorical strings. Missing values are retained as an explicit <missing> category in composition output so they cannot silently disappear.
 
@@ -51,6 +51,7 @@ Use these summaries to ask where to inspect next. Do not use hidden validation o
 - Select only data you are permitted to inspect under the current [Challenge rules](https://virtualembryo.ai/challenge/rules).
 - The program accepts local files only; it does not access the network.
 - The input file basename is included in the report; full local paths are not written.
+- Sample identifiers are replaced with per-report codes in the sample-composition output. This reduces direct identifier exposure but is not a formal privacy guarantee.
 - No expression values, coordinates, or cell-level records are exported.
 - The tool reports descriptive counts only. It does not infer developmental biology or label equivalence.
 

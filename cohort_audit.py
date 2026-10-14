@@ -89,7 +89,13 @@ def summarize_stage(stage: Stage, args: argparse.Namespace, ad: Any, pd: Any) ->
 
         sample_composition: list[dict[str, Any]] = []
         if args.sample_col and args.sample_col in obs.columns:
-            samples = [display_value(value, pd) for value in obs[args.sample_col].tolist()]
+            raw_samples = [display_value(value, pd) for value in obs[args.sample_col].tolist()]
+            known_samples = sorted(set(raw_samples) - {"<missing>"})
+            sample_codes = {
+                sample: f"sample-{index:04d}"
+                for index, sample in enumerate(known_samples, start=1)
+            }
+            samples = [sample_codes.get(sample, "<missing>") for sample in raw_samples]
             cells_by_sample = Counter(samples)
             cells_by_pair = Counter(zip(samples, labels))
             for sample, label in sorted(cells_by_pair):
