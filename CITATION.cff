@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "If this workshop kit helps your group, please cite it."
+title: "VEC Peer Workshop Kit"
+abstract: "A facilitator-ready workshop for helping new Virtual Embryo Challenge participants find relevant resources, interpret evidence, screen external-data proposals, and plan reproducible runs."
+authors:
+  - family-names: Mana
+    given-names: Arnav
+version: 1.0.0
+date-released: 2026-10-14
+url: https://github.com/random-guy-05/vec-workshop-kit
+license: MIT

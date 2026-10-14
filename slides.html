@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VEC Peer Workshop</title>
+  <style>
+    :root { color-scheme: light dark; --bg:#f5f7f8; --panel:#fff; --ink:#17252b; --muted:#506269; --line:#d5e0e2; --accent:#006b63; font: 18px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif; }
+    @media (prefers-color-scheme:dark) { :root { --bg:#11191c; --panel:#1a2529; --ink:#edf5f4; --muted:#b3c2c5; --line:#34464b; --accent:#71d3c2; } }
+    * { box-sizing:border-box; } body { margin:0; color:var(--ink); background:var(--bg); }
+    main { width:min(900px,calc(100% - 32px)); margin:0 auto; padding:32px 0 64px; }
+    header { padding:24px; border-radius:18px; background:var(--panel); border:1px solid var(--line); }
+    h1 { margin:0; font-size:clamp(2rem,6vw,3.4rem); line-height:1.1; letter-spacing:-.035em; }
+    h2 { margin:0 0 8px; font-size:1.5rem; } h3 { margin:20px 0 6px; font-size:1.08rem; }
+    nav { margin:18px 0 26px; padding:16px 22px; border:1px solid var(--line); border-radius:14px; background:var(--panel); }
+    nav ul { display:flex; flex-wrap:wrap; gap:8px 22px; margin:6px 0 0; padding-left:20px; }
+    nav a, a { color:var(--accent); } section { margin:14px 0; padding:22px 24px; background:var(--panel); border:1px solid var(--line); border-radius:14px; scroll-margin-top:12px; }
+    .meta { color:var(--muted); font-size:.95rem; } li { margin:.35em 0; } strong { font-weight:700; }
+    a:focus-visible { outline:3px solid var(--accent); outline-offset:3px; }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <p class="meta">75-minute peer workshop · no coding or challenge data required</p>
+      <h1>Start a VEC workflow you can explain</h1>
+      <p>Find a useful resource, distinguish a format check from evaluation, screen an external-data proposal, and plan a reproducible run.</p>
+    </header>
+    <nav aria-label="Slide sections">
+      <strong>Jump to a section</strong>
+      <ul>
+        <li><a href="#goals">Goals</a></li><li><a href="#map">Map the task</a></li>
+        <li><a href="#find">Find a resource</a></li><li><a href="#evidence">Interpret evidence</a></li>
+        <li><a href="#data">Screen data</a></li><li><a href="#repro">Reproduce a run</a></li>
+        <li><a href="#plan">Leave with a plan</a></li>
+      </ul>
+    </nav>
+    <section id="goals" aria-labelledby="goals-heading">
+      <h2 id="goals-heading">1 · Four useful outcomes</h2>
+      <ul><li>Know the question your chosen task asks.</li><li>Find a resource that matches your current problem.</li><li>Say what a tool result does and does not establish.</li><li>Write one next action and one check before submission.</li></ul>
+    </section>
+    <section id="map" aria-labelledby="map-heading">
+      <h2 id="map-heading">2 · Start with the task definition</h2>
+      <p>Use the current official task page to identify the inputs, prediction target, permitted information, and output expectations. Do not infer those details from a repository name or an old tutorial.</p>
+      <p><a href="https://virtualembryo.ai/challenge/tasks">Open the current task descriptions</a>.</p>
+    </section>
+    <section id="find" aria-labelledby="find-heading">
+      <h2 id="find-heading">3 · Match a resource to a need</h2>
+      <p>Search by workflow or task, then open the original. Check the author's prerequisites, supported use, run steps, license, and limitations. A listing is a pointer, not an endorsement.</p>
+      <p><a href="https://virtualembryo.ai/challenge/resources">Official resource list</a> · <a href="https://random-guy-05.github.io/vec-resource-navigator/">Searchable navigator</a>.</p>
+    </section>
+    <section id="evidence" aria-labelledby="evidence-heading">
+      <h2 id="evidence-heading">4 · Three different claims</h2>
+      <ul><li><strong>Format check:</strong> specified file conditions passed.</li><li><strong>Local comparison:</strong> methods were compared under one chosen split and protocol.</li><li><strong>Official evaluation:</strong> the challenge server and current rules determine the competition result.</li></ul>
+      <p>Do not turn one claim into another. A passing validator does not establish biological correctness, data eligibility, or hidden-target performance.</p>
+    </section>
+    <section id="data" aria-labelledby="data-heading">
+      <h2 id="data-heading">5 · Public does not automatically mean eligible</h2>
+      <p>Record the exact source and release, inspect reuse terms, explain task relevance, check the current Challenge rules, and preserve provenance. Pause when a rule or license is unclear.</p>
+      <p><a href="https://virtualembryo.ai/challenge/rules">Read the current Challenge rules</a>.</p>
+    </section>
+    <section id="repro" aria-labelledby="repro-heading">
+      <h2 id="repro-heading">6 · Make a run traceable</h2>
+      <ul><li>Code revision and working-tree state</li><li>Environment, versions, and configuration</li><li>Input provenance and permitted identifiers</li><li>Command, random seed, and output path</li><li>Evidence tying the evaluated file to the final file</li></ul>
+      <p>Logs and hashes support review; no single record proves full rule compliance by itself.</p>
+    </section>
+    <section id="plan" aria-labelledby="plan-heading">
+      <h2 id="plan-heading">7 · Choose one next step</h2>
+      <p>Write an action small enough to do next, the official page or resource it depends on, and one check you will make before relying on the result.</p>
+      <p class="meta">Use the participant worksheet for the exercises and notes. Confirm time-sensitive details on the official pages before each workshop.</p>
+    </section>
+  </main>
+</body>
+</html>
