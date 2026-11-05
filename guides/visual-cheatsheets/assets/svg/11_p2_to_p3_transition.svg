@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+<rect width="1600" height="900" fill="#0B1020"/>
+<text x="80" y="68" font-family="DejaVu Sans" font-size="19" font-weight="700" fill="#57D3C8" text-anchor="start">VIRTUAL EMBRYO CHALLENGE</text>
+<text x="80" y="130" font-family="DejaVu Sans" font-size="48" font-weight="700" fill="#F7F8FA" text-anchor="start">P2 -&gt; P3 transition</text>
+<text x="80" y="178" font-family="DejaVu Sans" font-size="24" font-weight="400" fill="#B9C2D0" text-anchor="start">What changes on 20 October 2026 - and what does not.</text>
+<rect x="90" y="265" width="660" height="390" rx="28" fill="#141B2D"/>
+<text x="420" y="320" font-family="DejaVu Sans" font-size="26" font-weight="700" fill="#F3C969" text-anchor="middle">P2 - NOW</text>
+<circle cx="135" cy="376" r="7" fill="#F3C969"/>
+<text x="160" y="385" font-family="DejaVu Sans" font-size="22" font-weight="700" fill="#F7F8FA" text-anchor="start">Validation ground truth</text>
+<text x="410" y="385" font-family="DejaVu Sans" font-size="22" font-weight="400" fill="#B9C2D0" text-anchor="start">hidden; score only</text>
+<circle cx="135" cy="442" r="7" fill="#F3C969"/>
+<text x="160" y="451" font-family="DejaVu Sans" font-size="22" font-weight="700" fill="#F7F8FA" text-anchor="start">Leaderboard</text>
+<text x="410" y="451" font-family="DejaVu Sans" font-size="22" font-weight="400" fill="#B9C2D0" text-anchor="start">validation</text>
+<circle cx="135" cy="508" r="7" fill="#F3C969"/>
+<text x="160" y="517" font-family="DejaVu Sans" font-size="22" font-weight="700" fill="#F7F8FA" text-anchor="start">Scored attempts</text>
+<text x="410" y="517" font-family="DejaVu Sans" font-size="22" font-weight="400" fill="#B9C2D0" text-anchor="start">8 per team/task/UTC day</text>
+<circle cx="135" cy="574" r="7" fill="#F3C969"/>
+<text x="160" y="583" font-family="DejaVu Sans" font-size="22" font-weight="700" fill="#F7F8FA" text-anchor="start">Test answers</text>
+<text x="410" y="583" font-family="DejaVu Sans" font-size="22" font-weight="400" fill="#B9C2D0" text-anchor="start">hidden</text>
+<line x1="780" y1="460" x2="930" y2="460" stroke="#57D3C8" stroke-width="7" stroke-linecap="round"/>
+<polygon points="930,460 917.181702151249,469.57555430566333 917.181702151249,450.42444569433667" fill="#57D3C8"/>
+<text x="855" y="420" font-family="DejaVu Sans" font-size="22" font-weight="700" fill="#57D3C8" text-anchor="middle">20 OCT</text>
+<rect x="960" y="240" width="550" height="440" rx="28" fill="#1B2440"/>
+<text x="1235" y="300" font-family="DejaVu Sans" font-size="26" font-weight="700" fill="#57D3C8" text-anchor="middle">P3 - FINAL TEST</text>
+<circle cx="1000" cy="346" r="7" fill="#57D3C8"/>
+<text x="1025" y="355" font-family="DejaVu Sans" font-size="21" font-weight="700" fill="#F7F8FA" text-anchor="start">Validation ground truth</text>
+<text x="1270" y="355" font-family="DejaVu Sans" font-size="20" font-weight="400" fill="#B9C2D0" text-anchor="start">released for retraining</text>
+<circle cx="1000" cy="398" r="7" fill="#57D3C8"/>
+<text x="1025" y="407" font-family="DejaVu Sans" font-size="21" font-weight="700" fill="#F7F8FA" text-anchor="start">Leaderboard</text>
+<text x="1270" y="407" font-family="DejaVu Sans" font-size="20" font-weight="400" fill="#B9C2D0" text-anchor="start">hidden-test boards</text>
+<circle cx="1000" cy="450" r="7" fill="#57D3C8"/>
+<text x="1025" y="459" font-family="DejaVu Sans" font-size="21" font-weight="700" fill="#F7F8FA" text-anchor="start">Official attempts</text>
+<text x="1270" y="459" font-family="DejaVu Sans" font-size="20" font-weight="400" fill="#B9C2D0" text-anchor="start">2 per board / whole phase</text>
+<circle cx="1000" cy="502" r="7" fill="#57D3C8"/>
+<text x="1025" y="511" font-family="DejaVu Sans" font-size="21" font-weight="700" fill="#F7F8FA" text-anchor="start">Withdrawal</text>
+<text x="1270" y="511" font-family="DejaVu Sans" font-size="20" font-weight="400" fill="#B9C2D0" text-anchor="start">not allowed</text>
+<circle cx="1000" cy="554" r="7" fill="#57D3C8"/>
+<text x="1025" y="563" font-family="DejaVu Sans" font-size="21" font-weight="700" fill="#F7F8FA" text-anchor="start">Format checks</text>
+<text x="1270" y="563" font-family="DejaVu Sans" font-size="20" font-weight="400" fill="#B9C2D0" text-anchor="start">unlimited</text>
+<circle cx="1000" cy="606" r="7" fill="#57D3C8"/>
+<text x="1025" y="615" font-family="DejaVu Sans" font-size="21" font-weight="700" fill="#F7F8FA" text-anchor="start">Test ground truth</text>
+<text x="1270" y="615" font-family="DejaVu Sans" font-size="20" font-weight="400" fill="#B9C2D0" text-anchor="start">never distributed</text>
+<line x1="70" y1="846" x2="1530" y2="846" stroke="#2B3550" stroke-width="2" stroke-linecap="round"/>
+<text x="70" y="878" font-family="DejaVu Sans" font-size="16" font-weight="400" fill="#B9C2D0" text-anchor="start">virtualembryo.ai/challenge - source snapshot 2026-10-05</text>
+<text x="1530" y="878" font-family="DejaVu Sans" font-size="16" font-weight="400" fill="#B9C2D0" text-anchor="end">Community visual resource - MIT</text>
+</svg>

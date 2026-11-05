@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+<rect width="1600" height="900" fill="#0B1020"/>
+<text x="80" y="68" font-family="DejaVu Sans" font-size="19" font-weight="700" fill="#57D3C8" text-anchor="start">VIRTUAL EMBRYO CHALLENGE</text>
+<text x="80" y="130" font-family="DejaVu Sans" font-size="48" font-weight="700" fill="#F7F8FA" text-anchor="start">Anatomy of a valid submission</text>
+<text x="80" y="178" font-family="DejaVu Sans" font-size="24" font-weight="400" fill="#B9C2D0" text-anchor="start">What the scorer actually reads from your .h5ad file.</text>
+<rect x="110" y="250" width="600" height="450" rx="30" fill="#141B2D"/>
+<text x="410" y="305" font-family="DejaVu Sans" font-size="32" font-weight="700" fill="#F7F8FA" text-anchor="middle">AnnData / .h5ad</text>
+<rect x="165" y="355" width="490" height="105" rx="18" fill="#1B2440"/>
+<text x="195" y="395" font-family="DejaVu Sans" font-size="28" font-weight="700" fill="#57D3C8" text-anchor="start">.X</text>
+<text x="260" y="395" font-family="DejaVu Sans" font-size="24" font-weight="700" fill="#F7F8FA" text-anchor="start">cells x genes</text>
+<text x="195" y="433" font-family="DejaVu Sans" font-size="20" font-weight="400" fill="#B9C2D0" text-anchor="start">finite, non-negative, log-normalized</text>
+<rect x="165" y="485" width="490" height="105" rx="18" fill="#1B2440"/>
+<text x="195" y="525" font-family="DejaVu Sans" font-size="25" font-weight="700" fill="#6CB6FF" text-anchor="start">var_names</text>
+<text x="330" y="525" font-family="DejaVu Sans" font-size="22" font-weight="700" fill="#F7F8FA" text-anchor="start">exact released order</text>
+<text x="195" y="565" font-family="DejaVu Sans" font-size="19" font-weight="400" fill="#B9C2D0" text-anchor="start">whole transcriptome for T1; panel for spatial tasks</text>
+<rect x="165" y="615" width="490" height="65" rx="18" fill="#1B2440"/>
+<text x="195" y="655" font-family="DejaVu Sans" font-size="23" font-weight="700" fill="#EC7CA7" text-anchor="start">obsm["spatial_3D"]</text>
+<text x="470" y="655" font-family="DejaVu Sans" font-size="20" font-weight="700" fill="#F7F8FA" text-anchor="start">T2/T3 only</text>
+<rect x="800" y="250" width="650" height="450" rx="30" fill="#141B2D"/>
+<text x="840" y="310" font-family="DejaVu Sans" font-size="28" font-weight="700" fill="#F7F8FA" text-anchor="start">Important scorer behavior</text>
+<rect x="840" y="342" width="120" height="42" rx="21" fill="#57D3C8"/>
+<text x="900.0" y="371" font-family="DejaVu Sans" font-size="17" font-weight="700" fill="#0B1020" text-anchor="middle">T1</text>
+<text x="990" y="370" font-family="DejaVu Sans" font-size="23" font-weight="400" fill="#F7F8FA" text-anchor="start">no coordinates required</text>
+<rect x="840" y="414" width="120" height="42" rx="21" fill="#EC7CA7"/>
+<text x="900.0" y="443" font-family="DejaVu Sans" font-size="17" font-weight="700" fill="#0B1020" text-anchor="middle">T2/T3</text>
+<text x="990" y="442" font-family="DejaVu Sans" font-size="23" font-weight="400" fill="#F7F8FA" text-anchor="start">first 3 spatial columns are read</text>
+<rect x="840" y="486" width="120" height="42" rx="21" fill="#82D982"/>
+<text x="900.0" y="515" font-family="DejaVu Sans" font-size="17" font-weight="700" fill="#0B1020" text-anchor="middle">cells</text>
+<text x="990" y="514" font-family="DejaVu Sans" font-size="23" font-weight="400" fill="#F7F8FA" text-anchor="start">predicted count need not equal target</text>
+<rect x="840" y="558" width="120" height="42" rx="21" fill="#9E8CFF"/>
+<text x="900.0" y="587" font-family="DejaVu Sans" font-size="17" font-weight="700" fill="#0B1020" text-anchor="middle">celltype</text>
+<text x="990" y="586" font-family="DejaVu Sans" font-size="23" font-weight="400" fill="#F7F8FA" text-anchor="start">submission labels are ignored</text>
+<rect x="840" y="630" width="120" height="42" rx="21" fill="#F3C969"/>
+<text x="900.0" y="659" font-family="DejaVu Sans" font-size="17" font-weight="700" fill="#0B1020" text-anchor="middle">format</text>
+<text x="990" y="658" font-family="DejaVu Sans" font-size="23" font-weight="400" fill="#F7F8FA" text-anchor="start">checks are unlimited in every phase</text>
+<line x1="70" y1="846" x2="1530" y2="846" stroke="#2B3550" stroke-width="2" stroke-linecap="round"/>
+<text x="70" y="878" font-family="DejaVu Sans" font-size="16" font-weight="400" fill="#B9C2D0" text-anchor="start">virtualembryo.ai/challenge - source snapshot 2026-10-05</text>
+<text x="1530" y="878" font-family="DejaVu Sans" font-size="16" font-weight="400" fill="#B9C2D0" text-anchor="end">Community visual resource - MIT</text>
+</svg>

@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+<rect width="1600" height="900" fill="#0B1020"/>
+<text x="80" y="68" font-family="DejaVu Sans" font-size="19" font-weight="700" fill="#57D3C8" text-anchor="start">VIRTUAL EMBRYO CHALLENGE</text>
+<text x="80" y="130" font-family="DejaVu Sans" font-size="48" font-weight="700" fill="#F7F8FA" text-anchor="start">Challenge at a glance</text>
+<text x="80" y="178" font-family="DejaVu Sans" font-size="24" font-weight="400" fill="#B9C2D0" text-anchor="start">Three prediction tasks, two team tracks, one final hidden-test phase.</text>
+<rect x="80" y="280" width="450" height="280" rx="28" fill="#141B2D" stroke="#2B3550" stroke-width="2"/>
+<rect x="108" y="306" width="80" height="42" rx="21" fill="#57D3C8"/>
+<text x="148.0" y="335" font-family="DejaVu Sans" font-size="22" font-weight="700" fill="#0B1020" text-anchor="middle">T1</text>
+<text x="108" y="390" font-family="DejaVu Sans" font-size="34" font-weight="700" fill="#F7F8FA" text-anchor="start">Temporal expression</text>
+<text x="108" y="438" font-family="DejaVu Sans" font-size="23" font-weight="400" fill="#B9C2D0" text-anchor="start">single-cell RNA</text>
+<text x="108" y="492" font-family="DejaVu Sans" font-size="25" font-weight="400" fill="#F7F8FA" text-anchor="start">future expression</text>
+<text x="108" y="526" font-family="DejaVu Sans" font-size="25" font-weight="400" fill="#F7F8FA" text-anchor="start">distribution</text>
+<rect x="580" y="280" width="450" height="280" rx="28" fill="#141B2D" stroke="#2B3550" stroke-width="2"/>
+<rect x="608" y="306" width="80" height="42" rx="21" fill="#6CB6FF"/>
+<text x="648.0" y="335" font-family="DejaVu Sans" font-size="22" font-weight="700" fill="#0B1020" text-anchor="middle">T2</text>
+<text x="608" y="390" font-family="DejaVu Sans" font-size="34" font-weight="700" fill="#F7F8FA" text-anchor="start">Spatial-temporal</text>
+<text x="608" y="438" font-family="DejaVu Sans" font-size="23" font-weight="400" fill="#B9C2D0" text-anchor="start">3D MERFISH</text>
+<text x="608" y="492" font-family="DejaVu Sans" font-size="25" font-weight="400" fill="#F7F8FA" text-anchor="start">expression + 3D position</text>
+<rect x="1080" y="280" width="450" height="280" rx="28" fill="#141B2D" stroke="#2B3550" stroke-width="2"/>
+<rect x="1108" y="306" width="80" height="42" rx="21" fill="#EC7CA7"/>
+<text x="1148.0" y="335" font-family="DejaVu Sans" font-size="22" font-weight="700" fill="#0B1020" text-anchor="middle">T3</text>
+<text x="1108" y="390" font-family="DejaVu Sans" font-size="34" font-weight="700" fill="#F7F8FA" text-anchor="start">Perturbation</text>
+<text x="1108" y="438" font-family="DejaVu Sans" font-size="23" font-weight="400" fill="#B9C2D0" text-anchor="start">3D MERFISH</text>
+<text x="1108" y="492" font-family="DejaVu Sans" font-size="25" font-weight="400" fill="#F7F8FA" text-anchor="start">knockout response + 3D</text>
+<rect x="80" y="610" width="1450" height="140" rx="24" fill="#1B2440"/>
+<text x="110" y="655" font-family="DejaVu Sans" font-size="24" font-weight="700" fill="#F3C969" text-anchor="start">P2 now</text>
+<text x="110" y="700" font-family="DejaVu Sans" font-size="30" font-weight="700" fill="#F7F8FA" text-anchor="start">Validation leaderboard</text>
+<line x1="430" y1="680" x2="650" y2="680" stroke="#57D3C8" stroke-width="5" stroke-linecap="round"/>
+<polygon points="650,680 637.181702151249,689.5755543056633 637.181702151249,670.4244456943367" fill="#57D3C8"/>
+<text x="700" y="655" font-family="DejaVu Sans" font-size="24" font-weight="700" fill="#57D3C8" text-anchor="start">20 OCT</text>
+<text x="700" y="700" font-family="DejaVu Sans" font-size="30" font-weight="700" fill="#F7F8FA" text-anchor="start">P3 opens: validation answers released</text>
+<line x1="1200" y1="680" x2="1380" y2="680" stroke="#57D3C8" stroke-width="5" stroke-linecap="round"/>
+<polygon points="1380,680 1367.181702151249,689.5755543056633 1367.181702151249,670.4244456943367" fill="#57D3C8"/>
+<text x="1420" y="655" font-family="DejaVu Sans" font-size="24" font-weight="700" fill="#EC7CA7" text-anchor="start">2 DEC</text>
+<text x="1420" y="700" font-family="DejaVu Sans" font-size="30" font-weight="700" fill="#F7F8FA" text-anchor="middle">Final due</text>
+<line x1="70" y1="846" x2="1530" y2="846" stroke="#2B3550" stroke-width="2" stroke-linecap="round"/>
+<text x="70" y="878" font-family="DejaVu Sans" font-size="16" font-weight="400" fill="#B9C2D0" text-anchor="start">virtualembryo.ai/challenge - source snapshot 2026-10-05</text>
+<text x="1530" y="878" font-family="DejaVu Sans" font-size="16" font-weight="400" fill="#B9C2D0" text-anchor="end">Community visual resource - MIT</text>
+</svg>

@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+<rect width="1600" height="900" fill="#0B1020"/>
+<text x="80" y="68" font-family="DejaVu Sans" font-size="19" font-weight="700" fill="#57D3C8" text-anchor="start">VIRTUAL EMBRYO CHALLENGE</text>
+<text x="80" y="130" font-family="DejaVu Sans" font-size="48" font-weight="700" fill="#F7F8FA" text-anchor="start">Task 3 scoring map</text>
+<text x="80" y="178" font-family="DejaVu Sans" font-size="24" font-weight="400" fill="#B9C2D0" text-anchor="start">Task 3 scores the perturbation response. Absolute post-KO tissue shape is</text>
+<text x="80" y="210" font-family="DejaVu Sans" font-size="24" font-weight="400" fill="#B9C2D0" text-anchor="start">deliberately not a ranked question.</text>
+<rect x="100" y="300" width="414.0" height="110" rx="18" fill="#57D3C8"/>
+<text x="310.0" y="346" font-family="DejaVu Sans" font-size="30" font-weight="700" fill="#0B1020" text-anchor="middle">30%</text>
+<text x="310.0" y="382" font-family="DejaVu Sans" font-size="19" font-weight="700" fill="#0B1020" text-anchor="middle">Gene recovery</text>
+<rect x="520.0" y="300" width="344.0" height="110" rx="18" fill="#6CB6FF"/>
+<text x="695.0" y="346" font-family="DejaVu Sans" font-size="30" font-weight="700" fill="#0B1020" text-anchor="middle">25%</text>
+<text x="695.0" y="382" font-family="DejaVu Sans" font-size="19" font-weight="700" fill="#0B1020" text-anchor="middle">Direction</text>
+<rect x="870.0" y="300" width="344.0" height="110" rx="18" fill="#F3C969"/>
+<text x="1045.0" y="346" font-family="DejaVu Sans" font-size="30" font-weight="700" fill="#0B1020" text-anchor="middle">25%</text>
+<text x="1045.0" y="382" font-family="DejaVu Sans" font-size="19" font-weight="700" fill="#0B1020" text-anchor="middle">Magnitude</text>
+<rect x="1220.0" y="300" width="274.0" height="110" rx="18" fill="#82D982"/>
+<text x="1360.0" y="346" font-family="DejaVu Sans" font-size="30" font-weight="700" fill="#0B1020" text-anchor="middle">20%</text>
+<text x="1360.0" y="382" font-family="DejaVu Sans" font-size="19" font-weight="700" fill="#0B1020" text-anchor="middle">Cell states</text>
+<rect x="90.0" y="480" width="337.5" height="220" rx="24" fill="#141B2D"/>
+<text x="114.0" y="530" font-family="DejaVu Sans" font-size="23" font-weight="700" fill="#57D3C8" text-anchor="start">Gene recovery</text>
+<text x="114.0" y="575" font-family="DejaVu Sans" font-size="21" font-weight="400" fill="#F7F8FA" text-anchor="start">DES / de_score</text>
+<text x="114.0" y="605" font-family="DejaVu Sans" font-size="21" font-weight="400" fill="#F7F8FA" text-anchor="start">higher is better</text>
+<rect x="452.5" y="480" width="337.5" height="220" rx="24" fill="#141B2D"/>
+<text x="476.5" y="530" font-family="DejaVu Sans" font-size="23" font-weight="700" fill="#6CB6FF" text-anchor="start">Direction</text>
+<text x="476.5" y="575" font-family="DejaVu Sans" font-size="21" font-weight="400" fill="#F7F8FA" text-anchor="start">DCS / de_direction</text>
+<text x="476.5" y="605" font-family="DejaVu Sans" font-size="21" font-weight="400" fill="#F7F8FA" text-anchor="start">higher is better</text>
+<rect x="815.0" y="480" width="337.5" height="220" rx="24" fill="#141B2D"/>
+<text x="839.0" y="530" font-family="DejaVu Sans" font-size="23" font-weight="700" fill="#F3C969" text-anchor="start">Magnitude</text>
+<text x="839.0" y="575" font-family="DejaVu Sans" font-size="21" font-weight="400" fill="#F7F8FA" text-anchor="start">severity_slope</text>
+<text x="839.0" y="605" font-family="DejaVu Sans" font-size="21" font-weight="400" fill="#F7F8FA" text-anchor="start">zero is ideal</text>
+<rect x="1177.5" y="480" width="337.5" height="220" rx="24" fill="#141B2D"/>
+<text x="1201.5" y="530" font-family="DejaVu Sans" font-size="23" font-weight="700" fill="#82D982" text-anchor="start">Cell states</text>
+<text x="1201.5" y="575" font-family="DejaVu Sans" font-size="21" font-weight="400" fill="#F7F8FA" text-anchor="start">MMD + CSS</text>
+<text x="1201.5" y="605" font-family="DejaVu Sans" font-size="21" font-weight="400" fill="#F7F8FA" text-anchor="start">60/40 within group</text>
+<line x1="70" y1="846" x2="1530" y2="846" stroke="#2B3550" stroke-width="2" stroke-linecap="round"/>
+<text x="70" y="878" font-family="DejaVu Sans" font-size="16" font-weight="400" fill="#B9C2D0" text-anchor="start">virtualembryo.ai/challenge - source snapshot 2026-10-05</text>
+<text x="1530" y="878" font-family="DejaVu Sans" font-size="16" font-weight="400" fill="#B9C2D0" text-anchor="end">Community visual resource - MIT</text>
+</svg>
