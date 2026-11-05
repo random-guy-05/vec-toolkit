@@ -1,0 +1,258 @@
+{
+  "01": {
+    "input_counts": [
+      [
+        2.0,
+        4.0,
+        8.0
+      ],
+      [
+        1.0,
+        3.0,
+        5.0
+      ]
+    ],
+    "recovered_counts": [
+      [
+        1.0,
+        2.0,
+        4.0
+      ],
+      [
+        1.0,
+        3.0,
+        5.0
+      ]
+    ],
+    "exact_rows": 1,
+    "lesson": "Normalization loses a common integer factor."
+  },
+  "02": {
+    "target": [
+      0.2,
+      0.7,
+      1.4,
+      3.8
+    ],
+    "floor": [
+      0.0,
+      0.0,
+      1.0,
+      3.0
+    ],
+    "randomized_mean": [
+      0.202,
+      0.70021,
+      1.39812,
+      3.79941
+    ],
+    "max_error": 0.0020000000000000018
+  },
+  "03": {
+    "original_mean": 1.0,
+    "shift": -0.5,
+    "intended_mean": 0.5,
+    "clipped_mean": 0.75
+  },
+  "04": {
+    "zero_cells": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "random_activation": [
+      2,
+      3
+    ],
+    "supported_activation": [
+      1,
+      0
+    ],
+    "support": [
+      0.9,
+      0.8,
+      0.2,
+      0.1,
+      2.0
+    ]
+  },
+  "05": {
+    "normalize_after_mix": [
+      9.115140186122302,
+      6.813544494621113
+    ],
+    "mix_after_normalize": [
+      4.6052201834882585,
+      4.6052201834882585
+    ],
+    "difference": 5.0215609817365605
+  },
+  "06": {
+    "early_counts": [
+      900,
+      100
+    ],
+    "late_counts": [
+      90,
+      100
+    ],
+    "early_fraction": [
+      0.9,
+      0.1
+    ],
+    "late_fraction": [
+      0.47368421052631576,
+      0.5263157894736842
+    ],
+    "unchanged_heart_count": true,
+    "warning": "A changed observed fraction need not mean more heart cells."
+  },
+  "07": {
+    "unbiased_mmd_squared": -0.8617044036602768,
+    "biased_mmd_squared": 0.0029603131031104013,
+    "population_distance_nonnegative": true
+  },
+  "08": {
+    "domain_length": 1,
+    "fixed_neighbor_count": 15,
+    "physical_span": {
+      "100": 0.15151515151515152,
+      "1000": 0.015015015015015015,
+      "10000": 0.0015001500150015
+    }
+  },
+  "09": {
+    "covariance_perturbation": 1.4142135623730952e-08,
+    "principal_axis_angle_degrees": 45.00000000000001,
+    "eigenvalues": [
+      0.1,
+      1.0,
+      1.0
+    ]
+  },
+  "10": {
+    "unconstrained_determinant": -1.0000000000000007,
+    "proper_determinant": 1.0000000000000016,
+    "unconstrained_error": 6.891658975852732e-15,
+    "proper_error": 15.367278961474724
+  },
+  "11": {
+    "early_radius": 100.0,
+    "late_radius": 400.0,
+    "linear_midpoint": 250.0,
+    "constant_log_growth_midpoint": 200.0
+  },
+  "12": {
+    "full_rms": 1.7226292470793867,
+    "cropped_rms": 1.0827934049272807,
+    "retained_cells": 4852,
+    "biological_growth": 0
+  },
+  "13": {
+    "observed_type_deltas": [
+      [
+        -1.0,
+        1.5
+      ],
+      [
+        -1.0,
+        -0.5
+      ],
+      [
+        -1.0,
+        0.5
+      ]
+    ],
+    "common_component": [
+      -1.0,
+      0.5
+    ],
+    "residual": [
+      [
+        0.0,
+        1.0
+      ],
+      [
+        0.0,
+        -1.0
+      ],
+      [
+        0.0,
+        0.0
+      ]
+    ],
+    "caveat": "Common biology and batch remain confounded without additional assumptions."
+  },
+  "14": {
+    "local_scores": [
+      1.0,
+      2.0,
+      2.0,
+      4.0
+    ],
+    "official_scores": [
+      4.0,
+      2.0,
+      2.0,
+      1.0
+    ],
+    "tie_aware_spearman": -1.0,
+    "constant_series_correlation": null
+  },
+  "15": {
+    "cell_split_shared_specimens": 6,
+    "specimen_split_shared_specimens": 0,
+    "total_specimens": 6
+  },
+  "16": {
+    "pooled_spearman": 0.9352941176470588,
+    "within_family_spearman": [
+      0.39999999999999997,
+      0.39999999999999997,
+      -0.7999999999999999,
+      -0.39999999999999997
+    ],
+    "independent_families": 4,
+    "variants": 16,
+    "lesson": "Many variants do not create many independent method families."
+  },
+  "17": {
+    "type_means_before": [
+      1.0,
+      8.0
+    ],
+    "type_means_after": [
+      2.0,
+      9.0
+    ],
+    "aggregate_before": 7.3,
+    "aggregate_after": 2.7
+  },
+  "18": {
+    "c_layout": true,
+    "f_layout": true,
+    "semantic_digest_equal": true,
+    "warning": "A real semantic hash must also include shape, gene order, cell order and coordinates."
+  },
+  "19": {
+    "measured_zero": {
+      "gene": "G",
+      "measured": true,
+      "value": 0
+    },
+    "absent_panel_gene": {
+      "gene": "G",
+      "measured": false,
+      "value": null
+    },
+    "zero_fill_cannot_preserve_measurement_status": true
+  },
+  "20": {
+    "gene_pair_functional_before": 0.9446099464524159,
+    "gene_pair_functional_after": 0.9446099464524159,
+    "sequence_neighbor_distance_before": 2.1422813806369296,
+    "sequence_neighbor_distance_after": 2.1619532929742107,
+    "lesson": "Gene-gene structure and spatial structure answer different questions."
+  }
+}

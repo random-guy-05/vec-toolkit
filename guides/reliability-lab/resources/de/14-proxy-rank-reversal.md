@@ -1,0 +1,62 @@
+# Lokale Validierung kann offizielle Rangfolgen umkehren
+
+**Deutsch · Reliability Lab 14 · Zuverlässigkeitsexperiment mit Lösung**
+
+Dieses Experiment erklärt anhand synthetischer Daten ein Problem bei der Modellierung oder Bewertung von Einzelzell- und räumlichen Vorhersagen. Es liest keine Wettbewerbsdaten, berechnet keinen offiziellen Score und sagt keine Ergebnisse verborgener Proben voraus.
+
+Ein lokaler Ersatz hilft bei der Modellauswahl nur, wenn seine Rangfolge übertragbar ist. Hohe lokale Werte zeigen das nicht. Gleiche Scores benötigen gebundene Ränge.
+
+## Beispiel ausführen
+
+Erstellen Sie eine neue Umgebung, klonen Sie das Repository und installieren Sie die angegebene Abhängigkeit. Führen Sie den Befehl im Hauptverzeichnis aus. Lesen Sie zuerst die unveränderte Ausgabe. Befehle und JSON-Schlüssel sind in allen Sprachausgaben dieselben Code-Bezeichner.
+
+```sh
+git clone https://github.com/random-guy-05/vec-reliability-lab.git
+cd vec-reliability-lab
+python3 -m venv .venv
+# macOS/Linux; Windows: .venv\Scripts\activate
+. .venv/bin/activate
+python3 -m pip install -r requirements.txt
+python3 tools/experiments.py --lesson 14 --seed 7
+```
+
+## Frage
+
+Was bedeutet Spearman gleich -1?
+
+## Referenzausgabe: Seed 7
+
+```json
+{
+  "local_scores": [
+    1.0,
+    2.0,
+    2.0,
+    4.0
+  ],
+  "official_scores": [
+    4.0,
+    2.0,
+    2.0,
+    1.0
+  ],
+  "tie_aware_spearman": -1.0,
+  "constant_series_correlation": null
+}
+```
+
+## Auswertung
+
+Die Reihenfolgen sind einschließlich des mittleren Gleichstands exakt umgekehrt. Für eine konstante Reihe ist die Korrelation undefiniert: null.
+
+## Weiteres Experiment
+
+Lösen Sie einen Gleichstand durch Änderung eines Scores auf.
+
+## Grenzen
+
+Das Beispiel isoliert einen numerischen Mechanismus. Es belegt weder dessen Bedeutung in realen Daten noch eine kausale Deutung und ersetzt nicht die offizielle Bewertung. Bewahren Sie Annahmen, Herkunft und Originaldaten auf.
+
+Maschinell unterstützte, angepasste Ausgabe ohne bestätigte muttersprachliche Prüfung. Korrekturen sind willkommen. Englisch ist die sachliche Referenz; Code und mathematische Werte bleiben unverändert.
+
+[Source code](../../tools/experiments.py) · [Canonical English](../en/14-proxy-rank-reversal.md) · [Sources and scope](../../SOURCES.md) · [All editions](../../README.md)
