@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="See how different per-cell sequencing depths affect raw counts and how counts-per-10,000 rescales them when transcript fractions are equal.">
+  <title>Library-Size Normalization Demonstrator · VEC</title>
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<main class="wrap">
+  <header class="tool-head">
+    <nav><a href="../../">← Participation Workbench</a> · <a href="https://virtualembryo.ai/challenge/data">Official data page</a> · <a href="https://virtualembryo.ai/challenge/resources">Community resources</a></nav>
+    <p class="eyebrow">Expression scales · synthetic demonstration</p>
+    <h1>Library-Size Normalization Demonstrator</h1>
+    <p class="lede">Simulate one feature in two groups with different reads per cell. Compare raw counts, counts-per-10,000, and log1p of the normalized value while independently choosing whether the feature's true transcript fraction changes.</p>
+  </header>
+  <section class="panel">
+    <h2>Set the synthetic groups</h2>
+    <div class="cols">
+      <div><label for="cells">Cells per group (100–1,000)</label><input id="cells" type="number" min="100" max="1000" step="100" value="300"></div>
+      <div><label for="depth">Reads per cell in group A (100–5,000)</label><input id="depth" type="number" min="100" max="5000" step="100" value="1000"></div>
+      <div><label for="ratio">Group B:A library-size ratio (0.5–3)</label><input id="ratio" type="number" min="0.5" max="3" step="0.1" value="2"></div>
+      <div><label for="fraction">Feature fraction in group A (%)</label><input id="fraction" type="number" min="0.1" max="10" step="0.1" value="2"></div>
+      <div><label for="effect">True feature-fraction ratio in B:A (0.5–2)</label><input id="effect" type="number" min="0.5" max="2" step="0.1" value="1"></div>
+      <div><label for="seed">Seed</label><input id="seed" type="number" min="0" max="4294967295" value="7"></div>
+    </div>
+    <div class="inline"><button id="simulate" type="button">Simulate cells</button><button id="download" class="secondary" type="button" disabled>Download synthetic table</button></div>
+    <div id="summary" class="output" aria-live="polite">Run the simulation to compare group means on three expression scales.</div>
+    <div class="table-wrap"><canvas id="chart" width="900" height="330" role="img" aria-label="Bar charts comparing raw counts, counts per ten thousand, and log1p normalized counts between groups"></canvas></div>
+  </section>
+  <section class="panel">
+    <h2>What normalization does and does not do</h2>
+    <p>When the underlying feature fraction is the same, a group with more reads per cell tends to have more raw counts. Dividing by each cell's total library size puts counts on a common per-10,000 scale; log1p then compresses that scale.</p>
+    <p>Here, each simulated cell has a fixed total count within its group, and the feature count is drawn from a binomial model. The controls change the feature's true fraction independently of the library-size ratio, so you can see whether normalization preserves a relative change in this simplified setting.</p>
+    <p class="hint">This is a single-feature toy example, not a normalization recommendation, differential-expression model, or VEC prediction. It does not handle composition bias, cell-level covariates, zero inflation, or the official task's supplied expression scale. All data stay in this browser.</p>
+  </section>
+  <footer class="foot"><a href="../../simulations/log-compression/">Log-Transform Compression Explorer</a> · <a href="../../simulations/count-dispersion/">Count Dispersion Explorer</a> · <a href="https://virtualembryo.ai/challenge/data">Current data schema</a></footer>
+</main>
+<script>
+(() => {
+  const $=id=>document.getElementById(id);let records=[];
+  function random(seed){let t=seed>>>0;return()=>{t+=0x6D2B79F5;let x=t;x=Math.imul(x^(x>>>15),x|1);x^=x+Math.imul(x^(x>>>7),x|61);return((x^(x>>>14))>>>0)/4294967296;};}
+  function binomial(n,p,r){let k=0;for(let i=0;i<n;i++)if(r()<p)k++;return k;}
+  function stats(rows){const mean=f=>rows.reduce((s,x)=>s+x[f],0)/rows.length;return{raw:mean("gene"),cpm:mean("cpm"),log:mean("log"),zeros:rows.filter(x=>x.gene===0).length/rows.length};}
+  function chart(a,b){const canvas=$("chart"),ctx=canvas.getContext("2d"),w=canvas.width,h=canvas.height;ctx.clearRect(0,0,w,h);const panels=[{x:55,w:235,key:"raw",title:"Raw feature counts"},{x:350,w:235,key:"cpm",title:"Counts per 10,000"},{x:645,w:205,key:"log",title:"log1p normalized"}];for(const p of panels){const top=Math.max(a[p.key],b[p.key])*1.2||1;ctx.fillStyle="#202833";ctx.font="14px system-ui";ctx.fillText(p.title,p.x,24);ctx.strokeStyle="#9aa5b1";ctx.beginPath();ctx.moveTo(p.x,45);ctx.lineTo(p.x,h-40);ctx.lineTo(p.x+p.w,h-40);ctx.stroke();const bw=55,scale=(h-95)/top;ctx.fillStyle="#227a74";ctx.fillRect(p.x+35,h-40-a[p.key]*scale,bw,a[p.key]*scale);ctx.fillStyle="#b14c72";ctx.fillRect(p.x+120,h-40-b[p.key]*scale,bw,b[p.key]*scale);ctx.fillStyle="#333";ctx.font="12px system-ui";ctx.fillText("A",p.x+56,h-20);ctx.fillText("B",p.x+141,h-20);ctx.fillText(a[p.key].toPrecision(3),p.x+30,h-47-a[p.key]*scale);ctx.fillText(b[p.key].toPrecision(3),p.x+115,h-47-b[p.key]*scale);}ctx.fillStyle="#227a74";ctx.fillRect(720,300,10,10);ctx.fillStyle="#222";ctx.fillText("Group A",735,310);ctx.fillStyle="#b14c74";ctx.fillRect(805,300,10,10);ctx.fillStyle="#222";ctx.fillText("Group B",820,310);}
+  function run(){const cells=Number($("cells").value),depth=Number($("depth").value),ratio=Number($("ratio").value),fraction=Number($("fraction").value)/100,effect=Number($("effect").value),seed=Number($("seed").value),out=$("summary");if(!Number.isInteger(cells)||cells<100||cells>1000||!Number.isInteger(depth)||depth<100||depth>5000||!Number.isFinite(ratio)||ratio<.5||ratio>3||!Number.isFinite(fraction)||fraction<.001||fraction>.1||!Number.isFinite(effect)||effect<.5||effect>2||!Number.isInteger(seed)||seed<0||seed>4294967295){out.textContent="Use cells 100–1,000, depth 100–5,000, library ratio 0.5–3, feature fraction 0.1–10%, effect 0.5–2, and a valid seed.";return;}if(fraction*effect>.2){out.textContent="The feature fraction in Group B must be at most 20%.";return;}const r=random(seed),a=[],b=[],depthB=Math.max(1,Math.round(depth*ratio)),pB=fraction*effect;records=[];for(let i=0;i<cells;i++){const ga=binomial(depth,fraction,r),gb=binomial(depthB,pB,r),ra={group:"A",cell:`A_${i+1}`,total:depth,gene:ga,cpm:ga/depth*10000,log:Math.log1p(ga/depth*10000)},rb={group:"B",cell:`B_${i+1}`,total:depthB,gene:gb,cpm:gb/depthB*10000,log:Math.log1p(gb/depthB*10000)};a.push(ra);b.push(rb);records.push(ra,rb);}const sa=stats(a),sb=stats(b),ratioText=(x,y)=>x===0?"undefined (Group A mean is zero)":(y/x).toFixed(3);chart(sa,sb);out.innerHTML=`<div class="table-wrap"><table><thead><tr><th>Scale</th><th>Group A mean</th><th>Group B mean</th><th>B:A ratio</th></tr></thead><tbody><tr><td>Raw feature counts</td><td>${sa.raw.toFixed(3)}</td><td>${sb.raw.toFixed(3)}</td><td>${ratioText(sa.raw,sb.raw)}</td></tr><tr><td>Counts per 10,000</td><td>${sa.cpm.toFixed(3)}</td><td>${sb.cpm.toFixed(3)}</td><td>${ratioText(sa.cpm,sb.cpm)}</td></tr><tr><td>log1p(CPM)</td><td>${sa.log.toFixed(3)}</td><td>${sb.log.toFixed(3)}</td><td>${ratioText(sa.log,sb.log)}</td></tr></tbody></table></div><p>Configured depth ratio: ${ratio.toFixed(2)} · true feature-fraction ratio: ${effect.toFixed(2)} · observed zero fraction A/B: ${(100*sa.zeros).toFixed(1)}% / ${(100*sb.zeros).toFixed(1)}%.</p><p class="hint">Sampling variation means observed ratios need not equal the configured ratios, especially with low feature abundance.</p>`;$("download").disabled=false;}
+  $("simulate").addEventListener("click",run);$("download").addEventListener("click",()=>{const content=[["group","synthetic_cell","total_counts","feature_counts","counts_per_10000","log1p_cpm"],...records.map(x=>[x.group,x.cell,x.total,x.gene,x.cpm,x.log])].map(r=>r.join(",")).join("\r\n"),url=URL.createObjectURL(new Blob([content],{type:"text/csv;charset=utf-8"})),a=document.createElement("a");a.href=url;a.download="vec-library-size-synthetic-cells.csv";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});run();
+})();
+</script>
+</body>
+</html>

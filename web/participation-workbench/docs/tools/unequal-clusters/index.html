@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Illustrate how unequal sample sizes and an assumed within-sample correlation affect an approximate clustered-data design effect.">
+  <title>Unequal Cluster Design Effect Explorer · VEC</title>
+  <link rel="stylesheet" href="../../assets/style.css">
+  <style>
+    .language-row{display:flex;justify-content:flex-end;margin-bottom:1rem}
+    .summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:.75rem;margin:1rem 0}
+    .summary-grid div{border:1px solid var(--line,#ddd);border-radius:.65rem;padding:.75rem}
+    .summary-grid strong{display:block;font-size:1.15rem;margin-top:.2rem}
+    .mono{font-variant-numeric:tabular-nums}
+  </style>
+</head>
+<body>
+<main class="wrap">
+  <header class="tool-head">
+    <nav><a href="../../" data-i18n="back">← Workbench</a> · <a href="https://virtualembryo.ai/challenge/resources" data-i18n="community">Community resources</a> · <a href="https://virtualembryo.ai/challenge/data" data-i18n="official">Official data page</a></nav>
+    <p class="eyebrow" data-i18n="eyebrow">Replicate structure · browser-local</p>
+    <h1 data-i18n="title">Unequal Cluster Design Effect Explorer</h1>
+    <p class="lede" data-i18n="description">Compare a balanced-cluster approximation with an unequal-size design effect using one observation count per independent sample and an assumed within-sample correlation.</p>
+  </header>
+  <section class="panel">
+    <div class="language-row">
+      <label for="language" data-i18n="languageLabel">Interface language</label>
+      <select id="language" aria-label="Interface language">
+        <option value="en">English</option><option value="es">Español</option><option value="zh-CN">简体中文</option>
+      </select>
+    </div>
+    <label for="counts" data-i18n="countsLabel">Independent sample counts</label>
+    <textarea id="counts" rows="8" spellcheck="false">sample_id,observations
+embryo-01,180
+embryo-02,260
+embryo-03,340
+embryo-04,520
+embryo-05,700
+embryo-06,1000</textarea>
+    <p class="hint" data-i18n="countsHint">Paste one row per independent sample, as sample_id,count, or paste one positive integer count per line. Use biological samples, not individual cells, as the clusters. Counts can represent cells, spots, or repeated measurements.</p>
+    <div class="cols">
+      <div><label for="icc" data-i18n="iccLabel">Assumed within-sample ICC</label><input id="icc" type="number" min="0" max="1" step="0.01" value="0.1"></div>
+    </div>
+    <div class="inline"><button id="calculate" type="button" data-i18n="calculate">Compare design effects</button><button id="example" class="secondary" type="button" data-i18n="example">Load example</button></div>
+    <div id="result" class="output" aria-live="polite" data-i18n="ready">Review the example, choose an assumed ICC, and compare.</div>
+  </section>
+  <section class="panel">
+    <h2 data-i18n="formulaTitle">Approximation used</h2>
+    <p class="mono">DEFF = 1 + (((1 + CV²) × mean cluster size) − 1) × ICC</p>
+    <p data-i18n="formulaText">The balanced comparison sets CV to zero while keeping the observed mean cluster size. Each effective observation count is total observations divided by its design effect. CV is calculated across the supplied sample counts using the population standard deviation.</p>
+    <p data-i18n="limits">This is a teaching approximation, not a fitted model, power analysis, confidence interval, or substitute for biological replication. ICC is an input scenario, not estimated from these counts. The effective observation count does not change how many independent samples you have. Informative cluster sizes, real correlation structures, covariates, unequal variances, and small numbers of clusters may need a more specific analysis.</p>
+    <p class="hint" data-i18n="privacy">Inputs remain in this browser tab. Nothing is uploaded, stored, or fetched.</p>
+  </section>
+  <footer class="foot"><a href="../../simulations/pseudoreplication/" data-i18n="related">Compare with the equal-cluster pseudoreplication simulation</a> · <a href="https://virtualembryo.ai/challenge/resources" data-i18n="checkResources">Check existing community resources</a></footer>
+</main>
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const copy = {
+    en: {
+      back:"← Workbench",community:"Community resources",official:"Official data page",eyebrow:"Replicate structure · browser-local",
+      title:"Unequal Cluster Design Effect Explorer",description:"Compare a balanced-cluster approximation with an unequal-size design effect using one observation count per independent sample and an assumed within-sample correlation.",
+      languageLabel:"Interface language",countsLabel:"Independent sample counts",
+      countsHint:"Paste one row per independent sample, as sample_id,count, or paste one positive integer count per line. Use biological samples, not individual cells, as the clusters. Counts can represent cells, spots, or repeated measurements.",
+      iccLabel:"Assumed within-sample ICC",calculate:"Compare design effects",example:"Load example",
+      ready:"Review the example, choose an assumed ICC, and compare.",formulaTitle:"Approximation used",
+      formulaText:"The balanced comparison sets CV to zero while keeping the observed mean cluster size. Each effective observation count is total observations divided by its design effect. CV is calculated across the supplied sample counts using the population standard deviation.",
+      limits:"This is a teaching approximation, not a fitted model, power analysis, confidence interval, or substitute for biological replication. ICC is an input scenario, not estimated from these counts. The effective observation count does not change how many independent samples you have. If cluster size relates to the outcome, or if real correlation structures, covariates, unequal variances, or few clusters matter, this approximation may not apply and a more specific analysis is needed.",
+      privacy:"Inputs remain in this browser tab. Nothing is uploaded, stored, or fetched.",
+      related:"Compare with the equal-cluster pseudoreplication simulation",checkResources:"Check existing community resources",
+      invalidCounts:"Enter at least two positive integer sample counts. IDs, when supplied, must be unique and every row must contain a valid count.",
+      invalidICC:"ICC must be a number from 0 through 1.",tooLarge:"The total count exceeds exact integer arithmetic in this browser.",
+      summary:"{clusters} independent samples · {total} observations · assumed ICC {icc}.",
+      avg:"Mean cluster size",cv:"Cluster-size CV",balanced:"Balanced-cluster design effect",unequal:"Unequal-size design effect",
+      effectiveBalanced:"Effective observations, balanced approximation",effectiveUnequal:"Effective observations, unequal-size approximation",
+      difference:"Change in effective observations",note:"These effective counts summarize correlation-adjusted information under the stated approximation. They are not counts of biological replicates and do not validate a study design."
+    },
+    es: {
+      back:"← Herramientas",community:"Recursos comunitarios",official:"Datos oficiales",eyebrow:"Estructura de réplicas · local en el navegador",
+      title:"Explorador del efecto de diseño con grupos desiguales",description:"Compara una aproximación con grupos equilibrados con un efecto de diseño para tamaños desiguales, usando el conteo por muestra independiente y una correlación intramuestra supuesta.",
+      languageLabel:"Idioma de la interfaz",countsLabel:"Conteos por muestra independiente",
+      countsHint:"Pega una fila por muestra independiente, como sample_id,count, o un entero positivo por línea. Usa muestras biológicas, no células individuales, como grupos. Los conteos pueden representar células, puntos o mediciones repetidas.",
+      iccLabel:"ICC intramuestra supuesto",calculate:"Comparar efectos de diseño",example:"Cargar ejemplo",
+      ready:"Revisa el ejemplo, elige un ICC supuesto y compara.",formulaTitle:"Aproximación utilizada",
+      formulaText:"La comparación equilibrada fija el CV en cero y mantiene el tamaño medio observado del grupo. Cada conteo efectivo es el total de observaciones dividido por su efecto de diseño. El CV se calcula entre los conteos de muestra usando la desviación estándar poblacional.",
+      limits:"Es una aproximación educativa, no un modelo ajustado, análisis de potencia, intervalo de confianza ni sustituto de la replicación biológica. El ICC es un escenario de entrada, no se estima con estos conteos. El conteo efectivo no cambia cuántas muestras independientes tienes. Si el tamaño del grupo se relaciona con el resultado, o importan las estructuras reales de correlación, covariables, varianzas desiguales o pocos grupos, esta aproximación puede no ser válida y se necesita un análisis específico.",
+      privacy:"Los valores permanecen en esta pestaña. No se suben, guardan ni obtienen datos.",
+      related:"Comparar con la simulación de pseudorreplicación con grupos iguales",checkResources:"Consultar recursos comunitarios existentes",
+      invalidCounts:"Introduce al menos dos conteos positivos enteros. Si incluyes IDs, deben ser únicos y cada fila debe tener un conteo válido.",
+      invalidICC:"El ICC debe ser un número entre 0 y 1.",tooLarge:"El conteo total supera la aritmética entera exacta de este navegador.",
+      summary:"{clusters} muestras independientes · {total} observaciones · ICC supuesto {icc}.",
+      avg:"Tamaño medio del grupo",cv:"CV del tamaño de grupo",balanced:"Efecto de diseño con grupos iguales",unequal:"Efecto de diseño con tamaños desiguales",
+      effectiveBalanced:"Observaciones efectivas, aproximación equilibrada",effectiveUnequal:"Observaciones efectivas, tamaños desiguales",
+      difference:"Cambio en observaciones efectivas",note:"Estos conteos efectivos resumen la información ajustada por correlación bajo la aproximación indicada. No son conteos de réplicas biológicas ni validan el diseño."
+    },
+    "zh-CN": {
+      back:"← 工具箱",community:"社区资源",official:"官方数据页",eyebrow:"重复样本结构 · 浏览器本地处理",
+      title:"不等簇设计效应探索器",description:"根据每个独立样本的观测数量和假设的样本内相关性，对比平衡簇近似与不等簇大小的设计效应。",
+      languageLabel:"界面语言",countsLabel:"独立样本的观测数量",
+      countsHint:"每个独立样本粘贴一行，格式为 sample_id,count；也可每行粘贴一个正整数。簇应是生物样本，而不是单个细胞。计数可代表细胞、空间点或重复测量。",
+      iccLabel:"假设的样本内 ICC",calculate:"比较设计效应",example:"载入示例",
+      ready:"查看示例，选择假设的 ICC，然后比较。",
+      formulaTitle:"使用的近似公式",
+      formulaText:"平衡簇比较将 CV 设为零，同时保留观测到的平均簇大小。有效观测数为总观测数除以设计效应。CV 使用所提供样本计数的总体标准差计算。",
+      limits:"这是教学近似，不是拟合模型、功效分析、置信区间，也不能替代生物学重复。ICC 是输入情景，并非由这些计数估计。有效观测数不会改变独立样本的数量。若簇大小与结果相关，或真实相关结构、协变量、方差不齐及簇数量较少很重要，本近似可能不适用，需要更具体的分析。",
+      privacy:"输入仅保留在此浏览器标签页中，不会上传、存储或获取。",
+      related:"与等大小簇伪重复模拟对比",checkResources:"查看已有社区资源",
+      invalidCounts:"请输入至少两个正整数样本计数。若提供 ID，ID 必须唯一，且每行都要有有效计数。",
+      invalidICC:"ICC 必须是 0 到 1 之间的数值。",tooLarge:"总计数超出此浏览器可精确表示的整数范围。",
+      summary:"{clusters} 个独立样本 · {total} 个观测 · 假设 ICC 为 {icc}。",
+      avg:"平均簇大小",cv:"簇大小 CV",balanced:"平衡簇设计效应",unequal:"不等簇设计效应",
+      effectiveBalanced:"有效观测数，平衡簇近似",effectiveUnequal:"有效观测数，不等簇近似",
+      difference:"有效观测数变化",note:"这些有效计数是在所述近似下对相关性调整后信息量的总结。它们不是生物学重复数量，也不能验证研究设计。"
+    }
+  };
+  const language = $("language");
+  let lastSummary = null;
+  function t(key) { const selected = copy[language.value] || copy.en; return selected[key] === undefined ? copy.en[key] : selected[key]; }
+  function msg(key, values) { let result = t(key); for (const [name, value] of Object.entries(values || {})) result = result.split("{" + name + "}").join(String(value)); return result; }
+  function format(value, digits) { return Number(value).toLocaleString(undefined, { maximumFractionDigits: digits === undefined ? 3 : digits }); }
+  function applyLanguage() {
+    const lang = language.value;
+    document.documentElement.lang = lang === "zh-CN" ? "zh-Hans" : lang;
+    document.querySelectorAll("[data-i18n]").forEach((node) => { node.textContent = t(node.dataset.i18n); });
+    language.setAttribute("aria-label", t("languageLabel"));
+    const url = new URL(location.href);
+    if (lang === "en") url.searchParams.delete("lang"); else url.searchParams.set("lang", lang);
+    try { history.replaceState(null, "", url); } catch (_) {}
+    if (lastSummary) render(lastSummary);
+  }
+  function parseCounts(text) {
+    const lines = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+    if (!lines.length) throw new Error(t("invalidCounts"));
+    let start = 0;
+    const first = lines[0].replace(/\s/g, "");
+    if (/^(sample_id|sample|replicate_id),?(count|observations)$/i.test(first) || /^(count|observations)$/i.test(first)) start = 1;
+    const ids = new Set(), values = [];
+    for (let i = start; i < lines.length; i++) {
+      const fields = lines[i].split(",").map((field) => field.trim());
+      if (fields.length > 2 || fields.some((field) => !field)) throw new Error(t("invalidCounts"));
+      let id, raw;
+      if (fields.length === 1) { id = "sample-" + (i - start + 1); raw = fields[0]; }
+      else { id = fields[0]; raw = fields[1]; }
+      const count = Number(raw);
+      if (!/^\d+$/.test(raw) || !Number.isSafeInteger(count) || count < 1 || ids.has(id)) throw new Error(t("invalidCounts"));
+      ids.add(id); values.push(count);
+    }
+    if (values.length < 2) throw new Error(t("invalidCounts"));
+    const total = values.reduce((sum, value) => sum + value, 0);
+    if (!Number.isSafeInteger(total)) throw new Error(t("tooLarge"));
+    return { values, total };
+  }
+  function calculate() {
+    try {
+      const parsed = parseCounts($("counts").value), iccRaw = $("icc").value.trim(), icc = iccRaw ? Number(iccRaw) : NaN;
+      if (!Number.isFinite(icc) || icc < 0 || icc > 1) throw new Error(t("invalidICC"));
+      const values = parsed.values, clusters = values.length, mean = parsed.total / clusters;
+      const variance = values.reduce((sum, value) => sum + (value - mean) ** 2, 0) / clusters;
+      const cv = Math.sqrt(variance) / mean;
+      const balancedDeff = 1 + (mean - 1) * icc;
+      const unequalDeff = 1 + (((1 + cv * cv) * mean) - 1) * icc;
+      lastSummary = {
+        clusters, total: parsed.total, icc, mean, cv, balancedDeff, unequalDeff,
+        balancedEffective: parsed.total / balancedDeff,
+        unequalEffective: parsed.total / unequalDeff
+      };
+      render(lastSummary);
+    } catch (error) {
+      lastSummary = null;
+      $("result").textContent = error.message;
+    }
+  }
+  function render(summary) {
+    const out = $("result"); out.replaceChildren();
+    const heading = document.createElement("p");
+    heading.textContent = msg("summary", { clusters: format(summary.clusters, 0), total: format(summary.total, 0), icc: format(summary.icc, 3) });
+    out.append(heading);
+    const grid = document.createElement("div"); grid.className = "summary-grid";
+    const items = [
+      [t("avg"), format(summary.mean, 3)],
+      [t("cv"), format(summary.cv, 4)],
+      [t("balanced"), format(summary.balancedDeff, 4)],
+      [t("unequal"), format(summary.unequalDeff, 4)],
+      [t("effectiveBalanced"), format(summary.balancedEffective, 2)],
+      [t("effectiveUnequal"), format(summary.unequalEffective, 2)],
+      [t("difference"), format(summary.unequalEffective - summary.balancedEffective, 2)]
+    ];
+    items.forEach(([label, value]) => {
+      const card = document.createElement("div"), caption = document.createElement("span"), number = document.createElement("strong");
+      caption.textContent = label; number.textContent = value; card.append(caption, number); grid.append(card);
+    });
+    out.append(grid);
+    const note = document.createElement("p"); note.className = "hint"; note.textContent = t("note"); out.append(note);
+  }
+  $("calculate").addEventListener("click", calculate);
+  $("example").addEventListener("click", () => {
+    $("counts").value = "sample_id,observations\nembryo-01,180\nembryo-02,260\nembryo-03,340\nembryo-04,520\nembryo-05,700\nembryo-06,1000";
+    $("icc").value = "0.1";
+    calculate();
+  });
+  language.value = new URLSearchParams(location.search).get("lang") || "en";
+  if (!["en", "es", "zh-CN"].includes(language.value)) language.value = "en";
+  language.addEventListener("change", applyLanguage);
+  applyLanguage();
+})();
+</script>
+</body>
+</html>

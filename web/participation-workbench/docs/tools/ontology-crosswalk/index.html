@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Curate evidence-linked cell-label crosswalks to ontology identifiers without automatically guessing biological mappings.">
+  <title>Cell-Label Ontology Crosswalk Curator · VEC</title>
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<main class="wrap">
+  <header class="tool-head">
+    <nav><a href="../../">← Participation Workbench</a> · <a href="https://virtualembryo.ai/challenge/data">Official data page</a> · <a href="https://virtualembryo.ai/challenge/resources">Community resources</a></nav>
+    <p class="eyebrow">Annotation interoperability · browser-local</p>
+    <h1>Cell-Label Ontology Crosswalk Curator</h1>
+    <p class="lede">Attach participant-proposed ontology CURIEs, evidence notes, and review status to a cell-label vocabulary. See unmapped labels and many-to-one mappings before exporting a crosswalk for collaborators.</p>
+  </header>
+  <section class="panel">
+    <h2>1. Paste the labels in use</h2>
+    <label for="labels">CSV with label and optional cells columns</label>
+    <textarea id="labels" rows="8" spellcheck="false" placeholder="label,cells&#10;endothelial cell,120&#10;cardiomyocyte,95"></textarea>
+    <h2>2. Paste your proposed mapping</h2>
+    <label for="mapping">CSV with label, curie, status, evidence columns</label>
+    <textarea id="mapping" rows="8" spellcheck="false" placeholder="label,curie,status,evidence&#10;endothelial cell,EXAMPLE:001,proposed,Synthetic example only&#10;cardiomyocyte,,unmapped,No reviewed match yet"></textarea>
+    <p class="hint">Status must be <code>proposed</code>, <code>reviewed</code>, or <code>unmapped</code>. A CURIE is checked for prefix:identifier shape only. This page does not fetch an ontology or verify that an identifier exists.</p>
+    <div class="inline"><button id="audit" type="button">Review crosswalk</button><button id="example" type="button" class="secondary">Load synthetic example</button><button id="clear" type="button" class="secondary">Clear</button><button id="download" type="button" class="secondary" disabled>Download crosswalk CSV</button></div>
+    <div id="result" class="output" aria-live="polite">Paste the labels and proposed mapping, then review coverage, syntax, evidence, and duplicate targets.</div>
+  </section>
+  <section class="panel">
+    <h2>Review before sharing</h2>
+    <ul>
+      <li>Unmapped labels remain visible; the tool never guesses a cell type from a name.</li>
+      <li>Many source labels can map to one CURIE, but each merge should have an explicit biological rationale.</li>
+      <li>“Reviewed” is a status entered by your team. It does not mean the tool or an ontology authority validated the mapping.</li>
+    </ul>
+    <p class="hint">All parsing and reporting happen in this browser tab. Pasted labels and notes are not uploaded or saved. The exported CSV is a review artifact, not a replacement for the source annotations.</p>
+  </section>
+  <footer class="foot"><a href="../../tools/label-harmonizer/">Cell-Label Mapping Auditor</a> · <a href="../../tools/annotation-concordance/">Cell Annotation Concordance Auditor</a> · <a href="https://virtualembryo.ai/challenge/rules">Current rules</a></footer>
+</main>
+<script>
+(() => {
+  const $=id=>document.getElementById(id);let exportRows=[];
+  function parse(text){const rows=[];let row=[],field="",q=false;for(let i=0;i<text.length;i++){const c=text[i];if(q){if(c==='"'&&text[i+1]==='"'){field+='"';i++;}else if(c==='"')q=false;else field+=c;}else if(c==='"'&&field==="")q=true;else if(c===","){row.push(field);field="";}else if(c==="\n"||c==="\r"){if(c==="\r"&&text[i+1]==="\n")i++;row.push(field);rows.push(row);row=[];field="";}else field+=c;}if(q)throw Error("CSV contains an unclosed quoted field.");if(field!==""||row.length){row.push(field);rows.push(row);}return rows;}
+  const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  function audit(){const out=$("result");exportRows=[];$("download").disabled=true;try{
+    const lr=parse($("labels").value.trim()),mr=parse($("mapping").value.trim());if(lr.length<2||mr.length<2)throw Error("Add header rows and at least one row to both CSVs.");const lh=lr[0].map(x=>x.trim().toLowerCase()),mh=mr[0].map(x=>x.trim().toLowerCase()),li=lh.indexOf("label"),ci=lh.indexOf("cells"),ml=mh.indexOf("label"),mc=mh.indexOf("curie"),ms=mh.indexOf("status"),me=mh.indexOf("evidence");if(li<0||ml<0||mc<0||ms<0||me<0)throw Error("Labels need a label column. Mapping needs label, curie, status, and evidence columns.");
+    const labels=new Map();for(const r of lr.slice(1)){if(r.every(x=>x.trim()===""))continue;const label=(r[li]||"").trim();if(!label)throw Error("A labels row has a blank label.");if(labels.has(label))throw Error(`Duplicate source label: ${label}`);const cells=ci<0||!(r[ci]||"").trim()?1:Number(r[ci]);if(!Number.isFinite(cells)||cells<0)throw Error(`Invalid non-negative cell count for ${label}.`);labels.set(label,cells);}
+    const maps=new Map();for(const r of mr.slice(1)){if(r.every(x=>x.trim()===""))continue;const label=(r[ml]||"").trim(),curie=(r[mc]||"").trim(),status=(r[ms]||"").trim().toLowerCase(),evidence=(r[me]||"").trim();if(!label)throw Error("A mapping row has a blank label.");if(maps.has(label))throw Error(`Duplicate mapping row for ${label}.`);if(!["proposed","reviewed","unmapped"].includes(status))throw Error(`Unknown status for ${label}; use proposed, reviewed, or unmapped.`);if(status==="unmapped"&&curie)throw Error(`Unmapped label ${label} must have a blank CURIE.`);if(status!=="unmapped"&&!/^[A-Za-z][A-Za-z0-9_]*:[A-Za-z0-9._-]+$/.test(curie))throw Error(`CURIE for ${label} must have prefix:identifier shape.`);if(status!=="unmapped"&&!evidence)throw Error(`Add an evidence note for mapped label ${label}.`);maps.set(label,{curie,status,evidence});}
+    const byCurie=new Map(),items=[...labels].map(([label,cells])=>{const m=maps.get(label)||{curie:"",status:"unmapped",evidence:""};if(m.curie){if(!byCurie.has(m.curie))byCurie.set(m.curie,[]);byCurie.get(m.curie).push(label);}const mapStatus=maps.has(label)?m.status:"missing mapping row";const display=mapStatus==="reviewed"?"Team marked reviewed":mapStatus==="proposed"?"Needs review":mapStatus==="unmapped"?"Unmapped":"Missing row";exportRows.push({label,cells,curie:m.curie,status:mapStatus,evidence:m.evidence});return{label,cells,curie:m.curie,status:display,evidence:m.evidence};});
+    const extra=[...maps.keys()].filter(x=>!labels.has(x)),mapped=items.filter(x=>x.curie),reviewed=mapped.filter(x=>x.status==="Team marked reviewed"),weight=items.reduce((s,x)=>s+x.cells,0),mappedWeight=mapped.reduce((s,x)=>s+x.cells,0),multi=[...byCurie].filter(([,ls])=>ls.length>1);const tbody=items.map(x=>`<tr><td>${esc(x.label)}</td><td>${x.cells}</td><td>${esc(x.curie||"—")}</td><td>${esc(x.status)}</td><td>${esc(x.evidence||"—")}</td></tr>`).join("");const multiHtml=multi.length?`<h3>Many-to-one targets to review</h3><ul>${multi.map(([id,ls])=>`<li><code>${esc(id)}</code>: ${ls.map(esc).join(", ")}</li>`).join("")}</ul>`:"<p>No many-to-one CURIE targets among mapped labels.</p>";const extras=extra.length?`<p><strong>Mapping labels not present in the source vocabulary:</strong> ${extra.map(esc).join(", ")}</p>`:"";out.innerHTML=`<p><strong>${labels.size}</strong> source labels · <strong>${mapped.length}</strong> with a CURIE-shaped value · <strong>${reviewed.length}</strong> marked reviewed by your team · <strong>${weight?((mappedWeight/weight)*100).toFixed(1):"0.0"}%</strong> mapped cell-count coverage.</p><div class="table-wrap"><table><thead><tr><th>Source label</th><th>Cells</th><th>CURIE</th><th>Review status</th><th>Evidence note</th></tr></thead><tbody>${tbody}</tbody></table></div>${multiHtml}${extras}<p class="hint">CURIE syntax is shape-checked only; existence, namespace choice, and biological equivalence remain for human review.</p>`;$("download").disabled=false;
+  }catch(e){out.textContent=e.message;}}
+  $("audit").addEventListener("click",audit);$("example").addEventListener("click",()=>{$("labels").value='label,cells\nendothelial cell,120\nvascular endothelial cell,48\ncardiomyocyte,95\nunknown progenitor,12\n';$("mapping").value='label,curie,status,evidence\nendothelial cell,EXAMPLE:001,proposed,Synthetic example only; verify the chosen ontology release\nvascular endothelial cell,EXAMPLE:001,proposed,Synthetic potential synonym; review source definitions\ncardiomyocyte,EXAMPLE:002,reviewed,Synthetic example only; replace with team-reviewed evidence\nunknown progenitor,,unmapped,No reviewed mapping yet\n';audit();});$("clear").addEventListener("click",()=>{$("labels").value="";$("mapping").value="";exportRows=[];$("download").disabled=true;$("result").textContent="Paste the labels and proposed mapping, then review coverage, syntax, evidence, and duplicate targets.";});$("download").addEventListener("click",()=>{const q=s=>'"'+String(s).replace(/"/g,'""')+'"',content=[["label","cells","curie","status","evidence"],...exportRows.map(x=>[x.label,x.cells,x.curie,x.status,x.evidence])].map(r=>r.map(q).join(",")).join("\r\n"),url=URL.createObjectURL(new Blob([content],{type:"text/csv;charset=utf-8"})),a=document.createElement("a");a.href=url;a.download="vec-cell-label-ontology-crosswalk.csv";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
+})();
+</script>
+</body>
+</html>

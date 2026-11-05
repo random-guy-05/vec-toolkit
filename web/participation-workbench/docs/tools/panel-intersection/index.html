@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Compare exact gene identifiers across task or dataset panels and export shared features for exploratory transfer planning.">
+  <title>Gene Panel Intersection Planner · VEC</title>
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<main class="wrap">
+  <header class="tool-head">
+    <nav><a href="../../">← Participation Workbench</a> · <a href="https://virtualembryo.ai/challenge/data">Official gene panels</a> · <a href="https://virtualembryo.ai/challenge/resources">Community resources</a></nav>
+    <p class="eyebrow">Feature overlap · browser-local</p>
+    <h1>Gene Panel Intersection Planner</h1>
+    <p class="lede">Compare exact gene identifiers across two or more task or dataset panels. See intersections, panel-specific features, and Jaccard overlap, then export the shared identifiers for exploratory transfer planning.</p>
+  </header>
+  <section class="panel">
+    <h2>Paste one identifier list per panel</h2>
+    <p>Use one gene identifier per line, or separate identifiers with commas or spaces. Matching is exact and case-sensitive; this page does not map symbols, aliases, or orthologs.</p>
+    <div class="cols">
+      <div><label for="p1">Panel 1 · label and gene IDs</label><input id="n1" value="Task 1" aria-label="Panel 1 label"><textarea id="p1" rows="9" spellcheck="false"></textarea></div>
+      <div><label for="p2">Panel 2 · label and gene IDs</label><input id="n2" value="Task 2 embryo" aria-label="Panel 2 label"><textarea id="p2" rows="9" spellcheck="false"></textarea></div>
+      <div><label for="p3">Panel 3 · label and gene IDs (optional)</label><input id="n3" value="Task 2 heart" aria-label="Panel 3 label"><textarea id="p3" rows="9" spellcheck="false"></textarea></div>
+      <div><label for="p4">Panel 4 · label and gene IDs (optional)</label><input id="n4" value="Task 3" aria-label="Panel 4 label"><textarea id="p4" rows="9" spellcheck="false"></textarea></div>
+    </div>
+    <div class="inline"><button id="compare" type="button">Compare panels</button><button id="example" class="secondary" type="button">Load synthetic example</button><button id="clear" class="secondary" type="button">Clear</button><button id="downloadCommon" class="secondary" type="button" disabled>Download all-panel intersection</button><button id="downloadMatrix" class="secondary" type="button" disabled>Download membership matrix</button></div>
+    <div id="result" class="output" aria-live="polite">Enter at least two identifier lists, then compare.</div>
+  </section>
+  <section class="panel">
+    <h2>Use overlap as a planning aid</h2>
+    <p>A shared panel can help scope a model that reuses features across tasks, while panel-specific genes may carry task-specific signal. The fraction in common does not measure biological equivalence, expression quality, or whether a transfer strategy will work.</p>
+    <p class="hint">The comparison uses only identifiers you paste and does not read or transmit files. Check the current official panel files before using any exported list in a submission.</p>
+  </section>
+  <footer class="foot"><a href="../../tools/signature-coverage/">Gene Signature Coverage Auditor</a> · <a href="../../tools/orthology-audit/">Cross-Species Mapping Audit</a> · <a href="../../tools/metric-contract-diff/">Metric Contract Diff</a></footer>
+</main>
+<script>
+(() => {
+  const $=id=>document.getElementById(id);let panels=[],matrix=[];
+  const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const q=s=>'"'+String(s).replace(/"/g,'""')+'"';
+  function compare(){const out=$("result");panels=[];matrix=[];$("downloadCommon").disabled=true;$("downloadMatrix").disabled=true;for(let i=1;i<=4;i++){const raw=$("p"+i).value.trim();if(!raw)continue;const label=$("n"+i).value.trim()||`Panel ${i}`,entries=raw.split(/[\s,;]+/).map(x=>x.trim()).filter(Boolean),set=new Set(entries);panels.push({label,set,entries,duplicates:entries.length-set.size});}if(panels.length<2){out.textContent="Enter gene identifiers in at least two panels.";return;}const seen=new Set();for(const p of panels)for(const gene of p.set)seen.add(gene);const all=[...seen].sort((a,b)=>a.localeCompare(b));matrix=all.map(gene=>[gene,...panels.map(p=>p.set.has(gene)?1:0)]);const common=all.filter(gene=>panels.every(p=>p.set.has(gene)));let html=`<p><strong>${panels.length}</strong> panels · <strong>${all.length}</strong> union identifiers · <strong>${common.length}</strong> present in every entered panel.</p><div class="table-wrap"><table><thead><tr><th>Panel</th><th>Unique IDs</th><th>Repeated entries</th><th>IDs unique to panel</th><th>Present in all panels</th></tr></thead><tbody>`;for(const p of panels){const uniqueOnly=[...p.set].filter(g=>panels.every(other=>other===p||!other.set.has(g))).length;html+=`<tr><td>${esc(p.label)}</td><td>${p.set.size}</td><td>${p.duplicates}</td><td>${uniqueOnly}</td><td>${common.length}</td></tr>`;}html+="</tbody></table></div><h3>Pairwise Jaccard overlap</h3><div class=\"table-wrap\"><table><thead><tr><th>Panel A</th><th>Panel B</th><th>Intersection</th><th>Union</th><th>Jaccard</th><th>% of A</th><th>% of B</th></tr></thead><tbody>";for(let i=0;i<panels.length;i++)for(let j=i+1;j<panels.length;j++){const a=panels[i].set,b=panels[j].set,inter=[...a].filter(x=>b.has(x)).length,union=a.size+b.size-inter;html+=`<tr><td>${esc(panels[i].label)}</td><td>${esc(panels[j].label)}</td><td>${inter}</td><td>${union}</td><td>${union?(inter/union).toFixed(4):"—"}</td><td>${a.size?(100*inter/a.size).toFixed(1):"0.0"}%</td><td>${b.size?(100*inter/b.size).toFixed(1):"0.0"}%</td></tr>`;}html+="</tbody></table></div>";if(common.length)html+=`<p><strong>All-panel intersection preview:</strong> <code>${common.slice(0,20).map(esc).join(", ")}${common.length>20?", …":""}</code></p>`;html+="<p class=\"hint\">Repeated entries are counted once in set overlap and reported separately. Identifier matching is literal; a zero overlap can reflect naming conventions rather than distinct biology.</p>";out.innerHTML=html;$("downloadCommon").disabled=!common.length;$("downloadMatrix").disabled=false;}
+  $("compare").addEventListener("click",compare);$("example").addEventListener("click",()=>{$("p1").value="gene_A\ngene_B\ngene_C\ngene_D";$("p2").value="gene_B\ngene_C\ngene_E";$("p3").value="gene_A\ngene_C\ngene_F";$("p4").value="gene_B\ngene_C\ngene_D\ngene_G";compare();});$("clear").addEventListener("click",()=>{$("p1").value=$("p2").value=$("p3").value=$("p4").value="";panels=[];matrix=[];$("result").textContent="Enter at least two identifier lists, then compare.";$("downloadCommon").disabled=true;$("downloadMatrix").disabled=true;});$("downloadCommon").addEventListener("click",()=>{const common=matrix.filter(r=>r.slice(1).every(Boolean)).map(r=>r[0]).sort();const url=URL.createObjectURL(new Blob(["gene_id\r\n"+common.map(q).join("\r\n")],{type:"text/csv;charset=utf-8"})),a=document.createElement("a");a.href=url;a.download="vec-all-panel-intersection.csv";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});$("downloadMatrix").addEventListener("click",()=>{const content=[["gene_id",...panels.map(p=>p.label)],...matrix].map(r=>r.map(q).join(",")).join("\r\n"),url=URL.createObjectURL(new Blob([content],{type:"text/csv;charset=utf-8"})),a=document.createElement("a");a.href=url;a.download="vec-panel-membership-matrix.csv";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
+})();
+</script>
+</body>
+</html>

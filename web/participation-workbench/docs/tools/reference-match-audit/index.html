@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Audit exact sample-level matching-key coverage between a target group and its reference group.">
+  <title>Reference Match-Set Auditor · VEC</title>
+  <link rel="stylesheet" href="../../assets/style.css">
+  <link rel="stylesheet" href="../../assets/analysis-labs-l10n.css">
+  <style>
+    .match-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.45rem;margin:.5rem 0 1rem}
+    .match-fields label{display:flex;gap:.45rem;align-items:flex-start}
+  </style>
+</head>
+<body>
+<main class="wrap">
+  <header class="tool-head">
+    <nav><a href="../../">← Participation Workbench</a> · <a href="https://virtualembryo.ai/challenge/data">Official data page</a> · <a href="https://virtualembryo.ai/challenge/tasks">Task definitions</a></nav>
+    <div id="language-control"></div>
+    <p id="eyebrow" class="eyebrow">Reference design · browser-local</p>
+    <h1 id="title">Reference Match-Set Auditor</h1>
+    <p id="description" class="lede">Check whether target and reference samples share exact user-selected metadata keys before building contrasts. The audit reports coverage; it does not decide that a reference is scientifically appropriate.</p>
+  </header>
+  <section class="panel">
+    <h2 id="input-heading">Paste one row per independent sample</h2>
+    <p id="input-help">Use one row per independent sample. Read the headers, choose sample and group columns, then select only scientifically justified matching fields.</p>
+    <label id="csv-label" for="data">Sample metadata CSV</label>
+    <textarea id="data" rows="9" spellcheck="false" placeholder="sample_id,stage,genotype,batch,condition&#10;ctrl_1,E8.5,WT,A,control&#10;pert_1,E8.5,WT,A,perturbed&#10;ctrl_2,E9.0,WT,B,control"></textarea>
+    <div class="inline"><button id="read-headers" type="button" class="secondary">Read column headers</button><button id="example" type="button" class="secondary">Load synthetic example</button><button id="clear" type="button" class="secondary">Clear</button></div>
+    <div id="controls" class="cols"></div>
+    <div class="cols">
+      <div><label for="reference-value">Reference group value</label><input id="reference-value" value="control"></div>
+      <div><label for="target-value">Target group value</label><input id="target-value" value="perturbed"></div>
+    </div>
+    <p id="match-help">Choose the columns that define a comparable set (for example, stage, genotype, or batch). Sample ID and group columns cannot be matching keys.</p>
+    <div id="match-fields" class="match-fields" aria-label="Matching key columns"></div>
+    <div class="inline"><button id="audit" type="button" disabled>Audit reference coverage</button><button id="download" type="button" class="secondary" disabled>Download match-set summary</button></div>
+    <div id="result" class="output" aria-live="polite">Paste the manifest and read column headers.</div>
+  </section>
+  <section class="panel">
+    <h2 id="scope-heading">Interpret the match sets</h2>
+    <p id="scope-one">Exact key agreement reveals which target samples have at least one reference sample under the selected columns. Multiple samples sharing a key are reported as a set; this tool never pairs them arbitrarily. Unmatched samples and incomplete keys need review before analysis.</p>
+    <p id="scope-two">Exact metadata agreement does not establish biological matching, exchangeability, independent replication, or correct control selection. Include only scientifically justified matching fields, and check current task rules.</p>
+    <p id="local-note" class="hint">The interface, instructions, and results are translated. Your pasted data stays in this browser tab and is not uploaded or stored. The downloaded CSV keeps its headers and status labels in English for interoperability.</p>
+    <p id="privacy" class="hint">Limits: 5 MB of text and 100,000 sample rows.</p>
+  </section>
+  <footer class="foot"><a href="../../tools/reference-coverage/">Matched Reference Coverage Auditor</a> · <a href="../../tools/replicate-contrast/">Replicate-Aware Contrast Reporter</a> · <a href="https://virtualembryo.ai/challenge/rules">Current rules</a></footer>
+</main>
+<script src="locales.js"></script>
+<script>
+(() => {
+  "use strict";
+
+  const $ = id => document.getElementById(id);
+  const MAX_CHARS = 5_000_000;
+  const MAX_ROWS = 100_000;
+  const locales = window.referenceMatchAuditLocales || {};
+  let language = "en";
+  let headers = [];
+  let reportRows = null;
+  let selectedKeys = new Set();
+  let hasAttempted = false;
+
+  const copy = () => locales[language] || locales.en;
+  const t = (key, values = {}) => Object.entries(values).reduce(
+    (text, [name, value]) => text.replaceAll("{" + name + "}", String(value)),
+    copy()[key] || key
+  );
+  const esc = value => String(value).replace(/[&<>"']/g, char => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[char]));
+
+  function updateLanguage() {
+    const c = copy();
+    document.documentElement.lang = language === "zh-CN" ? "zh-Hans" : language;
+    document.title = c.pageTitle + " · VEC";
+    $("title").textContent = c.pageTitle;
+    $("eyebrow").textContent = c.eyebrow;
+    $("description").textContent = c.description;
+    $("input-heading").textContent = c.inputHeading;
+    $("input-help").textContent = c.inputHelp;
+    $("csv-label").textContent = c.csvLabel;
+    $("data").placeholder = c.placeholder;
+    $("read-headers").textContent = c.read;
+    $("example").textContent = c.example;
+    $("clear").textContent = c.clear;
+    $("reference-value").previousElementSibling.textContent = c.referenceLabel;
+    $("target-value").previousElementSibling.textContent = c.targetLabel;
+    $("match-fields").setAttribute("aria-label", c.matchAria);
+    $("match-help").textContent = c.matchHelp;
+    $("audit").textContent = c.audit;
+    $("download").textContent = c.download;
+    $("scope-heading").textContent = c.scopeHeading;
+    $("scope-one").textContent = c.scopeOne;
+    $("scope-two").textContent = c.scopeTwo;
+    $("local-note").textContent = c.noUpload;
+    $("privacy").textContent = c.privacy;
+
+    const navLinks = document.querySelectorAll(".tool-head nav a");
+    if (navLinks[0]) navLinks[0].textContent = c.back;
+    if (navLinks[1]) navLinks[1].textContent = c.data;
+    if (navLinks[2]) navLinks[2].textContent = c.tasks;
+    const footerLinks = document.querySelectorAll(".foot a");
+    if (footerLinks[0]) footerLinks[0].textContent = c.footerCoverage;
+    if (footerLinks[1]) footerLinks[1].textContent = c.footerContrast;
+    if (footerLinks[2]) footerLinks[2].textContent = c.rules;
+
+    const languageSelect = $("interface-language");
+    if (languageSelect) languageSelect.value = language;
+    const languageLabel = document.querySelector('label[for="interface-language"]');
+    if (languageLabel) languageLabel.textContent = c.language;
+
+    for (const [id, key] of [["sample-col", "sampleColumn"], ["group-col", "groupColumn"]]) {
+      const label = document.querySelector('label[for="' + id + '"]');
+      const select = $(id);
+      if (label) label.textContent = c[key];
+      if (select && select.options.length) select.options[0].textContent = c.chooseColumn;
+    }
+
+    if (hasAttempted) audit();
+    else $("result").textContent = headers.length ? c.ready : c.initial;
+  }
+
+  function initLanguage() {
+    const host = $("language-control");
+    const wrap = document.createElement("div");
+    wrap.className = "language-control";
+    const label = document.createElement("label");
+    label.htmlFor = "interface-language";
+    const select = document.createElement("select");
+    select.id = "interface-language";
+    select.setAttribute("aria-label", "Interface language / Idioma de la interfaz / 界面语言");
+    [["en", "English"], ["es", "Español"], ["zh-CN", "简体中文"]].forEach(([value, name]) => {
+      const option = document.createElement("option");
+      option.value = value;
+      option.textContent = name;
+      select.append(option);
+    });
+    wrap.append(label, select);
+    host.append(wrap);
+
+    const requested = new URLSearchParams(location.search).get("lang");
+    language = locales[requested] ? requested : "en";
+    select.addEventListener("change", () => {
+      language = locales[select.value] ? select.value : "en";
+      const url = new URL(location.href);
+      if (language === "en") url.searchParams.delete("lang");
+      else url.searchParams.set("lang", language);
+      history.replaceState(null, "", url);
+      updateLanguage();
+    });
+    updateLanguage();
+  }
+
+  function parseCsv(text, firstOnly = false) {
+    const rows = [];
+    let row = [];
+    let field = "";
+    let quoted = false;
+    let closed = false;
+    text = text.replace(/^\uFEFF/, "");
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+      if (quoted) {
+        if (char === '"' && text[i + 1] === '"') {
+          field += '"';
+          i++;
+        } else if (char === '"') {
+          quoted = false;
+          closed = true;
+        } else field += char;
+      } else if (closed) {
+        if (char === ",") {
+          row.push(field);
+          field = "";
+          closed = false;
+        } else if (char === "\n" || char === "\r") {
+          if (char === "\r" && text[i + 1] === "\n") i++;
+          row.push(field);
+          rows.push(row);
+          if (firstOnly) return rows;
+          row = [];
+          field = "";
+          closed = false;
+        } else if (char !== " " && char !== "\t") throw Error(t("quoteAfter"));
+      } else if (char === '"') {
+        if (field !== "") throw Error(t("quoteStart"));
+        quoted = true;
+      } else if (char === ",") {
+        row.push(field);
+        field = "";
+      } else if (char === "\n" || char === "\r") {
+        if (char === "\r" && text[i + 1] === "\n") i++;
+        row.push(field);
+        rows.push(row);
+        if (firstOnly) return rows;
+        row = [];
+        field = "";
+      } else field += char;
+    }
+    if (quoted) throw Error(t("quoteEnd"));
+    if (field !== "" || row.length || closed) {
+      row.push(field);
+      rows.push(row);
+    }
+    return rows;
+  }
+
+  function renderKeyFields() {
+    const box = $("match-fields");
+    box.querySelectorAll(".match-key").forEach(input => {
+      if (input.checked) selectedKeys.add(input.value);
+      else selectedKeys.delete(input.value);
+    });
+    box.replaceChildren();
+    if (!headers.length) return;
+    const sample = $("sample-col").value;
+    const group = $("group-col").value;
+    headers.forEach(name => {
+      if (name === sample || name === group) return;
+      const label = document.createElement("label");
+      const input = document.createElement("input");
+      input.type = "checkbox";
+      input.value = name;
+      input.className = "match-key";
+      input.checked = selectedKeys.has(name);
+      input.addEventListener("change", () => {
+        if (input.checked) selectedKeys.add(name);
+        else selectedKeys.delete(name);
+      });
+      label.append(input, document.createTextNode(name));
+      box.append(label);
+    });
+  }
+
+  function readHeaders() {
+    headers = [];
+    reportRows = null;
+    selectedKeys.clear();
+    hasAttempted = false;
+    $("controls").replaceChildren();
+    $("match-fields").replaceChildren();
+    $("audit").disabled = true;
+    $("download").disabled = true;
+    try {
+      const text = $("data").value;
+      if (text.length > MAX_CHARS) throw Error(t("inputTooLarge"));
+      const first = parseCsv(text, true);
+      if (!first.length) throw Error(t("pasteHeader"));
+      headers = first[0].map(value => value.trim());
+      if (headers.some(value => !value) || new Set(headers.map(value => value.toLowerCase())).size !== headers.length) {
+        throw Error(t("badHeaders"));
+      }
+      const specs = [["sample-col", "sampleColumn", "sample_id"], ["group-col", "groupColumn", "condition"]];
+      for (const [id, labelKey, guess] of specs) {
+        const wrap = document.createElement("div");
+        const label = document.createElement("label");
+        const select = document.createElement("select");
+        const match = headers.find(name => name.toLowerCase() === guess);
+        select.id = id;
+        label.htmlFor = id;
+        label.textContent = t(labelKey);
+        const placeholder = document.createElement("option");
+        placeholder.value = "";
+        placeholder.textContent = t("chooseColumn");
+        placeholder.selected = !match;
+        select.append(placeholder);
+        headers.forEach(name => {
+          const option = document.createElement("option");
+          option.value = name;
+          option.textContent = name;
+          if (name === match) option.selected = true;
+          select.append(option);
+        });
+        wrap.append(label, select);
+        $("controls").append(wrap);
+        select.addEventListener("change", renderKeyFields);
+      }
+      renderKeyFields();
+      $("audit").disabled = false;
+      $("result").textContent = t("ready");
+    } catch (error) {
+      $("result").textContent = error.message || String(error);
+    }
+  }
+
+  function csvCell(value) {
+    return '"' + String(value).replace(/"/g, '""') + '"';
+  }
+
+  function audit() {
+    hasAttempted = true;
+    reportRows = null;
+    $("download").disabled = true;
+    const out = $("result");
+    try {
+      const text = $("data").value;
+      if (text.length > MAX_CHARS) throw Error(t("inputTooLarge"));
+      const rows = parseCsv(text);
+      if (rows.length < 2) throw Error(t("addRows"));
+      const columnNames = rows[0].map(value => value.trim());
+      if (columnNames.join("\u0000") !== headers.join("\u0000")) throw Error(t("headerChanged"));
+
+      const sampleIndex = columnNames.indexOf($("sample-col").value);
+      const groupIndex = columnNames.indexOf($("group-col").value);
+      const keys = [...document.querySelectorAll(".match-key:checked")].map(input => input.value);
+      const keyIndices = keys.map(key => columnNames.indexOf(key));
+      if (sampleIndex < 0 || groupIndex < 0 || sampleIndex === groupIndex || !keys.length ||
+          keyIndices.some(index => index < 0) ||
+          new Set([sampleIndex, groupIndex, ...keyIndices]).size !== 2 + keyIndices.length) {
+        throw Error(t("distinctFields"));
+      }
+
+      const referenceValue = $("reference-value").value.trim();
+      const targetValue = $("target-value").value.trim();
+      if (!referenceValue || !targetValue || referenceValue === targetValue) throw Error(t("groupValues"));
+
+      const seen = new Set();
+      const sets = new Map();
+      let dataRows = 0;
+      let otherGroups = 0;
+      let incomplete = 0;
+      let relevant = 0;
+      for (const [index, record] of rows.slice(1).entries()) {
+        if (record.every(value => value.trim() === "")) continue;
+        dataRows++;
+        if (dataRows > MAX_ROWS) throw Error(t("tooManyRows"));
+        if (record.length !== columnNames.length) {
+          throw Error(t("rowFields", {row: index + 1, actual: record.length, expected: columnNames.length}));
+        }
+        const id = record[sampleIndex].trim();
+        const group = record[groupIndex].trim();
+        if (!id || !group) throw Error(t("blankIdentity", {row: index + 1}));
+        if (seen.has(id)) throw Error(t("duplicateId", {id}));
+        seen.add(id);
+        if (group !== referenceValue && group !== targetValue) {
+          otherGroups++;
+          continue;
+        }
+        relevant++;
+        const values = keyIndices.map(columnIndex => record[columnIndex].trim());
+        if (values.some(value => !value)) {
+          incomplete++;
+          continue;
+        }
+        const key = JSON.stringify(values);
+        if (!sets.has(key)) sets.set(key, {values, reference: 0, target: 0});
+        sets.get(key)[group === referenceValue ? "reference" : "target"]++;
+      }
+
+      if (!dataRows) throw Error(t("noRows"));
+      if (!relevant) throw Error(t("noMatchingGroups"));
+      const results = [...sets.values()].map(item => {
+        const status = !item.target ? "reference only" :
+          !item.reference ? "target only" :
+          item.target === 1 && item.reference === 1 ? "one-to-one key" : "shared key; multiple samples";
+        const statusKey = {
+          "reference only": "statusReferenceOnly",
+          "target only": "statusTargetOnly",
+          "one-to-one key": "statusOneToOne",
+          "shared key; multiple samples": "statusMultiple"
+        }[status];
+        return {...item, status, statusLabel: t(statusKey)};
+      }).sort((a, b) => JSON.stringify(a.values).localeCompare(JSON.stringify(b.values)));
+
+      const both = results.filter(item => item.target && item.reference).length;
+      const targetOnly = results.filter(item => item.target && !item.reference).length;
+      const referenceOnly = results.filter(item => item.reference && !item.target).length;
+      const multiple = results.filter(item => item.target > 1 || item.reference > 1).length;
+      const keyLabels = keys.join(" + ");
+      reportRows = [
+        ["matching_fields", "matching_values", "target_samples", "reference_samples", "status"],
+        ...results.map(item => [keyLabels, JSON.stringify(item.values), item.target, item.reference, item.status])
+      ];
+      $("download").disabled = false;
+
+      const body = results.slice(0, 200).map(item =>
+        "<tr><td>" + esc(item.values.join(" | ")) + "</td><td>" + item.target + "</td><td>" +
+        item.reference + "</td><td>" + esc(item.statusLabel) + "</td></tr>"
+      ).join("");
+      const truncation = results.length > 200
+        ? '<p class="hint">' + esc(t("showSome", {n: results.length.toLocaleString()})) + "</p>"
+        : "";
+      out.innerHTML =
+        "<p><strong>" + results.length + "</strong> " + esc(t("complete")) + " · " +
+        "<strong>" + both + "</strong> " + esc(t("both")) + " · " +
+        "<strong>" + targetOnly + "</strong> " + esc(t("targetOnly")) + " · " +
+        "<strong>" + referenceOnly + "</strong> " + esc(t("referenceOnly")) + " · " +
+        "<strong>" + multiple + "</strong> " + esc(t("multiple")) + ".</p>" +
+        "<p>" + esc(t("incomplete", {n: incomplete})) + " " + esc(t("otherGroups", {n: otherGroups})) + "</p>" +
+        truncation +
+        '<div class="table-wrap"><table><thead><tr>' +
+        "<th>" + esc(keyLabels) + " " + esc(t("tableKey")) + "</th><th>" + esc(t("tableTarget")) + "</th>" +
+        "<th>" + esc(t("tableReference")) + "</th><th>" + esc(t("tableStatus")) + "</th>" +
+        "</tr></thead><tbody>" + body + "</tbody></table></div>" +
+        '<p class="hint">' + esc(t("caveat")) + "</p>";
+    } catch (error) {
+      out.textContent = error.message || String(error);
+    }
+  }
+
+  $("read-headers").addEventListener("click", readHeaders);
+  $("audit").addEventListener("click", audit);
+  $("download").addEventListener("click", () => {
+    if (!reportRows) return;
+    const text = reportRows.map(row => row.map(csvCell).join(",")).join("\r\n") + "\r\n";
+    const url = URL.createObjectURL(new Blob([text], {type: "text/csv;charset=utf-8"}));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "vec-reference-match-sets.csv";
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+  $("example").addEventListener("click", () => {
+    $("data").value = "sample_id,stage,genotype,batch,condition\nctrl_1,E8.5,WT,A,control\nctrl_2,E8.5,WT,A,control\npert_1,E8.5,WT,A,perturbed\nctrl_3,E9.0,WT,B,control\npert_2,E9.0,WT,B,perturbed\npert_3,E9.5,WT,C,perturbed\n";
+    readHeaders();
+    document.querySelectorAll(".match-key").forEach(input => {
+      if (["stage", "genotype"].includes(input.value)) {
+        input.checked = true;
+        selectedKeys.add(input.value);
+      }
+    });
+    audit();
+  });
+  $("clear").addEventListener("click", () => {
+    $("data").value = "";
+    headers = [];
+    reportRows = null;
+    selectedKeys.clear();
+    hasAttempted = false;
+    $("controls").replaceChildren();
+    $("match-fields").replaceChildren();
+    $("audit").disabled = true;
+    $("download").disabled = true;
+    $("result").textContent = t("initial");
+  });
+
+  initLanguage();
+})();
+</script>
+</body>
+</html>

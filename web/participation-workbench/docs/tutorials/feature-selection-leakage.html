@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Runnable synthetic walkthrough showing how supervised feature selection on all labels leaks test information and inflates evaluation.">
+  <title>Feature-Selection Leakage Walkthrough · VEC</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<main class="wrap">
+  <header class="tool-head">
+    <nav><a href="../">← Participation Workbench</a> · <a href="https://virtualembryo.ai/challenge/data">Official data splits</a> · <a href="https://virtualembryo.ai/challenge/rules">Current rules</a></nav>
+    <p class="eyebrow">Reproducible evaluation · synthetic example</p>
+    <h1>Fit Feature Selection Inside the Training Split</h1>
+    <p class="lede">A short scikit-learn walkthrough showing how supervised feature selection performed before the split can make a noise-only model appear predictive.</p>
+    <p class="inline"><a class="button" href="feature-selection-leakage.py" download>Download the Python walkthrough</a> <a class="button secondary" href="https://github.com/random-guy-05/vec-participation-workbench/blob/main/docs/tutorials/feature-selection-leakage.py">View source</a></p>
+  </header>
+  <section class="panel">
+    <h2>The failure pattern</h2>
+    <p>A supervised selector such as ANOVA F-score uses labels to decide which genes or features to retain. If it sees test labels before the model split, it can select features that fit random fluctuations in both training and test data. The later test score is no longer an independent evaluation.</p>
+    <p>The safer pattern is to split first and put every learned preprocessing or feature-selection step inside a pipeline that is fitted on training data only. Keep the official Challenge split and rules as the authority for actual evaluations.</p>
+  </section>
+  <section class="panel">
+    <h2>What the script does</h2>
+    <ol>
+      <li>Generate 400 examples with 300 independent noise features and random binary labels.</li>
+      <li>Measure a leaky score after selecting features from all labels before splitting.</li>
+      <li>Measure again using a scikit-learn pipeline fitted only on training rows.</li>
+      <li>Compare both with chance performance; results vary across seeds.</li>
+    </ol>
+    <p class="hint">There is no predictive signal in this synthetic dataset. The example is deliberately constructed to expose evaluation leakage.</p>
+  </section>
+  <section class="panel">
+    <h2>Run locally</h2>
+    <pre><code>python -m pip install numpy scikit-learn
+python feature-selection-leakage.py</code></pre>
+    <p>Use your own held-out groups and task-specific validation design for real work. The example does not prescribe a split, feature count, or model for VEC.</p>
+  </section>
+  <footer class="foot"><a href="../tutorials/grouped-validation.html">Grouped Validation Walkthrough</a> · <a href="../tools/split-audit/">Holdout Split Auditor</a> · <a href="https://virtualembryo.ai/challenge/resources">Community resources</a></footer>
+</main>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Record and evaluate user-specified expected metric behavior under controlled synthetic transformations.">
+  <title>Metric Invariance Audit Sheet · VEC</title>
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<main class="wrap">
+  <header class="tool-head">
+    <nav><a href="../../">← Participation Workbench</a> · <a href="https://virtualembryo.ai/challenge/evaluation?section=scoring">Official scoring definitions</a></nav>
+    <p class="eyebrow">Reproducibility · browser-local</p>
+    <h1>Metric Invariance Audit Sheet</h1>
+    <p class="lede">Compare baseline and transformed synthetic-control scores against an expectation you specify, with explicit absolute and relative tolerances.</p>
+    <p class="hint">The tool does not decide which invariances an official metric should have. Record the scorer version, controlled transformation, and rationale from the current specification before interpreting a result.</p>
+  </header>
+  <section class="panel">
+    <h2>Enter paired control results</h2>
+    <p>Use one row for each metric and transformation. “same” checks the tolerance; “different” checks that the observed difference exceeds it; “unspecified” records the difference without a pass/fail judgment.</p>
+    <label for="data">CSV columns: metric, transformation, baseline, transformed, expectation, absolute_tolerance, relative_tolerance</label>
+    <textarea id="data" rows="10" spellcheck="false" autocapitalize="off" autocomplete="off">metric,transformation,baseline,transformed,expectation,absolute_tolerance,relative_tolerance
+example_metric,proper_rotation,0.75,0.75000001,same,0.000001,0
+example_metric,reflection,0.75,0.61,unspecified,0.000001,0</textarea>
+    <div class="inline"><button id="analyze" type="button">Evaluate audit</button><button id="example" type="button" class="secondary">Load example</button><button id="clear" type="button" class="secondary">Clear</button><button id="download" type="button" class="secondary" disabled>Download audit record</button></div>
+    <p id="status" class="hint" aria-live="polite">Enter paired results and the behavior you expect from each controlled transformation.</p>
+    <div id="results" class="output" aria-live="polite"></div>
+  </section>
+  <section class="panel">
+    <h2>Make the comparison reproducible</h2>
+    <ul>
+      <li>Use synthetic or otherwise permitted data, and keep the original and transformed inputs identical except for the named change.</li>
+      <li>Record the scorer package version or full commit, random seed, transformation details, and any preprocessing shared by both runs.</li>
+      <li>Interpret a failed check as a prompt to reproduce and inspect the implementation. It is not proof of a bug or of an official scoring defect.</li>
+    </ul>
+  </section>
+  <footer class="foot"><a href="https://virtualembryo.ai/challenge/evaluation?section=scoring">Official scoring definitions</a> · <a href="https://github.com/aristoteleo/veckit">Public scorer repository</a> · <a href="https://virtualembryo.ai/challenge/resources">Community resources</a></footer>
+</main>
+<script>
+(() => {
+  const $=id=>document.getElementById(id),example="metric,transformation,baseline,transformed,expectation,absolute_tolerance,relative_tolerance\nexample_metric,proper_rotation,0.75,0.75000001,same,0.000001,0\nexample_metric,reflection,0.75,0.61,unspecified,0.000001,0";let report="";
+  function parse(text){
+    const lines=text.split(/\r?\n/).filter(x=>x.trim());if(lines.length<2)throw new Error("Add a CSV header and at least one data row.");
+    const headers=lines.shift().split(",").map(x=>x.trim().toLowerCase()),need=["metric","transformation","baseline","transformed","expectation","absolute_tolerance","relative_tolerance"];
+    for(const h of need)if(!headers.includes(h))throw new Error("Missing required column: "+h+".");
+    return lines.map((line,i)=>{const values=line.split(","),r=Object.fromEntries(headers.map((h,j)=>[h,(values[j]||"").trim()]));
+      if(!r.metric||!r.transformation)throw new Error("Row "+(i+2)+" needs a metric and transformation name.");
+      const baseline=Number(r.baseline),transformed=Number(r.transformed),atol=Number(r.absolute_tolerance),rtol=Number(r.relative_tolerance);
+      if(![baseline,transformed,atol,rtol].every(Number.isFinite)||atol<0||rtol<0)throw new Error("Row "+(i+2)+" needs finite scores and non-negative tolerances.");
+      const expectation=r.expectation.toLowerCase();if(!["same","different","unspecified"].includes(expectation))throw new Error("Row "+(i+2)+" expectation must be same, different, or unspecified.");
+      return {metric:r.metric,transformation:r.transformation,baseline,transformed,expectation,atol,rtol};
+    });
+  }
+  const fmt=n=>Number(n).toPrecision(6);
+  function table(parent,headers,rows){const t=document.createElement("table"),head=document.createElement("thead"),hr=document.createElement("tr");headers.forEach(x=>{const th=document.createElement("th");th.scope="col";th.textContent=x;hr.appendChild(th);});head.appendChild(hr);t.appendChild(head);const body=document.createElement("tbody");rows.forEach(row=>{const tr=document.createElement("tr");row.forEach(x=>{const td=document.createElement("td");td.textContent=x;tr.appendChild(td);});body.appendChild(tr);});t.appendChild(body);parent.appendChild(t);}
+  function evaluate(){const status=$("status"),out=$("results");out.replaceChildren();try{
+    const data=parse($("data").value),rows=data.map(r=>{const delta=Math.abs(r.transformed-r.baseline),tol=r.atol+r.rtol*Math.abs(r.baseline);let outcome="Recorded; no expectation supplied";if(r.expectation==="same")outcome=delta<=tol?"Within stated tolerance":"Outside stated tolerance";else if(r.expectation==="different")outcome=delta>tol?"Difference exceeds stated tolerance":"Difference does not exceed stated tolerance";return {r,delta,tol,outcome};});
+    const resultRows=rows.map(({r,delta,tol,outcome})=>[r.metric,r.transformation,r.expectation,fmt(r.baseline),fmt(r.transformed),fmt(delta),fmt(tol),outcome]);
+    const passed=rows.filter(x=>x.r.expectation!=="unspecified"&&((x.r.expectation==="same"&&x.delta<=x.tol)||(x.r.expectation==="different"&&x.delta>x.tol))).length;
+    const summary=document.createElement("p");summary.textContent=rows.length+" comparison(s); "+passed+" met the user-specified expectation and tolerance. This result only describes the supplied pairs.";out.appendChild(summary);
+    table(out,["Metric","Transformation","Expected","Baseline","Transformed","Absolute difference","Tolerance","Result"],resultRows);
+    const note=document.createElement("p");note.className="hint";note.textContent="A failed check is a reproducibility lead, not proof of a defect. Confirm scorer version, inputs, seeds, and expected metric behavior with the current official specification.";out.appendChild(note);
+    report="# VEC metric invariance audit record\n\n"+summary.textContent+"\n\n"+resultRows.map(r=>"- "+r.join(" | ")).join("\n")+"\n\nThis worksheet evaluates only user-entered expectations and tolerances. It does not declare official metric invariances or prove a scorer defect. Record the package version/commit, seed, synthetic input source, and transformation details separately.\n";
+    $("download").disabled=false;status.textContent="Audit complete. Review each comparison against your written rationale.";
+  }catch(error){report="";$("download").disabled=true;status.textContent=error.message;}}
+  $("analyze").addEventListener("click",evaluate);$("example").addEventListener("click",()=>{$("data").value=example;evaluate();});$("clear").addEventListener("click",()=>{$("data").value="";$("results").replaceChildren();$("status").textContent="Enter paired results and the behavior you expect from each controlled transformation.";report="";$("download").disabled=true;});
+  $("download").addEventListener("click",()=>{if(!report)evaluate();if(!report)return;const u=URL.createObjectURL(new Blob([report],{type:"text/markdown;charset=utf-8"})),a=document.createElement("a");a.href=u;a.download="vec-metric-invariance-audit.md";a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);});
+})();
+</script>
+</body>
+</html>

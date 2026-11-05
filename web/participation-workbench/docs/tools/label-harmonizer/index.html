@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Curate and audit participant-proposed cell-label mappings across developmental stages without inferring lineage.">
+  <title>Cell-Label Mapping Auditor · VEC</title>
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<main class="wrap">
+  <header class="tool-head">
+    <nav><a href="../../">← Participation Workbench</a> · <a href="https://virtualembryo.ai/challenge/data">Challenge data notes</a></nav>
+    <p class="eyebrow">Annotation · browser-local</p>
+    <h1>Cell-Label Mapping Auditor</h1>
+    <p class="lede">Review a proposed mapping from stage-specific cell labels to shared analysis groups. Compare mapped composition by stage while keeping the original labels visible.</p>
+    <p class="hint">Mappings are supplied by you. This tool does not guess aliases, certify a harmonization, or infer cell lineage. All input stays in this browser tab.</p>
+  </header>
+
+  <section class="panel">
+    <h2>Paste a stage-by-label table</h2>
+    <p>Use one row per stage and raw label. Map related labels to the same canonical label only when you have evidence for that decision. Leave the canonical label blank or use <code>UNMAPPED</code> to keep a row unresolved.</p>
+    <label for="data">CSV columns: stage, label, count, canonical_label</label>
+    <textarea id="data" rows="12" spellcheck="false" autocapitalize="off" autocomplete="off">stage,label,count,canonical_label
+E8.5,Endocardium,100,Endocardium
+E9.5,Endocardium-1,70,Endocardium
+E9.5,Endocardium-2,30,Endocardium
+E8.5,Cardiomyocyte,120,Cardiomyocyte
+E9.5,Cardiomyocyte,170,Cardiomyocyte</textarea>
+    <div class="inline">
+      <button id="analyze" type="button">Audit mapping</button>
+      <button id="example" type="button" class="secondary">Load example</button>
+      <button id="clear" type="button" class="secondary">Clear</button>
+      <button id="download" type="button" class="secondary" disabled>Download composition CSV</button>
+    </div>
+    <p id="status" class="hint" aria-live="polite">Paste data or load the example to see mapped counts and unresolved labels.</p>
+    <div id="results" class="output" aria-live="polite"></div>
+  </section>
+
+  <section class="panel">
+    <h2>Interpretation limits</h2>
+    <ul>
+      <li>A label absent from a stage may have been renamed, split, or left unannotated; a zero in this report is not evidence of biological absence.</li>
+      <li>Counts and percentages describe the input table. They do not adjust for sampling, dissection, batch, or annotation quality.</li>
+      <li>A shared label does not establish that cells are descendants of one another or that two labels are biologically equivalent.</li>
+    </ul>
+    <p>The official Challenge data page notes that annotation vocabulary differs across stages and says a harmonized mapping is being developed. Check that page for updates before using your own mapping in a submission.</p>
+  </section>
+
+  <footer class="foot">
+    <a href="https://virtualembryo.ai/challenge/data">Official data page</a> ·
+    <a href="https://virtualembryo.ai/challenge/tasks">Task definitions</a> ·
+    <a href="https://virtualembryo.ai/challenge/resources">Community resources</a>
+  </footer>
+</main>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const example = "stage,label,count,canonical_label\nE8.5,Endocardium,100,Endocardium\nE9.5,Endocardium-1,70,Endocardium\nE9.5,Endocardium-2,30,Endocardium\nE8.5,Cardiomyocyte,120,Cardiomyocyte\nE9.5,Cardiomyocyte,170,Cardiomyocyte";
+  let csvReport = "";
+  function parseCSV(text) {
+    const rows=[]; let row=[],field="",quoted=false;
+    for(let i=0;i<text.length;i++) {
+      const ch=text[i];
+      if(quoted) { if(ch==='"'&&text[i+1]==='"'){field+='"';i++;} else if(ch==='"') quoted=false; else field+=ch; }
+      else if(ch==='"'&&field.length===0) quoted=true;
+      else if(ch===','){row.push(field);field="";}
+      else if(ch==='\n'){row.push(field.replace(/\r$/,""));if(row.some(x=>x.trim()))rows.push(row);row=[];field="";}
+      else field+=ch;
+    }
+    row.push(field.replace(/\r$/,""));if(row.some(x=>x.trim()))rows.push(row);
+    if(quoted)throw new Error("CSV has an unclosed quoted field.");
+    if(rows.length<2)throw new Error("Add a header and at least one data row.");
+    const headers=rows.shift().map(x=>x.trim().toLowerCase());
+    for(const name of ["stage","label","count","canonical_label"])if(!headers.includes(name))throw new Error("Missing required column: "+name+".");
+    return rows.map((values,i)=>{
+      const r=Object.fromEntries(headers.map((key,j)=>[key,(values[j]||"").trim()]));
+      if(!r.stage||!r.label)throw new Error("Row "+(i+2)+" needs a stage and raw label.");
+      const count=Number(r.count);if(!Number.isFinite(count)||count<0||!Number.isInteger(count))throw new Error("Row "+(i+2)+" count must be a non-negative integer.");
+      return {stage:r.stage,label:r.label,count,canonical:r.canonical_label||"UNMAPPED"};
+    });
+  }
+  const csvCell=value=>'"'+String(value).replace(/"/g,'""')+'"';
+  function table(parent,headers,rows){
+    const t=document.createElement("table"),head=document.createElement("thead"),hr=document.createElement("tr");
+    headers.forEach(x=>{const th=document.createElement("th");th.scope="col";th.textContent=x;hr.appendChild(th);});head.appendChild(hr);t.appendChild(head);
+    const body=document.createElement("tbody");rows.forEach(row=>{const tr=document.createElement("tr");row.forEach(x=>{const td=document.createElement("td");td.textContent=x;tr.appendChild(td);});body.appendChild(tr);});t.appendChild(body);parent.appendChild(t);
+  }
+  function analyze(){
+    const status=$("status"),out=$("results");out.replaceChildren();
+    try{
+      const data=parseCSV($("data").value),seen=new Set(),mappings=new Map(),totals=new Map(),groups=new Map();
+      data.forEach((r,i)=>{
+        const key=r.stage+"\u0000"+r.label;if(seen.has(key))throw new Error("Duplicate stage/raw-label pair on data row "+(i+2)+": "+r.stage+" / "+r.label+".");seen.add(key);
+        totals.set(r.stage,(totals.get(r.stage)||0)+r.count);
+        if(!mappings.has(r.label))mappings.set(r.label,new Set());mappings.get(r.label).add(r.canonical);
+        const k=r.stage+"\u0000"+r.canonical;if(!groups.has(k))groups.set(k,{stage:r.stage,canonical:r.canonical,count:0,labels:new Set()});
+        const g=groups.get(k);g.count+=r.count;g.labels.add(r.label);
+      });
+      const ordered=[...groups.values()].sort((a,b)=>a.stage.localeCompare(b.stage)||a.canonical.localeCompare(b.canonical));
+      const rows=ordered.map(g=>[g.stage,g.canonical,String(g.count),(100*g.count/(totals.get(g.stage)||1)).toFixed(2)+"%",String(g.labels.size)]);
+      const unmapped=data.filter(r=>r.canonical.toUpperCase()==="UNMAPPED");
+      const conflicts=[...mappings.entries()].filter(([,v])=>v.size>1).map(([label,v])=>[label,[...v].join(" | ")]);
+      const summary=document.createElement("p");summary.textContent=data.length+" raw-label rows across "+totals.size+" stages; "+unmapped.length+" unresolved row(s); "+conflicts.length+" raw label(s) map to more than one canonical label.";out.appendChild(summary);
+      const h=document.createElement("h3");h.textContent="Mapped composition";out.appendChild(h);table(out,["Stage","Canonical label","Cells","Share of stage","Raw labels grouped"],rows);
+      if(unmapped.length){const uh=document.createElement("h3");uh.textContent="Unmapped rows";out.appendChild(uh);table(out,["Stage","Raw label","Cells"],unmapped.map(r=>[r.stage,r.label,String(r.count)]));}
+      if(conflicts.length){const ch=document.createElement("h3");ch.textContent="Review inconsistent raw-label mappings";out.appendChild(ch);table(out,["Raw label","Canonical labels used"],conflicts);}
+      const note=document.createElement("p");note.className="hint";note.textContent="Rows are aggregated only according to your proposed mapping. Missing labels are not filled in as biological zeros, and this report does not infer identity or lineage.";out.appendChild(note);
+      csvReport=["stage,canonical_label,cells,share_of_stage,raw_label_count",...rows.map(r=>r.map(csvCell).join(","))].join("\n")+"\n";
+      $("download").disabled=false;status.textContent="Audit complete. Review unresolved rows and mapping conflicts before interpreting cross-stage differences.";
+    }catch(error){csvReport="";$("download").disabled=true;status.textContent=error.message;}
+  }
+  $("analyze").addEventListener("click",analyze);
+  $("example").addEventListener("click",()=>{$("data").value=example;analyze();});
+  $("clear").addEventListener("click",()=>{$("data").value="";$("results").replaceChildren();$("status").textContent="Paste data or load the example to see mapped counts and unresolved labels.";csvReport="";$("download").disabled=true;});
+  $("download").addEventListener("click",()=>{if(!csvReport)analyze();if(!csvReport)return;const url=URL.createObjectURL(new Blob([csvReport],{type:"text/csv;charset=utf-8"}));const a=document.createElement("a");a.href=url;a.download="vec-cell-label-mapped-composition.csv";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
+})();
+</script>
+</body>
+</html>

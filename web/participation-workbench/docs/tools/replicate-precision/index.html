@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Estimate independent replicate counts needed to target a specified confidence-interval half-width using pilot replicate-level measurements.">
+  <title>Replicate Precision Planner · VEC</title>
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<main class="wrap">
+  <header class="tool-head">
+    <nav><a href="../../">← Participation Workbench</a> · <a href="https://virtualembryo.ai/challenge/data">Official data page</a> · <a href="https://virtualembryo.ai/challenge/resources">Community resources</a></nav>
+    <p class="eyebrow">Study planning · browser-local</p>
+    <h1>Independent Replicate Precision Planner</h1>
+    <p class="lede">Use pilot values measured once per independent biological replicate to estimate the replicate count that could reach a chosen confidence-interval half-width for a mean.</p>
+  </header>
+  <section class="panel">
+    <h2>Enter pilot measurements</h2>
+    <label for="values">One endpoint value per independent replicate</label>
+    <textarea id="values" rows="8" spellcheck="false" placeholder="1.12&#10;0.98&#10;1.07&#10;1.21&#10;0.93"></textarea>
+    <p class="hint">Use biological replicate summaries, not individual cells as if they were independent. You can paste newline- or comma-separated numbers; all values use the same measurement units.</p>
+    <div class="cols">
+      <div><label for="precision">Target absolute half-width</label><input id="precision" type="number" min="0.000001" step="any" value="0.1"></div>
+      <div><label for="level">Confidence level</label><select id="level"><option value="1.645">90%</option><option value="1.96" selected>95%</option><option value="2.576">99%</option></select></div>
+    </div>
+    <div class="inline"><button id="calculate" type="button">Estimate replicate count</button><button id="example" class="secondary" type="button">Load synthetic example</button><button id="clear" class="secondary" type="button">Clear</button></div>
+    <div id="result" class="output" aria-live="polite">This estimates precision for a single mean from independent replicate values; it does not estimate power to detect a treatment effect.</div>
+  </section>
+  <section class="panel">
+    <h2>Interpret carefully</h2>
+    <p>The estimate uses the pilot sample standard deviation and a normal critical value: <code>n ≈ (z × pilot SD / target half-width)²</code>. The pilot variance may be unstable, especially with few replicates. It assumes independent, exchangeable replicates and a fixed measurement procedure.</p>
+    <p>It does not account for power, multiple endpoints, unequal groups, pairing, batch structure, attrition, costs, or model complexity. Treat the result as a rough planning scenario and consult a statistician for a confirmatory study.</p>
+    <p class="hint">Input values are processed in this tab only. Nothing is uploaded or stored. This generic planning estimate is not an official Challenge metric or a claim about required Challenge sample sizes.</p>
+  </section>
+  <footer class="foot"><a href="../../tools/rare-state-sampling/">Rare-State Sampling Planner</a> · <a href="../../tools/hierarchical-bootstrap/">Hierarchical Replicate Bootstrap</a> · <a href="https://virtualembryo.ai/challenge/rules">Current rules</a></footer>
+</main>
+<script>
+(() => {
+  const $=id=>document.getElementById(id);
+  function calculate(){const out=$("result");try{const values=$("values").value.split(/[\s,;]+/).map(x=>x.trim()).filter(Boolean).map(Number);if(values.length<2||values.some(x=>!Number.isFinite(x)))throw Error("Enter at least two finite replicate-level values.");const target=Number($("precision").value),z=Number($("level").value);if(!(target>0)||!Number.isFinite(target))throw Error("Target half-width must be a positive number.");const avg=values.reduce((s,x)=>s+x,0)/values.length,variance=values.reduce((s,x)=>s+(x-avg)**2,0)/(values.length-1),sd=Math.sqrt(variance),needed=Math.max(2,Math.ceil((z*sd/target)**2)),currentHalf=z*sd/Math.sqrt(values.length),forecastHalf=z*sd/Math.sqrt(needed),relative=avg===0?"not defined because the pilot mean is zero":((100*currentHalf/Math.abs(avg)).toFixed(1)+"% of |pilot mean|");const caveats=[];if(needed<30)caveats.push("The normal approximation can be optimistic at this small estimated n; use a t-based design method for serious planning.");if(values.length<10)caveats.push("The pilot has fewer than 10 replicates, so its variance estimate may be unstable.");if(sd===0)caveats.push("The pilot SD is zero; this does not establish zero population variability.");if(!caveats.length)caveats.push("The estimated n is at least 30, but pilot uncertainty and study design still matter.");out.innerHTML=`<p><strong>Estimated replicate count:</strong> ${needed} independent replicates total for a single-group mean, under the stated approximation.</p><p><strong>Pilot mean:</strong> ${avg.toPrecision(5)} · <strong>pilot SD:</strong> ${sd.toPrecision(5)} · <strong>pilot n:</strong> ${values.length}</p><p><strong>Estimated current ${$("level").selectedOptions[0].text} half-width:</strong> ${currentHalf.toPrecision(5)} (${relative})</p><p><strong>Forecast half-width at estimated n:</strong> ${forecastHalf.toPrecision(5)}.</p><p class="hint">${caveats.join(" ")} Formula assumes z=${z} and independent, exchangeable replicates; it is not a power calculation or a guarantee.</p>`;}catch(e){out.textContent=e.message;}}
+  $("calculate").addEventListener("click",calculate);$("example").addEventListener("click",()=>{$("values").value="1.12\n0.98\n1.07\n1.21\n0.93";$("precision").value="0.1";calculate();});$("clear").addEventListener("click",()=>{$("values").value="";$("result").textContent="This estimates precision for a single mean from independent replicate values; it does not estimate power to detect a treatment effect.";});
+})();
+</script>
+</body>
+</html>

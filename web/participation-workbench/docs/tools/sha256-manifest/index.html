@@ -1,0 +1,55 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Generate a no-dependency Python script that streams SHA-256 checksums for a local data directory."><title>Dataset Checksum Manifest Builder · VEC</title><link rel="stylesheet" href="../../assets/style.css"><style>.language,.actions{display:flex;gap:.5rem;flex-wrap:wrap;margin:1rem 0}.language button[aria-pressed="true"]{outline:2px solid currentColor;outline-offset:2px}pre{white-space:pre-wrap;overflow-wrap:anywhere}</style></head><body><main class="wrap"><header class="tool-head"><nav><a href="../../">← Participation Workbench</a></nav><p class="eyebrow">DATA INTEGRITY · LOCAL SCRIPT</p><h1 data-i="title">Dataset Checksum Manifest Builder</h1><p data-i="lede">Generate a dependency-free Python script to record file sizes and SHA-256 hashes for a local dataset or experiment folder.</p><p data-i="privacy">No files are selected or uploaded here. The generated script reads your local files in chunks and writes a CSV manifest.</p><div class="language" role="group" data-label="lang"><button type="button" data-lang="en" aria-pressed="true">English</button><button type="button" data-lang="es" aria-pressed="false">Español</button><button type="button" data-lang="zh" aria-pressed="false">简体中文</button></div></header><section class="panel"><h2 data-i="settings">Set script defaults</h2><div class="grid"><div><label for="root" data-i="root">Data folder</label><input id="root" value="./data"></div><div><label for="pattern" data-i="pattern">File glob</label><input id="pattern" value="**/*"></div><div><label for="output" data-i="output">Manifest file</label><input id="output" value="SHA256SUMS.csv"></div></div><div class="actions"><button id="build" data-i="build">Generate script</button><button id="download" class="secondary" disabled data-i="download">Download Python script</button></div><p id="status" class="hint" role="status" aria-live="polite" data-i="initial">Choose defaults and generate a script.</p><pre id="preview" class="output" aria-live="polite"></pre></section><section class="panel"><h2 data-i="limitsTitle">Use and review</h2><ul><li data-i="limit1">Run the generated script locally with Python 3; it uses only the standard library and reads files incrementally.</li><li data-i="limit2">It skips symbolic links, sorts relative paths, and excludes the output manifest itself. Read errors stop the manifest from being written.</li><li data-i="limit3">A checksum shows whether file bytes match a recorded value; it does not prove source authenticity, scientific validity, or eligibility.</li><li data-i="limit4">Review the generated manifest before sharing: relative filenames can reveal project or participant details. Keep the original files unchanged.</li></ul></section></main><script>
+(()=>{const $=id=>document.getElementById(id),L={en:{lang:"Language",title:"Dataset Checksum Manifest Builder",lede:"Generate a dependency-free Python script to record file sizes and SHA-256 hashes for a local dataset or experiment folder.",privacy:"No files are selected or uploaded here. The generated script reads your local files in chunks and writes a CSV manifest.",settings:"Set script defaults",root:"Data folder",pattern:"File glob",output:"Manifest file",build:"Generate script",download:"Download Python script",initial:"Choose defaults and generate a script.",ready:"Script ready. Save it, then run `python3 make_sha256_manifest.py` in a terminal.",limitsTitle:"Use and review",limit1:"Run the generated script locally with Python 3; it uses only the standard library and reads files incrementally.",limit2:"It skips symbolic links, sorts relative paths, and excludes the output manifest itself. Read errors stop the manifest from being written.",limit3:"A checksum shows whether file bytes match a recorded value; it does not prove source authenticity, scientific validity, or eligibility.",limit4:"Review the generated manifest before sharing: relative filenames can reveal project or participant details. Keep the original files unchanged.",downloadFail:"Could not create the script."},es:{lang:"Idioma",title:"Generador de manifiestos de sumas de verificación",lede:"Genera un script de Python sin dependencias para registrar tamaños y hashes SHA-256 de una carpeta local de datos o experimentos.",privacy:"Aquí no se seleccionan ni cargan archivos. El script generado lee los archivos locales por bloques y crea un manifiesto CSV.",settings:"Configurar valores predeterminados",root:"Carpeta de datos",pattern:"Patrón de archivos",output:"Archivo del manifiesto",build:"Generar script",download:"Descargar script Python",initial:"Configura los valores y genera el script.",ready:"El script está listo. Guárdalo y ejecútalo con `python3 make_sha256_manifest.py` en una terminal.",limitsTitle:"Uso y revisión",limit1:"Ejecuta el script localmente con Python 3; solo usa la biblioteca estándar y lee los archivos por bloques.",limit2:"Omite enlaces simbólicos, ordena las rutas relativas y excluye el propio manifiesto. Un error de lectura impide escribirlo.",limit3:"Un hash indica si los bytes coinciden con un valor registrado; no demuestra autenticidad, validez científica ni elegibilidad.",limit4:"Revisa el manifiesto antes de compartirlo: los nombres relativos pueden revelar detalles del proyecto o participantes. Los archivos originales no se modifican.",downloadFail:"No se pudo crear el script."},zh:{lang:"语言",title:"数据集校验和清单生成器",lede:"生成无需额外依赖的 Python 脚本，记录本地数据集或实验文件夹中文件的大小和 SHA-256 哈希。",privacy:"此页面不会选择或上传文件。生成的脚本会分块读取本地文件并写入 CSV 清单。",settings:"设置脚本默认值",root:"数据文件夹",pattern:"文件匹配模式",output:"清单文件",build:"生成脚本",download:"下载 Python 脚本",initial:"设置默认值并生成脚本。",ready:"脚本已生成。保存后，可在终端中运行 `python3 make_sha256_manifest.py`。",limitsTitle:"使用与检查",limit1:"请在本地使用 Python 3 运行生成的脚本；它仅使用标准库并逐块读取文件。",limit2:"脚本会跳过符号链接、按相对路径排序，并排除清单文件本身。读取错误会阻止清单写入。",limit3:"校验和用于判断文件字节是否与记录值一致；它不能证明来源真实性、科学有效性或数据资格。",limit4:"分享前请检查清单：相对文件名可能泄露项目或参与者信息。原文件不会被修改。",downloadFail:"无法创建脚本。"}};let lang="en",script="";function t(k){return L[lang][k]}function apply(){document.documentElement.lang=lang;document.querySelectorAll("[data-i]").forEach(e=>e.textContent=t(e.dataset.i));document.querySelector("[data-label]").setAttribute("aria-label",t("lang"));document.querySelectorAll("[data-lang]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.lang===lang)));if(script)$("status").textContent=t("ready")}function py(s){return JSON.stringify(s)}function generate(){script="";$("download").disabled=true;const root=$("root").value.trim()||".",pattern=$("pattern").value.trim()||"**/*",output=$("output").value.trim()||"SHA256SUMS.csv";script=`#!/usr/bin/env python3
+"""Create a sorted SHA-256 manifest without loading whole files into memory."""
+import argparse
+import csv
+import hashlib
+import sys
+from pathlib import Path
+
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument("--root", default=${py(root)}, help="dataset root directory")
+parser.add_argument("--glob", default=${py(pattern)}, help="pathlib glob pattern relative to root")
+parser.add_argument("--output", default=${py(output)}, help="CSV output path (relative to root by default)")
+args = parser.parse_args()
+
+root = Path(args.root).expanduser().resolve()
+if not root.is_dir():
+    parser.error("root must be an existing directory")
+out_arg = Path(args.output).expanduser()
+out_path = (root / out_arg).resolve() if not out_arg.is_absolute() else out_arg.resolve()
+rows = []
+errors = []
+for path in sorted(root.glob(args.glob), key=lambda p: p.as_posix()):
+    if not path.is_file() or path.is_symlink():
+        continue
+    resolved = path.resolve()
+    if resolved == out_path:
+        continue
+    digest = hashlib.sha256()
+    size = 0
+    try:
+        with path.open("rb") as handle:
+            while True:
+                chunk = handle.read(8 * 1024 * 1024)
+                if not chunk:
+                    break
+                digest.update(chunk)
+                size += len(chunk)
+        rows.append((path.relative_to(root).as_posix(), size, digest.hexdigest()))
+    except OSError as exc:
+        errors.append((path, exc))
+
+if errors:
+    for path, exc in errors:
+        print(f"Could not read {path}: {exc}", file=sys.stderr)
+    raise SystemExit(f"No manifest written; {len(errors)} file(s) could not be read.")
+
+out_path.parent.mkdir(parents=True, exist_ok=True)
+with out_path.open("w", newline="", encoding="utf-8") as handle:
+    writer = csv.writer(handle)
+    writer.writerow(("relative_path", "size_bytes", "sha256"))
+    writer.writerows(rows)
+print(f"Wrote {len(rows)} file record(s) to {out_path}")
+`;$("preview").textContent=script;$("download").disabled=false;$("status").textContent=t("ready")}function download(){if(!script)return;try{const a=document.createElement("a"),u=URL.createObjectURL(new Blob([script],{type:"text/x-python;charset=utf-8"}));a.href=u;a.download="make_sha256_manifest.py";a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}catch(e){$("status").textContent=t("downloadFail")}}document.querySelectorAll("[data-lang]").forEach(b=>b.addEventListener("click",()=>{lang=b.dataset.lang;apply()}));$("build").addEventListener("click",generate);$("download").addEventListener("click",download);["root","pattern","output"].forEach(id=>$(id).addEventListener("input",()=>{script="";$("preview").textContent="";$("download").disabled=true;$("status").textContent=t("initial")}));apply()})();
+</script></body></html>

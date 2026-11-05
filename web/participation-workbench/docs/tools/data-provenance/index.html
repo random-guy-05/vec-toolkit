@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Build a portable dataset provenance manifest with source, version, identifier, license, checksum, access date, and user-entered use notes.">
+  <title>Dataset Provenance Manifest Builder · VEC</title>
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<main class="wrap">
+  <header class="tool-head">
+    <nav><a href="../../">← Participation Workbench</a> · <a href="https://virtualembryo.ai/challenge/data">Official data page</a> · <a href="https://virtualembryo.ai/challenge/rules">Current rules</a></nav>
+    <p class="eyebrow">Data provenance · browser-local</p>
+    <h1>Dataset Provenance Manifest Builder</h1>
+    <p class="lede">Create a portable record of the public datasets used in a project: citation details, release, stable identifier, license as stated by the source, access date, checksum, and your own use notes.</p>
+  </header>
+  <section class="panel">
+    <h2>Add dataset records</h2>
+    <p>Include one record per dataset or release. Copy identifiers and license text from the data provider; this page does not verify citation metadata, license terms, eligibility, or checksums.</p>
+    <div id="records"></div>
+    <div class="inline"><button id="add" type="button">Add dataset</button><button id="build" type="button" class="secondary">Build manifest</button><button id="clear" type="button" class="secondary">Clear all</button></div>
+    <div id="output" class="output" aria-live="polite">Add one or more dataset records, then build a Markdown provenance manifest and JSON copy.</div>
+    <div class="inline"><button id="downloadMd" type="button" class="secondary" disabled>Download Markdown</button><button id="downloadJson" type="button" class="secondary" disabled>Download JSON</button></div>
+  </section>
+  <section class="panel">
+    <h2>What the record means</h2>
+    <p>The builder preserves values you enter so collaborators can trace a dataset release and reproduce your citation. It does not decide whether the source may be used in a Challenge workflow, whether the license permits a particular use, or whether a recorded checksum matches a file.</p>
+    <p class="hint">All fields are processed in this tab. Nothing is uploaded or stored. Verify current official rules and institutional data policies before sharing a manifest or using a source.</p>
+  </section>
+  <footer class="foot"><a href="../../tools/data-use/">Data-use Readiness Checklist</a> · <a href="../../tools/project-starter/">Community Project Starter</a> · <a href="https://virtualembryo.ai/challenge/resources">Community resources</a></footer>
+</main>
+<script>
+(() => {
+  const $=id=>document.getElementById(id);let nextId=0,markdown="",json="";
+  const escapeHtml=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  function addRecord(){const id=nextId++,card=document.createElement("section");card.className="panel provenance-record";card.dataset.id=id;card.innerHTML=`<div class="inline"><h3>Dataset ${id+1}</h3><button type="button" class="secondary remove">Remove</button></div><div class="cols"><div><label for="title${id}">Dataset title *</label><input id="title${id}" data-key="title" required></div><div><label for="provider${id}">Provider or repository</label><input id="provider${id}" data-key="provider"></div><div><label for="version${id}">Release or version</label><input id="version${id}" data-key="version"></div><div><label for="identifier${id}">DOI, accession, or stable ID</label><input id="identifier${id}" data-key="identifier"></div><div><label for="url${id}">Source landing-page URL</label><input id="url${id}" data-key="url" type="url"></div><div><label for="license${id}">License as stated by provider</label><input id="license${id}" data-key="license"></div><div><label for="accessed${id}">Access date</label><input id="accessed${id}" data-key="accessed" type="date"></div><div><label for="checksum${id}">Local file SHA-256 (optional)</label><input id="checksum${id}" data-key="checksum" placeholder="Record a hash you calculated locally"></div></div><label for="use${id}">How this source was used / review note</label><textarea id="use${id}" data-key="use" rows="3" placeholder="State role in the project and the team's data-use review notes."></textarea>`;$("records").appendChild(card);card.querySelector(".remove").addEventListener("click",()=>card.remove());}
+  function getRecords(){return[...document.querySelectorAll(".provenance-record")].map(card=>{const data={};for(const field of card.querySelectorAll("[data-key]"))data[field.dataset.key]=field.value.trim();if(!data.title)throw Error("Every dataset record needs a title.");return data;});}
+  function build(){const out=$("output");try{const rows=getRecords();if(!rows.length)throw Error("Add at least one dataset record.");markdown="# Dataset provenance manifest\n\nPrepared by the project team. Verify source metadata and current data-use rules before relying on this record.\n"+rows.map((x,i)=>`\n## ${i+1}. ${x.title}\n\n- Provider: ${x.provider||"Not recorded"}\n- Release/version: ${x.version||"Not recorded"}\n- DOI/accession/stable ID: ${x.identifier||"Not recorded"}\n- Landing page: ${x.url||"Not recorded"}\n- License (copied from source): ${x.license||"Not recorded"}\n- Access date: ${x.accessed||"Not recorded"}\n- File SHA-256: ${x.checksum||"Not recorded"}\n- Use and review note: ${x.use||"Not recorded"}\n`).join("")+"\nThis manifest records team-entered metadata; it does not establish permission, Challenge eligibility, or checksum validity.\n";json=JSON.stringify({schema:"vec-dataset-provenance-manifest-v1",created_at:new Date().toISOString(),records:rows,notice:"Team-entered provenance only; does not establish permission, Challenge eligibility, or checksum validity."},null,2);out.innerHTML=`<p><strong>${rows.length}</strong> dataset record${rows.length===1?"":"s"} prepared. Review both exports against the original sources.</p><label for="mdout">Markdown manifest</label><textarea id="mdout" rows="16" readonly></textarea><label for="jsonout">JSON manifest</label><textarea id="jsonout" rows="12" readonly></textarea>`;$("mdout").value=markdown;$("jsonout").value=json;$("downloadMd").disabled=false;$("downloadJson").disabled=false;}catch(e){out.textContent=e.message;$("downloadMd").disabled=true;$("downloadJson").disabled=true;}}
+  function download(name,content,type){const url=URL.createObjectURL(new Blob([content],{type})),a=document.createElement("a");a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+  $("add").addEventListener("click",addRecord);$("build").addEventListener("click",build);$("clear").addEventListener("click",()=>{$("records").innerHTML="";$("output").textContent="Add one or more dataset records, then build a Markdown provenance manifest and JSON copy.";markdown="";json="";$("downloadMd").disabled=true;$("downloadJson").disabled=true;});$("downloadMd").addEventListener("click",()=>download("dataset-provenance.md",markdown,"text/markdown;charset=utf-8"));$("downloadJson").addEventListener("click",()=>download("dataset-provenance.json",json,"application/json;charset=utf-8"));addRecord();
+})();
+</script>
+</body>
+</html>

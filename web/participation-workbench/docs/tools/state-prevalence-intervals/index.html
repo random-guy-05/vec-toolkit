@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Summarize per-sample rare-cell-state prevalence with Wilson intervals and distinguish pooled from sample-weighted estimates.">
+  <title>Sample-Level Cell-State Prevalence Intervals · VEC</title>
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<main class="wrap">
+  <header class="tool-head">
+    <nav><a href="../../">← Participation Workbench</a> · <a href="https://virtualembryo.ai/challenge/data">Official data page</a> · <a href="https://virtualembryo.ai/challenge/tasks">Task definitions</a></nav>
+    <p class="eyebrow">Replicate-aware summaries · browser-local</p>
+    <h1>Sample-Level Cell-State Prevalence Intervals</h1>
+    <p class="lede">Calculate a per-sample cell-state proportion and a Wilson interval, then compare the equal-sample mean with the pooled cell fraction without treating either as a replicate-level confidence interval.</p>
+  </header>
+  <section class="panel">
+    <h2>Enter one row per independent sample</h2>
+    <label for="data">CSV with exact headers sample_id, state_cells, and total_cells (any order)</label>
+    <textarea id="data" rows="8" spellcheck="false" placeholder="sample_id,state_cells,total_cells&#10;sample_A,4,1200&#10;sample_B,2,900&#10;sample_C,0,1050"></textarea>
+    <div class="cols"><div><label for="level">Within-sample interval level</label><select id="level"><option value="0.90">90%</option><option value="0.95" selected>95%</option><option value="0.99">99%</option></select></div></div>
+    <div class="inline"><button id="calculate" type="button">Calculate per-sample intervals</button><button id="example" type="button" class="secondary">Load synthetic example</button><button id="clear" type="button" class="secondary">Clear</button><button id="download" type="button" class="secondary" disabled>Download per-sample summary</button></div>
+    <div id="result" class="output" aria-live="polite">Paste a small sample-level count table, then calculate.</div>
+  </section>
+  <section class="panel">
+    <h2>Interpret the estimates at the right level</h2>
+    <p>The Wilson interval is a binomial interval for the within-sample proportion under a cell-level Bernoulli sampling approximation. It does not capture variation between biological samples, and within-sample dependence can make it too narrow. The unweighted mean gives each supplied sample equal weight; the pooled fraction gives larger samples more weight. The tool does not compute an interval or test for either cross-sample summary.</p>
+    <p class="hint">Use one row for each independent biological sample, not one row per cell or technical partition. This page does not infer replicate independence, rare-state identity, or experimental design. Inputs are processed locally and are not uploaded or stored.</p>
+  </section>
+  <footer class="foot"><a href="../../tools/rare-state-sampling/">Rare-State Sampling Planner</a> · <a href="../../tools/composition-distance/">Cell Composition Distance Explorer</a> · <a href="../../tools/hierarchical-bootstrap/">Hierarchical Replicate Bootstrap</a></footer>
+</main>
+<script>
+(() => {
+  "use strict";
+  const $ = id => document.getElementById(id), zValues = {"0.90":1.6448536269514722,"0.95":1.959963984540054,"0.99":2.5758293035489004};
+  let summary = null;
+  function parseCsv(text) {
+    const rows=[]; let row=[],field="",quoted=false,closed=false;
+    text=text.replace(/^\uFEFF/,"");
+    for(let i=0;i<text.length;i++){
+      const c=text[i];
+      if(quoted){if(c==='"'&&text[i+1]==='"'){field+='"';i++;}else if(c==='"'){quoted=false;closed=true;}else field+=c;}
+      else if(closed){if(c===","){row.push(field);field="";closed=false;}else if(c==="\n"||c==="\r"){if(c==="\r"&&text[i+1]==="\n")i++;row.push(field);rows.push(row);row=[];field="";closed=false;}else if(c!==" "&&c!=="\t")throw Error("A quoted field must be followed by a comma or new line.");}
+      else if(c==='"'){if(field!=="")throw Error("A quote may only start an empty field.");quoted=true;}
+      else if(c===","){row.push(field);field="";}
+      else if(c==="\n"||c==="\r"){if(c==="\r"&&text[i+1]==="\n")i++;row.push(field);rows.push(row);row=[];field="";}
+      else field+=c;
+    }
+    if(quoted)throw Error("The CSV has an unclosed quoted value.");
+    if(field!==""||row.length||closed){row.push(field);rows.push(row);}return rows;
+  }
+  const esc=v=>String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  function integer(v,name){const raw=v.trim();if(!/^\d+$/.test(raw))throw Error(`${name} must be a nonnegative integer.`);const n=Number(raw);if(!Number.isSafeInteger(n))throw Error(`${name} exceeds exact integer precision in this browser.`);return n;}
+  function wilson(k,n,z){const z2=z*z,den=1+z2/n,p=k/n,center=(p+z2/(2*n))/den,half=z*Math.sqrt(p*(1-p)/n+z2/(4*n*n))/den;return [Math.max(0,center-half),Math.min(1,center+half)];}
+  function calculate(){summary=null;$("download").disabled=true;const out=$("result");try{
+    const text=$("data").value;if(text.length>2_000_000)throw Error("Input exceeds the 2 MB text limit.");
+    const rows=parseCsv(text);if(rows.length<2)throw Error("Add a header row and at least one sample row.");
+    const header=rows[0].map(x=>x.trim());if(header.length<3||new Set(header.map(x=>x.toLowerCase())).size!==header.length||header.some(x=>!x))throw Error("Provide at least three nonempty, unique column names.");
+    const col=name=>header.findIndex(x=>x.toLowerCase()===name),idIndex=col("sample_id"),stateIndex=col("state_cells"),totalIndex=col("total_cells");
+    if([idIndex,stateIndex,totalIndex].some(i=>i<0))throw Error("Include the exact headers sample_id, state_cells, and total_cells; their order can vary.");
+    const z=zValues[$("level").value];if(!z)throw Error("Choose a supported confidence level.");
+    const seen=new Set(),items=[];let positives=0,total=0;
+    for(const [i,row] of rows.slice(1).entries()){
+      if(row.every(x=>x.trim()===""))continue;
+      if(items.length>=5000)throw Error("Input exceeds the 5,000-sample limit.");
+      if(row.length!==header.length)throw Error(`Sample record ${i+1} has ${row.length} fields; expected ${header.length}.`);
+      const id=row[idIndex].trim();if(!id)throw Error(`Sample record ${i+1} has a blank sample ID.`);if(seen.has(id))throw Error(`Sample ID “${id}” appears more than once; provide one row per independent sample.`);seen.add(id);
+      const k=integer(row[stateIndex],"State-cell count"),n=integer(row[totalIndex],"Total-cell count");if(n<1)throw Error("Each total-cell count must be at least one.");if(k>n)throw Error(`State-cell count exceeds total-cell count for sample “${id}”.`);
+      const [lower,upper]=wilson(k,n,z);items.push({id,k,n,p:k/n,lower,upper});positives+=k;total+=n;
+      if(!Number.isSafeInteger(positives)||!Number.isSafeInteger(total))throw Error("Combined counts exceed exact integer precision in this browser.");
+    }
+    if(!items.length)throw Error("No sample rows were found.");
+    const mean=items.reduce((s,x)=>s+x.p,0)/items.length,pooled=positives/total;
+    summary={items,level:$("level").value,mean,pooled,positives,total};
+    const shown=items.slice(0,200).map(x=>`<tr><td>${esc(x.id)}</td><td>${x.k}</td><td>${x.n}</td><td>${(100*x.p).toFixed(4)}%</td><td>${(100*x.lower).toFixed(4)}%</td><td>${(100*x.upper).toFixed(4)}%</td></tr>`).join("");
+    const note=items.length>200?`<p class="hint">Showing 200 of ${items.length.toLocaleString()} samples; the download includes every row.</p>`:"";
+    out.innerHTML=`<p><strong>${items.length}</strong> samples · equal-sample mean prevalence <strong>${(100*mean).toFixed(4)}%</strong> · pooled cell fraction <strong>${(100*pooled).toFixed(4)}%</strong> (${positives.toLocaleString()} / ${total.toLocaleString()} cells).</p><p class="hint">The two summary values answer different weighting questions. No cross-sample confidence interval is calculated.</p>${note}<div class="table-wrap"><table><thead><tr><th>Sample</th><th>State cells</th><th>Total cells</th><th>Prevalence</th><th>${Math.round(100*Number(summary.level))}% Wilson lower</th><th>Wilson upper</th></tr></thead><tbody>${shown}</tbody></table></div>`;
+    $("download").disabled=false;
+  }catch(error){out.textContent=error.message;}}
+  function csvCell(v){return '"'+String(v).replace(/"/g,'""')+'"';}
+  $("calculate").addEventListener("click",calculate);
+  $("example").addEventListener("click",()=>{$("data").value="sample_id,state_cells,total_cells\nsample_A,4,1200\nsample_B,2,900\nsample_C,0,1050\nsample_D,7,1500\n";calculate();});
+  $("clear").addEventListener("click",()=>{$("data").value="";summary=null;$("download").disabled=true;$("result").textContent="Paste a small sample-level count table, then calculate.";});
+  $("download").addEventListener("click",()=>{if(!summary)return;const rows=[["sample_id","state_cells","total_cells","prevalence","wilson_lower","wilson_upper","interval_level"],...summary.items.map(x=>[x.id,x.k,x.n,x.p,x.lower,x.upper,summary.level])],text=rows.map(r=>r.map(csvCell).join(",")).join("\r\n")+"\r\n",url=URL.createObjectURL(new Blob([text],{type:"text/csv;charset=utf-8"})),a=document.createElement("a");a.href=url;a.download="vec-sample-state-prevalence.csv";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
+})();
+</script>
+</body>
+</html>

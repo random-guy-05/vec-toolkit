@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Small, browser-local diagnostic calculators for understanding the published VEC scoring metrics.">
+  <title>VEC Task Metric Lab</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/metric-lab.css">
+</head>
+<body>
+  <main class="wrap">
+    <header class="tool-head">
+      <nav><a href="../">← Participation Workbench</a> · <a href="https://virtualembryo.ai/challenge/evaluation?section=scoring&amp;task=1">Official scoring reference</a> · <a href="https://virtualembryo.ai/challenge/resources">Community resources</a></nav>
+      <p class="eyebrow">VEC · browser-local diagnostic tools</p>
+      <h1>Task Metric Lab</h1>
+      <p class="lede">Explore the public scoring formulas with small supplied examples. These calculators help explain individual terms; they do not reproduce the official scorer or predict leaderboard results.</p>
+      <p class="hint">Inputs stay in this browser tab. Use synthetic or otherwise permitted data. Check the current official evaluation page before relying on a formula or weight.</p>
+    </header>
+    <div class="metric-layout">
+      <aside class="metric-catalog panel">
+        <h2>Choose a calculator</h2>
+        <label for="tool-search">Filter calculators</label>
+        <input id="tool-search" type="search" autocomplete="off" placeholder="Search by metric or task">
+        <div id="tool-list" class="tool-list" aria-label="Metric calculators"></div>
+      </aside>
+      <section class="metric-main">
+        <section id="welcome" class="panel">
+          <h2>Start with a scoring question</h2>
+          <p>Select a calculator on the left. Each one gives a short input example, a calculation, and a limit to keep in mind.</p>
+          <p>The official scorer uses the complete task-specific pipeline, including frozen probes, target-fitted transformations, held-out data, and published calibration anchors. A small local diagnostic is useful for understanding a component, not for claiming an official score.</p>
+        </section>
+        <section id="tool-panel" class="panel" hidden>
+          <p id="tool-category" class="eyebrow"></p>
+          <h2 id="tool-title"></h2>
+          <p id="tool-description" class="lede"></p>
+          <p id="tool-schema" class="hint"></p>
+          <label for="tool-data">Paste a small CSV table</label>
+          <textarea id="tool-data" rows="12" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>
+          <div class="inline metric-actions">
+            <button id="load-example" type="button" class="secondary">Load example</button>
+            <button id="analyze" type="button">Calculate</button>
+            <button id="clear" type="button" class="secondary">Clear</button>
+            <button id="download" type="button" class="secondary" disabled>Download report</button>
+          </div>
+          <p id="tool-status" class="hint" aria-live="polite">Load the example or paste a small table to begin.</p>
+          <section id="tool-result" class="metric-result" aria-live="polite"></section>
+          <section class="metric-caveat">
+            <h3>Scope</h3>
+            <p id="tool-caveat"></p>
+          </section>
+          <p class="small"><a href="https://virtualembryo.ai/challenge/evaluation?section=scoring">Read the official scoring definitions</a> · <a href="https://github.com/random-guy-05/vec-participation-workbench">Source code</a></p>
+        </section>
+      </section>
+    </div>
+    <footer class="foot">
+      <p>Independent community resource. The official Challenge pages control if a metric definition, weight, or data contract changes.</p>
+      <p><a href="https://virtualembryo.ai/challenge/evaluation?section=scoring">Official evaluation</a> · <a href="https://virtualembryo.ai/challenge/rules">Current rules</a></p>
+    </footer>
+  </main>
+  <script src="../assets/metric-lab.js?v=1"></script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Estimate one-way random-effects variance components and intraclass correlation from pilot observations grouped by sample.">
+  <title>Pilot Intraclass Correlation Estimator · VEC</title>
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<main class="wrap">
+  <header class="tool-head">
+    <nav><a href="../../">← Participation Workbench</a> · <a href="https://virtualembryo.ai/challenge/data">Official data page</a> · <a href="https://virtualembryo.ai/challenge/tasks">Task definitions</a></nav>
+    <p class="eyebrow">Replicate structure · browser-local</p>
+    <h1>Pilot Intraclass Correlation Estimator</h1>
+    <p class="lede">Estimate one-way random-effects variance components from a continuous pilot outcome grouped by sample, and see how an unequal cluster-size design effect changes under that estimate.</p>
+  </header>
+  <section class="panel">
+    <h2>Paste a pilot table</h2>
+    <p>Use one observation per row, with a sample identifier and one numeric outcome. The sample identifier names the cluster; it is not assumed to prove biological independence.</p>
+    <label for="data">CSV table</label>
+    <textarea id="data" rows="9" spellcheck="false" placeholder="sample_id,outcome&#10;sample_A,0.42&#10;sample_A,0.51&#10;sample_B,0.31&#10;sample_B,0.38"></textarea>
+    <div class="inline"><button id="read-headers" type="button" class="secondary">Read column headers</button><button id="example" type="button" class="secondary">Load synthetic example</button><button id="clear" type="button" class="secondary">Clear</button></div>
+    <div id="controls" class="cols"></div>
+    <div class="inline"><button id="estimate" type="button" disabled>Estimate variance components</button><button id="download" type="button" class="secondary" disabled>Download sample summary</button></div>
+    <div id="result" class="output" aria-live="polite">Paste pilot observations and read the column headers.</div>
+  </section>
+  <section class="panel">
+    <h2>Method and limits</h2>
+    <p>The one-way method-of-moments estimate uses <code>tau² = (MS_between − MS_within) / n₀</code>, where <code>n₀ = (N − Σnᵢ²/N)/(m−1)</code>. The estimated ICC is <code>tau² / (tau² + sigma²_within)</code>. Negative estimates are retained as a diagnostic rather than truncated to zero.</p>
+    <p>This assumes a one-way random-intercept model with a common within-cluster variance and no covariate adjustment. It is not suitable for paired, nested, longitudinal, or otherwise structured designs without a model that represents that design. An ICC from pilot data is uncertain and is not a power calculation or an estimate of biological-replicate count.</p>
+    <p class="hint">Inputs remain in this browser tab. The page does not upload, store, or fetch data. Use public or synthetic pilot values. Limits: 5 MB of text and 200,000 observations.</p>
+  </section>
+  <footer class="foot"><a href="../../tools/unequal-clusters/">Unequal Cluster Design Effect Explorer</a> · <a href="../../tools/hierarchical-bootstrap/">Hierarchical Replicate Bootstrap</a> · <a href="../../tools/replicate-precision/">Independent Replicate Precision Planner</a></footer>
+</main>
+<script>
+(() => {
+  "use strict";
+  const $=id=>document.getElementById(id),MAX_CHARS=5_000_000,MAX_ROWS=200_000;
+  let headers=[],sampleSummary=null;
+  function parseCsv(text,firstOnly=false){const rows=[];let row=[],field="",quoted=false,closed=false;text=text.replace(/^\uFEFF/,"");for(let i=0;i<text.length;i++){const c=text[i];if(quoted){if(c==='"'&&text[i+1]==='"'){field+='"';i++;}else if(c==='"'){quoted=false;closed=true;}else field+=c;}else if(closed){if(c===","){row.push(field);field="";closed=false;}else if(c==="\n"||c==="\r"){if(c==="\r"&&text[i+1]==="\n")i++;row.push(field);rows.push(row);if(firstOnly)return rows;row=[];field="";closed=false;}else if(c!==" "&&c!=="\t")throw Error("A quoted value must be followed by a comma or new line.");}else if(c==='"'){if(field!=="")throw Error("A quote may only start an empty CSV field.");quoted=true;}else if(c===","){row.push(field);field="";}else if(c==="\n"||c==="\r"){if(c==="\r"&&text[i+1]==="\n")i++;row.push(field);rows.push(row);if(firstOnly)return rows;row=[];field="";}else field+=c;}if(quoted)throw Error("The CSV has an unclosed quoted field.");if(field!==""||row.length||closed){row.push(field);rows.push(row);}return rows;}
+  const esc=v=>String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  function readHeaders(){headers=[];sampleSummary=null;$("controls").replaceChildren();$("estimate").disabled=true;$("download").disabled=true;try{const text=$("data").value;if(text.length>MAX_CHARS)throw Error("Input exceeds the 5 MB text limit.");const rows=parseCsv(text,true);if(!rows.length)throw Error("Paste a header row first.");headers=rows[0].map(x=>x.trim());if(headers.some(x=>!x)||new Set(headers.map(x=>x.toLowerCase())).size!==headers.length)throw Error("Column names must be nonempty and unique, including case differences.");const fields=[["sample-col","Sample or cluster ID","sample_id"],["value-col","Numeric outcome","outcome"]];for(const [id,label,guess] of fields){const wrap=document.createElement("div"),lab=document.createElement("label"),select=document.createElement("select");select.id=id;lab.htmlFor=id;lab.textContent=label;const match=headers.find(h=>h.toLowerCase()===guess);if(!match){const blank=document.createElement("option");blank.value="";blank.textContent="Choose a column";blank.selected=true;select.append(blank);}headers.forEach(name=>{const opt=document.createElement("option");opt.value=name;opt.textContent=name;if(name===match)opt.selected=true;select.append(opt);});wrap.append(lab,select);$("controls").append(wrap);}$("estimate").disabled=false;$("result").textContent="Choose the cluster and numeric outcome columns, then estimate.";}catch(error){$("result").textContent=error.message;}}
+  function fmt(x){return Number.isFinite(x)?x.toPrecision(5):"undefined";}
+  function estimate(){sampleSummary=null;$("download").disabled=true;const out=$("result");try{const text=$("data").value;if(text.length>MAX_CHARS)throw Error("Input exceeds the 5 MB text limit.");const rows=parseCsv(text);if(rows.length<2)throw Error("Add at least one observation below the header.");const h=rows[0].map(x=>x.trim());if(h.join("\u0000")!==headers.join("\u0000"))throw Error("The header changed. Read the column headers again.");const si=h.indexOf($("sample-col").value),vi=h.indexOf($("value-col").value);if(si<0||vi<0||si===vi)throw Error("Choose distinct sample-ID and outcome columns.");const groups=new Map();let n=0;
+    for(const [i,row] of rows.slice(1).entries()){if(row.every(x=>x.trim()===""))continue;n++;if(n>MAX_ROWS)throw Error("Input exceeds the 200,000 data-row limit.");if(row.length!==h.length)throw Error(`Observation ${i+1} has ${row.length} fields; expected ${h.length}.`);const id=row[si].trim(),raw=row[vi].trim(),value=Number(raw);if(!id||!raw)throw Error(`Observation ${i+1} has a blank sample ID or outcome.`);if(!Number.isFinite(value))throw Error(`Observation ${i+1} has a non-finite or nonnumeric outcome.`);let g=groups.get(id);if(!g){g={id,n:0,mean:0,m2:0};groups.set(id,g);}g.n++;const delta=value-g.mean;g.mean+=delta/g.n;g.m2+=delta*(value-g.mean);if(!Number.isFinite(g.mean)||!Number.isFinite(g.m2))throw Error(`Numeric overflow while summarizing sample “${id}”.`);}
+    const clusters=[...groups.values()];if(clusters.length<2)throw Error("At least two clusters are required.");const N=clusters.reduce((s,g)=>s+g.n,0),m=clusters.length;if(N<=m)throw Error("At least one cluster must contain two or more observations to estimate within-cluster variance.");const grand=clusters.reduce((s,g)=>s+g.n*g.mean,0)/N;const ssw=clusters.reduce((s,g)=>s+g.m2,0),ssb=clusters.reduce((s,g)=>s+g.n*(g.mean-grand)**2,0);const msw=ssw/(N-m),msb=ssb/(m-1),sumSquares=clusters.reduce((s,g)=>s+g.n*g.n,0),n0=(N-sumSquares/N)/(m-1);if(![grand,ssw,ssb,msw,msb,n0].every(Number.isFinite)||n0<=0)throw Error("Could not form finite variance-component estimates from these values.");const tau2=(msb-msw)/n0,denom=tau2+msw,icc=denom>0?tau2/denom:NaN,meanSize=N/m,cv2=clusters.reduce((s,g)=>s+(g.n-meanSize)**2,0)/m/(meanSize*meanSize),deff=Number.isFinite(icc)?1+((1+cv2)*meanSize-1)*icc:NaN,neff=Number.isFinite(deff)&&deff>0?N/deff:NaN;
+    if(!Number.isFinite(tau2))throw Error("The between-cluster variance estimate overflowed.");sampleSummary=clusters.map(g=>({sample:g.id,n:g.n,mean:g.mean,withinSd:g.n>1?Math.sqrt(g.m2/(g.n-1)):NaN})).sort((a,b)=>a.sample.localeCompare(b.sample));const body=sampleSummary.slice(0,200).map(g=>`<tr><td>${esc(g.sample)}</td><td>${g.n}</td><td>${fmt(g.mean)}</td><td>${fmt(g.withinSd)}</td></tr>`).join("");const trunc=sampleSummary.length>200?`<p class="hint">Showing 200 of ${sampleSummary.length.toLocaleString()} clusters; the download includes all.</p>`:"";const negative=tau2<0?" The estimated between-cluster component is negative; this method-of-moments result is retained as a diagnostic and should not be truncated automatically.":"";
+    out.innerHTML=`<p><strong>${m}</strong> clusters · <strong>${N.toLocaleString()}</strong> observations · mean cluster size ${fmt(meanSize)} · size CV ${fmt(Math.sqrt(cv2))}.</p><div class="result-grid"><div>Within-cluster variance<strong>${fmt(msw)}</strong></div><div>Between-cluster variance estimate<strong>${fmt(tau2)}</strong></div><div>ICC estimate<strong>${fmt(icc)}</strong></div><div>Unequal-size design effect<strong>${fmt(deff)}</strong></div><div>Approx. effective observations<strong>${fmt(neff)}</strong></div></div><p>${esc(negative||"The variance components are method-of-moments estimates from this pilot table.")}</p><p class="hint">Design effect is the unequal-size approximation using this estimated ICC; effective observations are not biological replicates or a power calculation.</p>${trunc}<div class="table-wrap"><table><thead><tr><th>Cluster</th><th>Observations</th><th>Mean outcome</th><th>Within-cluster SD</th></tr></thead><tbody>${body}</tbody></table></div>`;$("download").disabled=false;
+  }catch(error){out.textContent=error.message;}}
+  function csvCell(v){return '"'+String(v).replace(/"/g,'""')+'"';}
+  $("read-headers").addEventListener("click",readHeaders);$("estimate").addEventListener("click",estimate);
+  $("example").addEventListener("click",()=>{$("data").value="sample_id,outcome\nsample_A,0.42\nsample_A,0.51\nsample_A,0.48\nsample_B,0.31\nsample_B,0.38\nsample_B,0.36\nsample_B,0.40\nsample_C,0.61\nsample_C,0.54\nsample_D,0.45\nsample_D,0.43\n";readHeaders();estimate();});
+  $("clear").addEventListener("click",()=>{$("data").value="";headers=[];sampleSummary=null;$("controls").replaceChildren();$("estimate").disabled=true;$("download").disabled=true;$("result").textContent="Paste pilot observations and read the column headers.";});
+  $("download").addEventListener("click",()=>{if(!sampleSummary)return;const rows=[["sample_id","observations","mean_outcome","within_cluster_sd"],...sampleSummary.map(g=>[g.sample,g.n,g.mean,Number.isFinite(g.withinSd)?g.withinSd:""])],text=rows.map(r=>r.map(csvCell).join(",")).join("\r\n")+"\r\n",url=URL.createObjectURL(new Blob([text],{type:"text/csv;charset=utf-8"})),a=document.createElement("a");a.href=url;a.download="vec-pilot-cluster-summary.csv";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
+})();
+</script>
+</body>
+</html>

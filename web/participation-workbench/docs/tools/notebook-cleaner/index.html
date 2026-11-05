@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Prepare a Jupyter notebook for sharing by clearing saved cell outputs and execution counts in your browser.">
+  <title>Notebook Share-Ready Cleaner · VEC</title>
+  <link rel="stylesheet" href="../../assets/style.css">
+  <style>
+    .language,.actions{display:flex;gap:.5rem;flex-wrap:wrap;margin:1rem 0}
+    .language button[aria-pressed="true"]{outline:2px solid currentColor;outline-offset:2px}
+    textarea{width:100%;font-family:ui-monospace,SFMono-Regular,monospace}
+    .file-picker{margin:1rem 0}
+  </style>
+</head>
+<body><main class="wrap">
+  <header class="tool-head">
+    <nav><a href="../../" data-i="home">← Participation Workbench</a></nav>
+    <p class="eyebrow" data-i="eyebrow">NOTEBOOK SHARING · BROWSER-LOCAL</p>
+    <h1 data-i="title">Notebook Share-Ready Cleaner</h1>
+    <p class="lede" data-i="lede">Prepare a Jupyter notebook copy by clearing saved cell outputs and execution counts before you share it.</p>
+    <p class="hint" data-i="privacy">Your notebook is processed in this tab and is never uploaded. The original file is not changed.</p>
+    <div class="language" role="group" data-i-label="langLabel" aria-label="Language">
+      <button type="button" data-lang="en" aria-pressed="true">English</button>
+      <button type="button" data-lang="es" aria-pressed="false">Español</button>
+      <button type="button" data-lang="zh" aria-pressed="false">简体中文</button>
+    </div>
+  </header>
+  <section class="panel">
+    <h2 data-i="inputs">Choose or paste a notebook</h2>
+    <div class="file-picker"><label for="file" data-i="file">Choose a local .ipynb file (optional)</label><input id="file" type="file" accept=".ipynb,application/json"></div>
+    <label for="source" data-i="paste">Notebook JSON</label>
+    <textarea id="source" rows="14" spellcheck="false" data-i-placeholder="placeholder"></textarea>
+    <div class="controls"><label><input id="clearWidgets" type="checkbox" checked> <span data-i="widgets">Also remove saved Jupyter widget state from notebook metadata</span></label></div>
+    <div class="actions">
+      <button id="prepare" type="button" data-i="prepare">Prepare clean copy</button>
+      <button id="download" class="secondary" type="button" disabled data-i="download">Download cleaned notebook</button>
+      <button id="clear" class="secondary" type="button" data-i="clear">Clear</button>
+    </div>
+    <p id="status" class="hint" role="status" aria-live="polite" data-i="initial">Choose or paste a Jupyter notebook, then prepare a separate copy.</p>
+    <div id="report" class="output" aria-live="polite"></div>
+  </section>
+  <section class="panel">
+    <h2 data-i="limits">Review before sharing</h2>
+    <ul>
+      <li data-i="limit1">The cleaner removes saved outputs and resets code-cell execution counts. It can also remove notebook-level widget state.</li>
+      <li data-i="limit2">It does not inspect or redact code, Markdown, cell attachments, metadata other than widget state, or secrets embedded in source.</li>
+      <li data-i="limit3">Review the cleaned copy manually for data, credentials, private paths, identifying names, and unpublished results before sharing.</li>
+      <li data-i="limit4">The tool accepts notebooks up to 5 MB and 1,000 cells. It preserves the original input and does not claim the result is anonymous or safe to publish.</li>
+    </ul>
+  </section>
+</main>
+<script>
+(() => {
+  const $=id=>document.getElementById(id);
+  const L={
+    en:{langLabel:"Language",placeholder:"Paste a Jupyter .ipynb JSON document here",home:"← Participation Workbench",eyebrow:"NOTEBOOK SHARING · BROWSER-LOCAL",title:"Notebook Share-Ready Cleaner",lede:"Prepare a Jupyter notebook copy by clearing saved cell outputs and execution counts before you share it.",privacy:"Your notebook is processed in this tab and is never uploaded. The original file is not changed.",inputs:"Choose or paste a notebook",file:"Choose a local .ipynb file (optional)",paste:"Notebook JSON",widgets:"Also remove saved Jupyter widget state from notebook metadata",prepare:"Prepare clean copy",download:"Download cleaned notebook",clear:"Clear",initial:"Choose or paste a Jupyter notebook, then prepare a separate copy.",limits:"Review before sharing",limit1:"The cleaner removes saved outputs and resets code-cell execution counts. It can also remove notebook-level widget state.",limit2:"It does not inspect or redact code, Markdown, cell attachments, metadata other than widget state, or secrets embedded in source.",limit3:"Review the cleaned copy manually for data, credentials, private paths, identifying names, and unpublished results before sharing.",limit4:"The tool accepts notebooks up to 5 MB and 1,000 cells. It preserves the original input and does not claim the result is anonymous or safe to publish.",empty:"Paste or choose a notebook JSON file first.",large:"The notebook must be 5 MB or smaller.",invalid:"Could not read this notebook. Check that it is valid Jupyter notebook JSON with a cells array.",tooMany:"The notebook has more than 1,000 cells; reduce its size before processing.",ready:(c,o,e,w)=>`Prepared a copy of ${c} code cells: cleared ${o} saved output bundle(s), reset ${e} execution count(s)${w?", and removed saved widget state":""}. Review the copy before sharing.`,reportTitle:"Cleaning summary",code:"Code cells",outputs:"Saved output bundles cleared",counts:"Execution counts reset",widgetsRemoved:"Widget state removed",none:"No saved outputs or execution counts were found.",downloadFail:"Could not create the notebook download.",cleared:"Cleared. Choose or paste a notebook to continue."},
+    es:{langLabel:"Idioma",placeholder:"Pega aquí el JSON de un cuaderno Jupyter .ipynb",home:"← Banco de herramientas de participación",eyebrow:"COMPARTIR CUADERNOS · LOCAL EN EL NAVEGADOR",title:"Preparador de cuadernos Jupyter para compartir",lede:"Prepara una copia de un cuaderno Jupyter borrando las salidas guardadas y reiniciando los contadores de ejecución antes de compartirlo.",privacy:"El cuaderno se procesa en esta pestaña y nunca se carga. El archivo original no se modifica.",inputs:"Elige o pega un cuaderno",file:"Elegir un archivo .ipynb local (opcional)",paste:"JSON del cuaderno",widgets:"Eliminar también el estado guardado de widgets Jupyter en los metadatos",prepare:"Preparar copia limpia",download:"Descargar cuaderno limpio",clear:"Borrar",initial:"Elige o pega un cuaderno Jupyter y prepara una copia independiente.",limits:"Revisa antes de compartir",limit1:"La herramienta elimina las salidas guardadas y reinicia los contadores de ejecución del código. También puede eliminar el estado de widgets del cuaderno.",limit2:"No inspecciona ni redacta código, Markdown, adjuntos de celdas, metadatos distintos del estado de widgets ni secretos incluidos en el contenido.",limit3:"Antes de compartir, revisa manualmente la copia para detectar datos, credenciales, rutas privadas, nombres identificables y resultados no publicados.",limit4:"Admite cuadernos de hasta 5 MB y 1 000 celdas. Conserva la entrada original y no garantiza anonimato ni que el resultado sea seguro para publicar.",empty:"Pega o elige primero el JSON de un cuaderno.",large:"El cuaderno debe ocupar 5 MB o menos.",invalid:"No se pudo leer el cuaderno. Comprueba que sea JSON válido de Jupyter con una matriz cells.",tooMany:"El cuaderno tiene más de 1 000 celdas; reduce su tamaño antes de procesarlo.",ready:(c,o,e,w)=>`Copia preparada con ${c} celdas de código: se borraron ${o} grupos de salidas y se reiniciaron ${e} contadores${w?", y se eliminó el estado guardado de widgets":""}. Revisa la copia antes de compartirla.`,reportTitle:"Resumen de limpieza",code:"Celdas de código",outputs:"Grupos de salidas borrados",counts:"Contadores de ejecución reiniciados",widgetsRemoved:"Estado de widgets eliminado",none:"No se encontraron salidas ni contadores guardados.",downloadFail:"No se pudo crear la descarga del cuaderno.",cleared:"Borrado. Elige o pega un cuaderno para continuar."},
+    zh:{langLabel:"语言",placeholder:"在此粘贴 Jupyter .ipynb JSON 文档",home:"← 参与工作台",eyebrow:"分享笔记本 · 浏览器本地处理",title:"Jupyter 笔记本分享准备工具",lede:"分享前清除已保存的单元格输出并重置执行计数，生成一份可单独检查的 Jupyter 笔记本副本。",privacy:"笔记本仅在此标签页处理，不会上传；原文件不会被修改。",inputs:"选择或粘贴笔记本",file:"选择本地 .ipynb 文件（可选）",paste:"笔记本 JSON",widgets:"同时从笔记本元数据中移除已保存的 Jupyter 小组件状态",prepare:"准备清理后的副本",download:"下载清理后的笔记本",clear:"清空",initial:"选择或粘贴 Jupyter 笔记本，然后准备一个单独的副本。",limits:"分享前请检查",limit1:"此工具会清除已保存的输出并重置代码单元的执行计数，也可移除笔记本级小组件状态。",limit2:"不会检查或编辑代码、Markdown、单元格附件、除小组件状态以外的元数据，也不会查找源代码中嵌入的机密信息。",limit3:"分享前请人工检查清理后的副本，确认其中没有数据、凭证、私有路径、可识别姓名或未发表结果。",limit4:"支持最大 5 MB、最多 1,000 个单元格的笔记本。输入内容保持不变；本工具不保证结果匿名或适合公开发布。",empty:"请先粘贴或选择笔记本 JSON 文件。",large:"笔记本大小必须不超过 5 MB。",invalid:"无法读取笔记本。请确认它是包含 cells 数组的有效 Jupyter 笔记本 JSON。",tooMany:"笔记本超过 1,000 个单元格，请先缩小后再处理。",ready:(c,o,e,w)=>`已准备包含 ${c} 个代码单元的副本：清除了 ${o} 组已保存输出，重置了 ${e} 个执行计数${w?"，并移除了已保存的小组件状态":""}。分享前请检查副本。`,reportTitle:"清理摘要",code:"代码单元",outputs:"已清除的输出组",counts:"已重置的执行计数",widgetsRemoved:"已移除小组件状态",none:"未发现已保存的输出或执行计数。",downloadFail:"无法创建笔记本下载文件。",cleared:"已清空。请重新选择或粘贴笔记本。"}
+  };
+  let lang="en",prepared=null,stats=null,fileName="notebook";
+  function t(key,...args){const v=L[lang][key];return typeof v==="function"?v(...args):v;}
+  function invalidate(){prepared=null;stats=null;$("download").disabled=true;$("report").replaceChildren();$("status").textContent=t("initial");}
+  function apply(){document.documentElement.lang=lang;document.querySelectorAll("[data-i]").forEach(e=>{const k=e.dataset.i;if(L[lang][k]&&typeof L[lang][k]==="string")e.textContent=L[lang][k];});document.querySelectorAll("[data-i-label]").forEach(e=>e.setAttribute("aria-label",t(e.dataset.iLabel)));document.querySelectorAll("[data-i-placeholder]").forEach(e=>e.setAttribute("placeholder",t(e.dataset.iPlaceholder)));document.querySelectorAll("[data-lang]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.lang===lang)));if(stats){showReport();$("status").textContent=t("ready",stats.code,stats.outputs,stats.counts,stats.widgets);}}
+  function showReport(){const root=$("report");root.replaceChildren();if(!stats)return;const h=document.createElement("h3");h.textContent=t("reportTitle");root.appendChild(h);const ul=document.createElement("ul");const entries=[["code",stats.code],["outputs",stats.outputs],["counts",stats.counts]];if(stats.widgets)entries.push(["widgetsRemoved",1]);for(const [key,value] of entries){const li=document.createElement("li");li.textContent=t(key)+": "+value;ul.appendChild(li);}root.appendChild(ul);if(!stats.outputs&&!stats.counts){const p=document.createElement("p");p.textContent=t("none");root.appendChild(p);}}
+  function prepare(){
+    prepared=null;stats=null;$("download").disabled=true;$("report").replaceChildren();
+    const raw=$("source").value;if(!raw.trim()){$("status").textContent=t("empty");return;}
+    if(new Blob([raw]).size>5*1024*1024){$("status").textContent=t("large");return;}
+    try{
+      const notebook=JSON.parse(raw);if(!notebook||typeof notebook!=="object"||!Array.isArray(notebook.cells))throw new Error("shape");
+      if(notebook.cells.length>1000){$("status").textContent=t("tooMany");return;}
+      const copy=JSON.parse(JSON.stringify(notebook));let code=0,outputs=0,counts=0;
+      for(const cell of copy.cells){if(!cell||typeof cell!=="object")throw new Error("shape");if(cell.cell_type==="code"){code++;if(Array.isArray(cell.outputs))outputs+=cell.outputs.length;cell.outputs=[];if(cell.execution_count!==null&&cell.execution_count!==undefined)counts++;cell.execution_count=null;}}
+      let widgets=false;if($("clearWidgets").checked&&copy.metadata&&typeof copy.metadata==="object"&&Object.prototype.hasOwnProperty.call(copy.metadata,"widgets")){delete copy.metadata.widgets;widgets=true;}
+      prepared=copy;stats={code,outputs,counts,widgets};$("download").disabled=false;showReport();$("status").textContent=t("ready",code,outputs,counts,widgets);
+    }catch(e){$("status").textContent=t("invalid");}
+  }
+  function download(){if(!prepared)return;try{const blob=new Blob([JSON.stringify(prepared,null,1)+"\n"],{type:"application/x-ipynb+json;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=(fileName.replace(/\.ipynb$/i,"").replace(/[^\w.-]+/g,"-")||"notebook")+"-share-ready.ipynb";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}catch(e){$("status").textContent=t("downloadFail");}}
+  document.querySelectorAll("[data-lang]").forEach(b=>b.addEventListener("click",()=>{lang=b.dataset.lang;apply();}));
+  $("file").addEventListener("change",async()=>{invalidate();const f=$("file").files[0];if(!f)return;if(f.size>5*1024*1024){$("status").textContent=t("large");return;}try{$("source").value=await f.text();fileName=f.name;$("status").textContent=t("initial");}catch(e){$("status").textContent=t("invalid");}});
+  $("source").addEventListener("input",invalidate);$("prepare").addEventListener("click",prepare);$("download").addEventListener("click",download);
+  $("clear").addEventListener("click",()=>{$("source").value="";$("file").value="";fileName="notebook";invalidate();$("status").textContent=t("cleared");});
+  apply();
+})();
+</script></body></html>

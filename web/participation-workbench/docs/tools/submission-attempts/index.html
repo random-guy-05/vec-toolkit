@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Track scored submission limits separately from free format checks in the Virtual Embryo Challenge.">
+  <title>VEC Scored Submission Budget Tracker · VEC</title>
+  <link rel="stylesheet" href="../../assets/style.css">
+  <link rel="stylesheet" href="../../assets/analysis-labs-l10n.css">
+  <style>
+    .status-card{border:1px solid var(--line,#ddd);border-radius:.7rem;padding:1rem;margin:.8rem 0}
+    .status-card strong{font-size:1.35rem}
+    .log-table td:last-child{white-space:nowrap}
+  </style>
+</head>
+<body>
+<main class="wrap">
+  <header class="tool-head">
+    <nav><a href="../../">← Participation Workbench</a> · <a href="https://virtualembryo.ai/challenge/rules">Official rules</a> · <a href="https://virtualembryo.ai/challenge/timeline">Official timeline</a></nav>
+    <div id="language-control"></div>
+    <p id="eyebrow" class="eyebrow">Submission planning · browser-local</p>
+    <h1 id="title">VEC Scored Submission Budget Tracker</h1>
+    <p id="description" class="lede">Keep a local count of scored attempts by phase and scope. Format checks are unlimited and do not spend scored attempts; rejected uploads also do not consume a scored attempt.</p>
+  </header>
+  <section class="panel">
+    <h2 id="setup-heading">Current tracking scope</h2>
+    <p id="setup-help">Choose the phase shown in the current official rules. P1 and P2 limits are per team, task, and UTC day; P3 limits are per team and board for the whole phase. Use a consistent team alias and board label.</p>
+    <div class="cols">
+      <div><label id="phase-label" for="phase">Challenge phase</label><select id="phase"><option value="P1">P1 · Development</option><option value="P2">P2 · Baselines released</option><option value="P3">P3 · Final test</option></select></div>
+      <div><label id="task-label" for="task">Task</label><select id="task"><option value="T1">Task 1 · Temporal</option><option value="T2">Task 2 · Spatial-temporal</option><option value="T3">Task 3 · Perturbation</option></select></div>
+      <div><label id="team-label" for="team">Local team alias (optional)</label><input id="team" type="text" maxlength="80" placeholder="My team"></div>
+      <div><label id="board-label" for="board">Board label (required for P3)</label><input id="board" type="text" maxlength="120" placeholder="For example: T2 · heart interpolation"></div>
+      <div><label id="date-label" for="date">Submission date (UTC)</label><input id="date" type="date"></div>
+      <div><label id="type-label" for="entry-type">Entry type</label><select id="entry-type"><option value="scored">Scored submission</option><option value="format">Format check</option><option value="rejected">Rejected submission</option></select></div>
+    </div>
+    <div id="budget" class="status-card" aria-live="polite"></div>
+    <form id="entry-form">
+      <label id="notes-label" for="notes">Optional local note</label>
+      <textarea id="notes" rows="2" maxlength="500" placeholder="For example: run label or local file name. Do not include credentials or private data."></textarea>
+      <div class="inline"><button id="log-entry" type="submit">Record entry locally</button></div>
+    </form>
+  </section>
+  <section class="panel">
+    <h2 id="history-heading">Local attempt log</h2>
+    <p id="history-help">Entries stay in this browser's local storage. Export a backup before clearing browser data. This tracker does not submit files, contact the Challenge, or monitor your account.</p>
+    <div class="inline"><button id="export" type="button" class="secondary">Export local backup</button><button id="import-backup" type="button" class="secondary">Import local backup</button><button id="clear-log" type="button" class="secondary">Clear local log</button><input id="backup-file" type="file" accept="application/json,.json" hidden></div>
+    <div id="history" class="output" aria-live="polite"></div>
+  </section>
+  <section class="panel">
+    <h2 id="scope-heading">Scope and limits</h2>
+    <p id="scope-one">The caps in this tracker reflect Official Rules checked on 14 October 2026: P1 allows 20 scored submissions per team/task/UTC day; P2 allows 8; P3 allows 2 official submissions per board across the phase. The phase selector is manual. Recheck the official rules before relying on a cap because organizers may update them.</p>
+    <p id="scope-two">Format checks are unlimited. A rejected submission does not use a scored attempt, but uploads have a separate daily limit that this tracker does not count. P3 submissions are scored and published when made and cannot be withdrawn. This is a private planning aid, not an official portal counter.</p>
+    <p id="privacy" class="hint">All records remain in this browser unless you export them. Use a short alias, and avoid credentials or sensitive notes.</p>
+  </section>
+  <footer class="foot"><a href="https://virtualembryo.ai/challenge/rules">Official rules</a> · <a href="https://virtualembryo.ai/challenge/community">Community resources</a> · <a href="../../">Participation Workbench</a></footer>
+</main>
+<script src="locales.js"></script>
+<script>
+(() => {
+  "use strict";
+  const $ = id => document.getElementById(id);
+  const STORAGE_KEY = "vec-submission-attempt-log-v1";
+  const LIMITS = {P1: 20, P2: 8, P3: 2};
+  const locales = window.submissionAttemptLocales || {};
+  let language = "en";
+  let entries = [];
+  let storageAvailable = true;
+
+  const copy = () => locales[language] || locales.en;
+  const t = (key, values = {}) => Object.entries(values).reduce(
+    (text, [name, value]) => text.replaceAll("{" + name + "}", String(value)), copy()[key] || key
+  );
+  const escHtml = value => String(value).replace(/[&<>"']/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
+  const todayUTC = () => new Date().toISOString().slice(0, 10);
+  const norm = value => String(value || "").trim().toLocaleLowerCase();
+
+  function inferredPhase(date = todayUTC()) {
+    if (date >= "2026-10-20") return "P3";
+    if (date >= "2026-08-15") return "P2";
+    return "P1";
+  }
+
+  function loadEntries() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+      entries = Array.isArray(parsed) ? parsed.filter(entry => entry && typeof entry.id === "string") : [];
+    } catch {
+      entries = [];
+      storageAvailable = false;
+    }
+  }
+
+  function saveEntries() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+      storageAvailable = true;
+    } catch {
+      storageAvailable = false;
+    }
+  }
+
+  function updateLanguage() {
+    const c = copy();
+    document.documentElement.lang = language === "zh-CN" ? "zh-Hans" : language;
+    document.title = c.pageTitle + " · VEC";
+    $("eyebrow").textContent = c.eyebrow;
+    $("title").textContent = c.title;
+    $("description").textContent = c.description;
+    $("setup-heading").textContent = c.setupHeading;
+    $("setup-help").textContent = c.setupHelp;
+    $("phase-label").textContent = c.phaseLabel;
+    $("task-label").textContent = c.taskLabel;
+    $("team-label").textContent = c.teamLabel;
+    $("board-label").textContent = c.boardLabel;
+    $("date-label").textContent = c.dateLabel;
+    $("type-label").textContent = c.typeLabel;
+    $("notes-label").textContent = c.notesLabel;
+    $("notes").placeholder = c.notesPlaceholder;
+    $("team").placeholder = c.myTeam;
+    $("board").placeholder = c.boardPlaceholder;
+    $("log-entry").textContent = c.logEntry;
+    $("history-heading").textContent = c.historyHeading;
+    $("history-help").textContent = c.historyHelp;
+    $("export").textContent = c.export;
+    $("import-backup").textContent = c.importBackup;
+    $("clear-log").textContent = c.clearLog;
+    $("scope-heading").textContent = c.scopeHeading;
+    $("scope-one").textContent = c.scopeOne;
+    $("scope-two").textContent = c.scopeTwo;
+    $("privacy").textContent = c.privacy;
+
+    const nav = document.querySelectorAll(".tool-head nav a");
+    if (nav[0]) nav[0].textContent = c.back;
+    if (nav[1]) nav[1].textContent = c.rulesLink;
+    if (nav[2]) nav[2].textContent = c.timelineLink;
+    const footer = document.querySelectorAll(".foot a");
+    if (footer[0]) footer[0].textContent = c.rulesLink;
+    if (footer[1]) footer[1].textContent = c.resourcesLink;
+    if (footer[2]) footer[2].textContent = c.back;
+    $("phase").querySelector('option[value="P1"]').textContent = c.phaseP1;
+    $("phase").querySelector('option[value="P2"]').textContent = c.phaseP2;
+    $("phase").querySelector('option[value="P3"]').textContent = c.phaseP3;
+    $("task").querySelector('option[value="T1"]').textContent = c.taskT1;
+    $("task").querySelector('option[value="T2"]').textContent = c.taskT2;
+    $("task").querySelector('option[value="T3"]').textContent = c.taskT3;
+    $("entry-type").querySelector('option[value="scored"]').textContent = c.typeScored;
+    $("entry-type").querySelector('option[value="format"]').textContent = c.typeFormat;
+    $("entry-type").querySelector('option[value="rejected"]').textContent = c.typeRejected;
+    const langSelect = $("interface-language");
+    if (langSelect) langSelect.value = language;
+    const langLabel = document.querySelector('label[for="interface-language"]');
+    if (langLabel) langLabel.textContent = c.language;
+    renderBudget();
+    renderHistory();
+  }
+
+  function initLanguage() {
+    const wrap = document.createElement("div");
+    wrap.className = "language-control";
+    const label = document.createElement("label");
+    label.htmlFor = "interface-language";
+    const select = document.createElement("select");
+    select.id = "interface-language";
+    select.setAttribute("aria-label", "Interface language / Idioma de la interfaz / 界面语言");
+    [["en", "English"], ["es", "Español"], ["zh-CN", "简体中文"]].forEach(([value, text]) => {
+      const option = document.createElement("option");
+      option.value = value;
+      option.textContent = text;
+      select.append(option);
+    });
+    wrap.append(label, select);
+    $("language-control").append(wrap);
+    const requested = new URLSearchParams(location.search).get("lang");
+    language = locales[requested] ? requested : "en";
+    select.addEventListener("change", () => {
+      language = locales[select.value] ? select.value : "en";
+      const url = new URL(location.href);
+      if (language === "en") url.searchParams.delete("lang");
+      else url.searchParams.set("lang", language);
+      history.replaceState(null, "", url);
+      updateLanguage();
+    });
+    updateLanguage();
+  }
+
+  function currentScope() {
+    const phase = $("phase").value;
+    const team = norm($("team").value) || "__default_team__";
+    const task = $("task").value;
+    const board = norm($("board").value);
+    const date = $("date").value;
+    return {phase, team, task, board, date};
+  }
+
+  function matchingEntries(scope) {
+    return entries.filter(entry => {
+      if (entry.phase !== scope.phase || (norm(entry.team) || "__default_team__") !== scope.team) return false;
+      if (scope.phase === "P3") return norm(entry.board) === scope.board;
+      return entry.task === scope.task && entry.date === scope.date;
+    });
+  }
+
+  function renderBudget() {
+    const c = copy();
+    $("budget").removeAttribute("role");
+    const scope = currentScope();
+    const matching = matchingEntries(scope);
+    const used = matching.filter(entry => entry.type === "scored").length;
+    const limit = LIMITS[scope.phase];
+    const remaining = Math.max(0, limit - used);
+    const boardText = $("board").value.trim() || t("boardUnset");
+    const taskText = $("task").selectedOptions[0].textContent;
+    const dimension = scope.phase === "P3"
+      ? t("budgetScopeP3", {board: escHtml(boardText)})
+      : t("budgetScopeDaily", {task: escHtml(taskText), date: escHtml(scope.date || "—")});
+    const warnings = [];
+    if (scope.phase === "P3" && !scope.board) warnings.push(c.boardNeeded);
+    const datePhase = scope.date ? inferredPhase(scope.date) : null;
+    if (datePhase && scope.phase !== datePhase) warnings.push(t("phaseMismatch", {selected: scope.phase, expected: datePhase}));
+    const over = used > limit ? '<p class="hint">' + c.overLimit + "</p>" : "";
+    $("budget").innerHTML =
+      "<p><strong>" + used + " / " + limit + "</strong> " + c.scoredUsed + " · " + remaining + " " + c.remaining + "</p>" +
+      "<p>" + dimension + "</p>" +
+      "<p class=\"hint\">" + c.freeTypes + "</p>" +
+      warnings.map(warning => "<p class=\"hint\">" + warning + "</p>").join("") + over;
+  }
+
+  function statusLabel(type) {
+    return ({scored: copy().typeScored, format: copy().typeFormat, rejected: copy().typeRejected})[type] || type;
+  }
+
+  function renderHistory() {
+    const out = $("history");
+    const c = copy();
+    if (!entries.length) {
+      out.textContent = c.noEntries;
+      if (!storageAvailable) {
+        const warning = document.createElement("p");
+        warning.className = "hint";
+        warning.textContent = c.storageWarning;
+        out.append(warning);
+      }
+      return;
+    }
+    const table = document.createElement("table");
+    table.className = "log-table";
+    const header = document.createElement("thead");
+    const headRow = document.createElement("tr");
+    [c.colDate, c.colPhase, c.colTask, c.colBoard, c.colType, c.colTeam, c.colAction].forEach(text => {
+      const th = document.createElement("th");
+      th.scope = "col";
+      th.textContent = text;
+      headRow.append(th);
+    });
+    header.append(headRow);
+    const body = document.createElement("tbody");
+    [...entries].sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || "")).slice(0, 100).forEach(entry => {
+      const row = document.createElement("tr");
+      [entry.date, entry.phase, entry.task, entry.board || "—", statusLabel(entry.type), entry.team || c.myTeam].forEach(value => {
+        const td = document.createElement("td");
+        td.textContent = value;
+        row.append(td);
+      });
+      const action = document.createElement("td");
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "secondary";
+      remove.textContent = c.remove;
+      remove.setAttribute("data-remove", entry.id);
+      action.append(remove);
+      row.append(action);
+      body.append(row);
+      if (entry.note) {
+        const noteRow = document.createElement("tr");
+        const note = document.createElement("td");
+        note.colSpan = 7;
+        note.textContent = c.notePrefix + entry.note;
+        noteRow.append(note);
+        body.append(noteRow);
+      }
+    });
+    table.append(header, body);
+    out.replaceChildren(table);
+    if (entries.length > 100) {
+      const note = document.createElement("p");
+      note.className = "hint";
+      note.textContent = t("historyLimit", {shown: 100, total: entries.length});
+      out.append(note);
+    }
+    if (!storageAvailable) {
+      const warning = document.createElement("p");
+      warning.className = "hint";
+      warning.textContent = c.storageWarning;
+      out.append(warning);
+    }
+  }
+
+  function recordEntry(event) {
+    event.preventDefault();
+    const c = copy();
+    const scope = currentScope();
+    const type = $("entry-type").value;
+    const boardText = $("board").value.trim();
+    if (!scope.date || Number.isNaN(Date.parse(scope.date)) || scope.date > todayUTC()) {
+      $("budget").setAttribute("role", "alert");
+      $("budget").insertAdjacentHTML("beforeend", '<p class="hint">' + c.dateError + "</p>");
+      return;
+    }
+    if (scope.phase === "P3" && !boardText) {
+      $("budget").setAttribute("role", "alert");
+      $("budget").insertAdjacentHTML("beforeend", '<p class="hint">' + c.boardNeeded + "</p>");
+      $("board").focus();
+      return;
+    }
+    const entry = {
+      id: (window.crypto && typeof window.crypto.randomUUID === "function" ? window.crypto.randomUUID() : String(Date.now()) + Math.random()),
+      phase: scope.phase,
+      task: scope.task,
+      board: boardText,
+      team: $("team").value.trim(),
+      date: scope.date,
+      type,
+      note: $("notes").value.trim(),
+      createdAt: new Date().toISOString()
+    };
+    entries.push(entry);
+    saveEntries();
+    $("notes").value = "";
+    renderBudget();
+    renderHistory();
+    const status = document.createElement("p");
+    status.className = "hint";
+    status.setAttribute("role", "status");
+    status.textContent = c.saved;
+    $("budget").append(status);
+  }
+
+  function exportBackup() {
+    const payload = JSON.stringify({format: "vec-submission-attempt-log", version: 1, entries}, null, 2);
+    const url = URL.createObjectURL(new Blob([payload], {type: "application/json;charset=utf-8"}));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "vec-submission-attempt-log.json";
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function showHistoryMessage(message, role = "status") {
+    const note = document.createElement("p");
+    note.className = "hint";
+    note.setAttribute("role", role);
+    note.textContent = message;
+    $("history").append(note);
+  }
+
+  function validBackupEntry(entry) {
+    const dateValid = entry && typeof entry.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(entry.date) &&
+      Number.isFinite(Date.parse(entry.date)) && new Date(entry.date + "T00:00:00Z").toISOString().slice(0, 10) === entry.date;
+    return entry && typeof entry === "object" && !Array.isArray(entry) &&
+      typeof entry.id === "string" && entry.id.length <= 100 &&
+      ["P1", "P2", "P3"].includes(entry.phase) && ["T1", "T2", "T3"].includes(entry.task) &&
+      ["scored", "format", "rejected"].includes(entry.type) &&
+      dateValid &&
+      typeof entry.board === "string" && entry.board.length <= 120 &&
+      typeof entry.team === "string" && entry.team.length <= 80 &&
+      typeof entry.note === "string" && entry.note.length <= 500 &&
+      typeof entry.createdAt === "string";
+  }
+
+  $("import-backup").addEventListener("click", () => $("backup-file").click());
+  $("backup-file").addEventListener("change", () => {
+    const file = $("backup-file").files && $("backup-file").files[0];
+    if (!file) return;
+    const c = copy();
+    if (file.size > 2_000_000) {
+      showHistoryMessage(c.importTooLarge, "alert");
+      $("backup-file").value = "";
+      return;
+    }
+    const reader = new FileReader();
+    reader.addEventListener("load", () => {
+      try {
+        const payload = JSON.parse(String(reader.result));
+        if (!payload || payload.format !== "vec-submission-attempt-log" || payload.version !== 1 ||
+            !Array.isArray(payload.entries) || payload.entries.length > 20_000 ||
+            !payload.entries.every(validBackupEntry)) throw Error(c.importInvalid);
+        const known = new Set(entries.map(entry => entry.id));
+        const additions = payload.entries.filter(entry => {
+          if (known.has(entry.id)) return false;
+          known.add(entry.id);
+          return true;
+        });
+        if (!additions.length) {
+          showHistoryMessage(c.nothingNew);
+          return;
+        }
+        if (!window.confirm(t("confirmImport", {count: additions.length}))) return;
+        entries = entries.concat(additions);
+        saveEntries();
+        renderBudget();
+        renderHistory();
+        showHistoryMessage(t("imported", {count: additions.length}));
+      } catch {
+        showHistoryMessage(c.importInvalid, "alert");
+      } finally {
+        $("backup-file").value = "";
+      }
+    });
+    reader.addEventListener("error", () => {
+      showHistoryMessage(c.importInvalid, "alert");
+      $("backup-file").value = "";
+    });
+    reader.readAsText(file);
+  });
+
+  $("entry-form").addEventListener("submit", recordEntry);
+  ["phase", "task", "team", "board", "date"].forEach(id => $(id).addEventListener("input", renderBudget));
+  ["phase", "task", "entry-type"].forEach(id => $(id).addEventListener("change", renderBudget));
+  $("history").addEventListener("click", event => {
+    const button = event.target.closest("button[data-remove]");
+    if (!button || !window.confirm(t("confirmRemove"))) return;
+    entries = entries.filter(entry => entry.id !== button.getAttribute("data-remove"));
+    saveEntries();
+    renderBudget();
+    renderHistory();
+  });
+  $("export").addEventListener("click", exportBackup);
+  $("clear-log").addEventListener("click", () => {
+    if (!entries.length || !window.confirm(t("confirmClear"))) return;
+    entries = [];
+    saveEntries();
+    renderBudget();
+    renderHistory();
+  });
+
+  loadEntries();
+  $("date").value = todayUTC();
+  $("phase").value = inferredPhase();
+  initLanguage();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Create a small CSV example for debugging by selecting fields, pseudonymizing identifiers, and sampling rows locally in the browser.">
+  <title>Minimal Reproducer Builder · VEC</title>
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<main class="wrap">
+  <header class="tool-head">
+    <nav><a href="../../">← Participation Workbench</a> · <a href="https://virtualembryo.ai/challenge/resources">Community resources</a> · <a href="https://virtualembryo.ai/challenge/rules">Current rules</a></nav>
+    <p class="eyebrow">Support requests · browser-local</p>
+    <h1>Minimal Reproducer Builder</h1>
+    <p class="lede">Prepare a small CSV example for a reproducible help request. Choose only the columns a helper needs, omit the rest, and replace selected identifier values with temporary aliases.</p>
+  </header>
+  <section class="panel">
+    <h2>Paste a small manifest extract</h2>
+    <label for="data">CSV data</label>
+    <textarea id="data" rows="12" spellcheck="false" placeholder="sample_id,cell_id,stage,value,private_note&#10;embryo_17,cell-1,E8.5,0.42,remove me"></textarea>
+    <div class="cols">
+      <div><label for="maxRows">Maximum rows to export (1–100)</label><input id="maxRows" type="number" min="1" max="100" value="20"></div>
+      <div><label for="seed">Deterministic row-sampling seed</label><input id="seed" type="number" min="0" max="4294967295" value="11"></div>
+    </div>
+    <p class="hint">After pasting, mark each column to omit, include as-is, or pseudonymize. Every column starts as omitted. Never include credentials, direct identifiers, free-text notes, or data you lack permission to share.</p>
+    <div id="columns" class="output" aria-live="polite">Column controls appear after you paste a CSV header.</div>
+    <div class="inline"><button id="prepare" type="button">Prepare preview</button><button id="example" type="button" class="secondary">Load synthetic example</button><button id="clear" type="button" class="secondary">Clear</button><button id="download" type="button" class="secondary" disabled>Download minimal CSV</button></div>
+    <div id="result" class="output" aria-live="polite">No export prepared.</div>
+  </section>
+  <section class="panel">
+    <h2>Review before sharing</h2>
+    <p>Pseudonyms preserve repeated values within the selected column, but they do not make a dataset anonymous. Rare combinations, dates, stage, batch, or other attributes can still identify samples. The alias mapping is discarded when the page is closed and is not included in the export.</p>
+    <p class="hint">Parsing, row sampling, and aliasing happen in this tab. Nothing is uploaded or stored. The browser cannot determine whether a combination of fields is safe to disclose; inspect the preview and follow your institution's policies and the Challenge's current rules.</p>
+  </section>
+  <footer class="foot"><a href="../../tools/help-request/">Help Request Builder</a> · <a href="../../tools/service-incident-packet/">Challenge Service Incident Packet</a> · <a href="https://virtualembryo.ai/challenge/resources">Community resources</a></footer>
+</main>
+<script>
+(() => {
+  const $=id=>document.getElementById(id);let header=[],outputRows=[];
+  function parse(text){const rows=[];let row=[],field="",q=false;for(let i=0;i<text.length;i++){const c=text[i];if(q){if(c==='"'&&text[i+1]==='"'){field+='"';i++;}else if(c==='"')q=false;else field+=c;}else if(c==='"'&&field==="")q=true;else if(c===","){row.push(field);field="";}else if(c==="\n"||c==="\r"){if(c==="\r"&&text[i+1]==="\n")i++;row.push(field);rows.push(row);row=[];field="";}else field+=c;}if(q)throw Error("CSV contains an unclosed quoted field.");if(field!==""||row.length){row.push(field);rows.push(row);}return rows;}
+  const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  function controls(){const box=$("columns");try{const rows=parse($("data").value.trim());if(!rows.length||rows[0].every(x=>x.trim()==="")){header=[];box.textContent="Column controls appear after you paste a CSV header.";return;}header=rows[0].map(x=>x.trim());if(header.some(x=>!x))throw Error("CSV contains a blank column name.");if(new Set(header).size!==header.length)throw Error("CSV column names must be unique.");box.innerHTML='<p>Choose an action for each source column:</p><div class="table-wrap"><table><thead><tr><th>Column</th><th>Export action</th></tr></thead><tbody>'+header.map((name,i)=>`<tr><td>${esc(name)}</td><td><select id="col${i}"><option value="omit" selected>Omit</option><option value="keep">Include as-is</option><option value="alias">Pseudonymize values</option></select></td></tr>`).join("")+'</tbody></table></div>';$("result").textContent="Review the column choices, then prepare a preview.";}catch(e){header=[];box.textContent=e.message;}}
+  function prepare(){const result=$("result");outputRows=[];$("download").disabled=true;try{const rows=parse($("data").value.trim());if(rows.length<2)throw Error("Paste a header row and at least one data row.");const selected=header.map((name,i)=>({name,i,action:$("col"+i)?.value||"omit"})).filter(x=>x.action!=="omit");if(!selected.length)throw Error("Select at least one column to include or pseudonymize.");const max=Number($("maxRows").value),seed=Number($("seed").value);if(!Number.isInteger(max)||max<1||max>100)throw Error("Maximum rows must be an integer from 1 to 100.");if(!Number.isInteger(seed)||seed<0||seed>4294967295)throw Error("Seed must be an integer from 0 through 4,294,967,295.");const data=rows.slice(1).filter(r=>!r.every(v=>v.trim()===""));if(data.some(r=>r.length!==header.length))throw Error("Each non-empty data row must have the same number of fields as the header.");let state=seed>>>0;const random=()=>{state+=0x6D2B79F5;let x=state;x=Math.imul(x^(x>>>15),x|1);x^=x+Math.imul(x^(x>>>7),x|61);return((x^(x>>>14))>>>0)/4294967296;};for(let i=data.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[data[i],data[j]]=[data[j],data[i]];}const chosen=data.slice(0,max),maps=new Map();outputRows=[selected.map(x=>x.name),...chosen.map(row=>selected.map(({i,action,name})=>{const value=row[i];if(action!=="alias"||value==="")return value;if(!maps.has(name))maps.set(name,new Map());const map=maps.get(name);if(!map.has(value)){const prefix=name.toLowerCase().replace(/[^a-z0-9]+/g,"_").replace(/^_|_$/g,"").slice(0,10)||"value";map.set(value,`${prefix}_${i+1}_${String(map.size+1).padStart(3,"0")}`);}return map.get(value);})))];const preview=outputRows.slice(0,6).map(r=>`<tr>${r.map(v=>`<td>${esc(v)}</td>`).join("")}</tr>`).join("");result.innerHTML=`<p><strong>${chosen.length}</strong> of ${data.length} rows · <strong>${selected.length}</strong> of ${header.length} columns · sampling seed ${seed}.</p><div class="table-wrap"><table><thead><tr>${outputRows[0].map(v=>`<th>${esc(v)}</th>`).join("")}</tr></thead><tbody>${preview}</tbody></table></div><p class="hint">Preview shows at most five data rows. Inspect all exported rows for identifying combinations before sharing.</p>`;$("download").disabled=false;}catch(e){result.textContent=e.message;}}
+  $("data").addEventListener("input",controls);$("prepare").addEventListener("click",prepare);$("example").addEventListener("click",()=>{$("data").value='sample_id,cell_id,stage,value,private_note\nembryo_17,cell-1,E8.5,0.42,remove me\nembryo_17,cell-2,E8.5,0.38,remove me too\nembryo_21,cell-1,E9.0,0.61,synthetic only\nembryo_21,cell-3,E9.0,0.57,synthetic only\n';controls();});$("clear").addEventListener("click",()=>{$("data").value="";header=[];outputRows=[];$("columns").textContent="Column controls appear after you paste a CSV header.";$("result").textContent="No export prepared.";$("download").disabled=true;});$("download").addEventListener("click",()=>{const q=s=>'"'+String(s).replace(/"/g,'""')+'"',content=outputRows.map(r=>r.map(q).join(",")).join("\r\n"),url=URL.createObjectURL(new Blob([content],{type:"text/csv;charset=utf-8"})),a=document.createElement("a");a.href=url;a.download="vec-minimal-reproducer.csv";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
+})();
+</script>
+</body>
+</html>

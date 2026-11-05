@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Check user-supplied same-stage reference and target group coverage for a perturbation or condition analysis.">
+  <title>Matched Reference Coverage Auditor · VEC</title>
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<main class="wrap">
+  <header class="tool-head">
+    <nav><a href="../../">← Participation Workbench</a> · <a href="https://virtualembryo.ai/challenge/data">Official data page</a> · <a href="https://virtualembryo.ai/challenge/tasks">Task definitions</a></nav>
+    <p class="eyebrow">Perturbation analysis · browser-local</p>
+    <h1>Matched Reference Coverage Auditor</h1>
+    <p class="lede">For analyses that compare a target condition with a reference, summarize row and sample coverage within each stage. Find stages where one side is absent before building contrasts.</p>
+  </header>
+  <section class="panel">
+    <h2>Paste an observation or sample manifest</h2>
+    <label for="data">CSV data with stage and group columns</label>
+    <textarea id="data" rows="10" spellcheck="false" placeholder="sample_id,stage,genotype,condition\nwt_1,E8.5,WT,control\nmut_1,E8.5,Mutant,perturbed"></textarea>
+    <div id="controls" class="cols"></div>
+    <div class="inline"><button id="audit" type="button">Compare stage coverage</button><button id="example" type="button" class="secondary">Load synthetic example</button><button id="clear" type="button" class="secondary">Clear</button><button id="download" type="button" class="secondary" disabled>Download stage summary</button></div>
+    <div id="result" class="output" aria-live="polite">Choose the stage and comparison columns after pasting your manifest.</div>
+  </section>
+  <section class="panel">
+    <h2>Interpretation limits</h2>
+    <p>Coverage means the selected values occur in the supplied manifest at the same stage. It does not establish that samples are biologically matched, that replicates are independent, or that a reference is scientifically appropriate.</p>
+    <p class="hint">Check current official task definitions and data rules before using any comparison. Parsing and summaries stay in this browser tab; no pasted data are uploaded or stored.</p>
+  </section>
+  <footer class="foot"><a href="../../tools/stage-coverage/">Stage-by-Condition Coverage Planner</a> · <a href="../../tools/contrast-reporter/">Replicate-Aware Contrast Reporter</a> · <a href="https://virtualembryo.ai/challenge/rules">Current rules</a></footer>
+</main>
+<script>
+(() => {
+  const $=id=>document.getElementById(id);let headers=[],summary=[];
+  function parse(text){const rows=[];let row=[],field="",q=false;for(let i=0;i<text.length;i++){const c=text[i];if(q){if(c==='"'&&text[i+1]==='"'){field+='"';i++;}else if(c==='"')q=false;else field+=c;}else if(c==='"'&&field==="")q=true;else if(c===","){row.push(field);field="";}else if(c==="\n"||c==="\r"){if(c==="\r"&&text[i+1]==="\n")i++;row.push(field);rows.push(row);row=[];field="";}else field+=c;}if(q)throw Error("CSV contains an unclosed quoted field.");if(field!==""||row.length){row.push(field);rows.push(row);}return rows;}
+  const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  function fields(){const box=$("controls");try{const rows=parse($("data").value.trim());if(!rows.length||rows[0].every(x=>x.trim()==="")){headers=[];box.innerHTML="";return;}headers=rows[0].map(x=>x.trim());if(new Set(headers).size!==headers.length||headers.some(x=>!x))throw Error("CSV headers must be non-empty and unique.");const opt=(id,label,guess,optional=false)=>`<div><label for="${id}">${label}</label><select id="${id}">${optional?'<option value="">(none)</option>':''}${headers.map(h=>`<option value="${esc(h)}" ${h.toLowerCase()===guess?'selected':''}>${esc(h)}</option>`).join("")}</select></div>`;box.innerHTML=opt("stageCol","Stage column","stage")+opt("groupCol","Comparison group column","genotype")+opt("sampleCol","Sample ID column (optional)","sample_id",true)+'<div><label for="reference">Reference group value</label><input id="reference" value="WT"></div><div><label for="target">Target group value</label><input id="target" value="Mutant"></div>';}catch(e){headers=[];box.textContent=e.message;}}
+  function audit(){const out=$("result");summary=[];$("download").disabled=true;try{const rows=parse($("data").value.trim());if(rows.length<2)throw Error("Add a header row and observations.");const h=rows[0].map(x=>x.trim()),stageName=$("stageCol")?.value,groupName=$("groupCol")?.value,sampleName=$("sampleCol")?.value,stageIdx=h.indexOf(stageName),groupIdx=h.indexOf(groupName),sampleIdx=sampleName?h.indexOf(sampleName):-1,ref=$("reference").value.trim(),target=$("target").value.trim();if(stageIdx<0||groupIdx<0||stageIdx===groupIdx)throw Error("Choose two different columns present in the CSV.");if(sampleName&&sampleIdx<0)throw Error("Sample ID column was not found.");if(!ref||!target||ref===target)throw Error("Enter two distinct, non-empty group values.");const stages=new Map();let skipped=0,other=0;for(const row of rows.slice(1)){if(row.every(x=>x.trim()===""))continue;const stage=(row[stageIdx]||"").trim(),group=(row[groupIdx]||"").trim();if(!stage||!group){skipped++;continue;}if(group!==ref&&group!==target){other++;continue;}if(!stages.has(stage))stages.set(stage,new Map([[ref,{rows:0,samples:new Set()}],[target,{rows:0,samples:new Set()}]]));const side=stages.get(stage).get(group);side.rows++;if(sampleIdx>=0){const id=(row[sampleIdx]||"").trim();if(id)side.samples.add(id);}}
+    if(!stages.size)throw Error("No rows matched the selected reference or target values.");summary=[...stages].sort((a,b)=>a[0].localeCompare(b[0])).map(([stage,pair])=>{const r=pair.get(ref),t=pair.get(target),status=!r.rows?"missing reference":!t.rows?"missing target":"both present";return{stage,reference_rows:r.rows,target_rows:t.rows,reference_samples:sampleIdx>=0?r.samples.size:"",target_samples:sampleIdx>=0?t.samples.size:"",status};});const body=summary.map(x=>`<tr><td>${esc(x.stage)}</td><td>${x.reference_rows}</td><td>${x.reference_samples===""?"—":x.reference_samples}</td><td>${x.target_rows}</td><td>${x.target_samples===""?"—":x.target_samples}</td><td>${esc(x.status)}</td></tr>`).join("");const absent=summary.filter(x=>x.status!=="both present").length;out.innerHTML=`<p><strong>${summary.length}</strong> stages · <strong>${absent}</strong> with one comparison side absent · ${skipped} incomplete rows skipped · ${other} rows in other groups ignored.</p><div class="table-wrap"><table><thead><tr><th>Stage</th><th>${esc(ref)} rows</th><th>${esc(ref)} samples</th><th>${esc(target)} rows</th><th>${esc(target)} samples</th><th>Status</th></tr></thead><tbody>${body}</tbody></table></div><p class="hint">Sample counts are distinct IDs within each stage and group. They do not establish one-to-one matching or correct experimental units.</p>`;$("download").disabled=false;}catch(e){out.textContent=e.message;}}
+  $("data").addEventListener("input",fields);$("audit").addEventListener("click",audit);$("example").addEventListener("click",()=>{$("data").value="sample_id,stage,genotype,condition\nwt_1,E8.5,WT,control\nwt_2,E8.5,WT,control\nmut_1,E8.5,Mutant,perturbed\nwt_3,E9.0,WT,control\nmut_2,E9.0,Mutant,perturbed\nmut_3,E9.0,Mutant,perturbed\n";fields();audit();});$("clear").addEventListener("click",()=>{$("data").value="";headers=[];summary=[];$("controls").innerHTML="";$("download").disabled=true;$("result").textContent="Choose the stage and comparison columns after pasting your manifest.";});$("download").addEventListener("click",()=>{const q=s=>'"'+String(s).replace(/"/g,'""')+'"',content=[["stage","reference_rows","reference_samples","target_rows","target_samples","status"],...summary.map(x=>[x.stage,x.reference_rows,x.reference_samples,x.target_rows,x.target_samples,x.status])].map(r=>r.map(q).join(",")).join("\r\n"),url=URL.createObjectURL(new Blob([content],{type:"text/csv;charset=utf-8"})),a=document.createElement("a");a.href=url;a.download="vec-matched-reference-coverage.csv";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
+})();
+</script>
+</body>
+</html>

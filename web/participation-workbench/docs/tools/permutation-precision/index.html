@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Estimate Monte Carlo error and permutation-count requirements for independent randomization draws.">
+  <title>Permutation Monte Carlo Precision Planner · VEC</title>
+  <link rel="stylesheet" href="../../assets/style.css">
+  <style>
+    .language-row{display:flex;justify-content:flex-end;margin-bottom:1rem}
+    .result-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.8rem;margin:1rem 0}
+    .result-grid div{border:1px solid var(--line,#ddd);border-radius:.65rem;padding:.8rem}
+    .result-grid strong{display:block;margin-top:.25rem;font-size:1.15rem}
+    .equation{font-variant-numeric:tabular-nums}
+  </style>
+</head>
+<body>
+<main class="wrap">
+  <header class="tool-head">
+    <nav><a href="../../" data-i18n="back">← Workbench</a> · <a href="https://virtualembryo.ai/challenge/resources" data-i18n="community">Community resources</a> · <a href="https://virtualembryo.ai/challenge/evaluation" data-i18n="official">Official evaluation page</a></nav>
+    <p class="eyebrow" data-i18n="eyebrow">Reproducibility · browser-local</p>
+    <h1 data-i18n="title">Permutation Monte Carlo Precision Planner</h1>
+    <p class="lede" data-i18n="description">Separate the Monte Carlo noise from a finite number of random shuffles from uncertainty in the scientific data. Estimate a corrected tail fraction and plan draws for a chosen precision.</p>
+  </header>
+  <section class="panel">
+    <div class="language-row">
+      <label for="language" data-i18n="languageLabel">Interface language</label>
+      <select id="language" aria-label="Interface language">
+        <option value="en">English</option><option value="es">Español</option><option value="zh-CN">简体中文</option>
+      </select>
+    </div>
+    <h2 data-i18n="observedTitle">Summarize an existing run</h2>
+    <div class="cols">
+      <div><label for="draws" data-i18n="draws">Independent random shuffles</label><input id="draws" type="number" min="1" step="1" value="999"></div>
+      <div><label for="hits" data-i18n="hits">Shuffles at least as extreme as observed</label><input id="hits" type="number" min="0" step="1" value="12"></div>
+    </div>
+    <h2 data-i18n="planningTitle">Plan a future run</h2>
+    <div class="cols">
+      <div><label for="expected" data-i18n="expected">Expected tail probability (0–1)</label><input id="expected" type="number" min="0.000001" max="0.999999" step="any" value="0.02"></div>
+      <div><label for="target-error" data-i18n="targetError">Target approximate Monte Carlo standard error</label><input id="target-error" type="number" min="0.000001" step="any" value="0.005"></div>
+    </div>
+    <div class="inline"><button id="calculate" type="button" data-i18n="calculate">Estimate precision</button><button id="example" class="secondary" type="button" data-i18n="example">Load example values</button></div>
+    <div id="result" class="output" aria-live="polite" data-i18n="ready">Enter a draw count, an observed tail count, and a planning scenario.</div>
+  </section>
+  <section class="panel">
+    <h2 data-i18n="methodTitle">Formulas and interpretation</h2>
+    <p class="equation">p = (k + 1) / (B + 1) &nbsp; · &nbsp; MCSE ≈ √(p(1 − p) / B) &nbsp; · &nbsp; Bplan = ceil(q(1 − q) / targetMCSE²)</p>
+    <p data-i18n="methodText">The add-one estimate avoids a reported zero when no shuffle exceeds the observed statistic. The minimum estimate it can report is 1/(B+1). The planning formula uses a binomial approximation for independent random shuffles and a presumed tail probability q.</p>
+    <p data-i18n="limits">The approximate interval is a Monte Carlo precision summary, not a confidence interval for a scientific effect or a substitute for the permutation test's assumptions. The tool does not evaluate exchangeability, choose a test statistic, or account for dependence among draws, finite-permutation corrections, data-sampling uncertainty, or multiple testing. Boundary counts (zero or all hits) make the normal approximation especially rough.</p>
+    <p class="hint" data-i18n="privacy">Inputs stay in this browser tab. Nothing is uploaded, stored, or fetched.</p>
+  </section>
+  <footer class="foot"><a href="../../tools/spatial-label-permutation/" data-i18n="related">See a spatial label-shuffle application</a> · <a href="https://virtualembryo.ai/challenge/resources" data-i18n="checkResources">Check existing community resources</a></footer>
+</main>
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const copy = {
+    en: {
+      back:"← Workbench",community:"Community resources",official:"Official evaluation page",eyebrow:"Reproducibility · browser-local",
+      title:"Permutation Monte Carlo Precision Planner",description:"Separate the Monte Carlo noise from a finite number of random shuffles from uncertainty in the scientific data. Estimate a corrected tail fraction and plan draws for a chosen precision.",
+      languageLabel:"Interface language",observedTitle:"Summarize an existing run",draws:"Independent random shuffles",hits:"Shuffles at least as extreme as observed",
+      planningTitle:"Plan a future run",expected:"Expected tail probability (0–1)",targetError:"Target approximate Monte Carlo standard error",
+      calculate:"Estimate precision",example:"Load example values",ready:"Enter a draw count, an observed tail count, and a planning scenario.",
+      methodTitle:"Formulas and interpretation",methodText:"The add-one estimate avoids a reported zero when no shuffle exceeds the observed statistic. The minimum estimate it can report is 1/(B+1). The planning formula uses a binomial approximation for independent random shuffles and a presumed tail probability q.",
+      limits:"The approximate interval is a Monte Carlo precision summary, not a confidence interval for a scientific effect or a substitute for the permutation test's assumptions. The tool does not evaluate exchangeability, choose a test statistic, or account for dependence among draws, finite-permutation corrections, data-sampling uncertainty, or multiple testing. Boundary counts (zero or all hits) make the normal approximation especially rough.",
+      privacy:"Inputs stay in this browser tab. Nothing is uploaded, stored, or fetched.",related:"See a spatial label-shuffle application",checkResources:"Check existing community resources",
+      invalidDraws:"Enter a positive integer number of random shuffles.",invalidHits:"The tail count must be an integer from zero through the number of shuffles.",
+      invalidPlan:"Expected tail probability must be between zero and one, and the target standard error must be positive.",
+      tooLarge:"The requested draw count exceeds exact integer arithmetic in this browser.",
+      observed:"Observed run: {hits} of {draws} shuffles reached or exceeded the statistic.",
+      corrected:"Add-one tail fraction",resolution:"Smallest reportable add-one value",mcse:"Approximate Monte Carlo standard error",
+      range:"Approximate 95% Monte Carlo range",planned:"At assumed q={expected}, target MCSE ≤ {error}: plan for about {draws} independent shuffles.",
+      planNote:"This planning estimate assumes independent shuffles and uses q(1−q)/B for Monte Carlo variance. It does not guarantee that the true tail probability is q.",
+      boundary:"A zero or all-hit count makes the plug-in normal approximation especially rough; use more shuffles or a suitable binomial interval method."
+    },
+    es: {
+      back:"← Herramientas",community:"Recursos comunitarios",official:"Evaluación oficial",eyebrow:"Reproducibilidad · local en el navegador",
+      title:"Planificador de precisión Monte Carlo para permutaciones",description:"Separa el ruido Monte Carlo debido a un número finito de barajados aleatorios de la incertidumbre de los datos científicos. Estima una proporción de cola corregida y planifica los barajados según la precisión deseada.",
+      languageLabel:"Idioma de la interfaz",observedTitle:"Resumir una ejecución existente",draws:"Barajados aleatorios independientes",hits:"Barajados al menos tan extremos como el observado",
+      planningTitle:"Planificar una ejecución futura",expected:"Probabilidad de cola esperada (0–1)",targetError:"Error estándar Monte Carlo aproximado deseado",
+      calculate:"Estimar precisión",example:"Cargar valores de ejemplo",ready:"Introduce el número de barajados, el conteo observado de cola y un escenario de planificación.",
+      methodTitle:"Fórmulas e interpretación",methodText:"La estimación aditiva evita informar cero cuando ningún barajado supera el estadístico observado. El mínimo valor que puede informar es 1/(B+1). La fórmula de planificación usa una aproximación binomial para barajados independientes y una probabilidad de cola supuesta q.",
+      limits:"El intervalo aproximado resume la precisión Monte Carlo; no es un intervalo de confianza de un efecto científico ni sustituye los supuestos de la prueba de permutación. La herramienta no evalúa intercambiabilidad, elige un estadístico ni considera dependencia entre barajados, correcciones por permutaciones finitas, incertidumbre de muestreo o pruebas múltiples. Los conteos en el límite (cero o todos) hacen especialmente aproximada la normalización.",
+      privacy:"Los valores permanecen en esta pestaña. No se suben, guardan ni obtienen datos.",related:"Ver una aplicación de barajado de etiquetas espaciales",checkResources:"Consultar recursos comunitarios existentes",
+      invalidDraws:"Introduce un número entero positivo de barajados aleatorios.",invalidHits:"El conteo de cola debe ser un entero entre cero y el número de barajados.",
+      invalidPlan:"La probabilidad de cola esperada debe estar entre cero y uno, y el error estándar objetivo debe ser positivo.",
+      tooLarge:"El número de barajados solicitado supera la aritmética entera exacta del navegador.",
+      observed:"Ejecución observada: {hits} de {draws} barajados igualaron o superaron el estadístico.",
+      corrected:"Proporción de cola con corrección aditiva",resolution:"Menor valor aditivo reportable",mcse:"Error estándar Monte Carlo aproximado",
+      range:"Intervalo Monte Carlo aproximado del 95%",planned:"Con q={expected} y un error estándar objetivo ≤ {error}, planifica aproximadamente {draws} barajados independientes.",
+      planNote:"Esta estimación supone barajados independientes y usa q(1−q)/B para la varianza Monte Carlo. No garantiza que la probabilidad de cola real sea q.",
+      boundary:"Un conteo de cero o de todos los barajados hace muy aproximada la normalización; usa más barajados o un método binomial adecuado."
+    },
+    "zh-CN": {
+      back:"← 工具箱",community:"社区资源",official:"官方评估页",eyebrow:"可重复性 · 浏览器本地处理",
+      title:"置换 Monte Carlo 精度规划器",description:"区分有限随机置换次数带来的 Monte Carlo 噪声与科学数据本身的不确定性。估算校正后的尾部比例，并按目标精度规划置换次数。",
+      languageLabel:"界面语言",observedTitle:"汇总已有运行",draws:"独立随机置换次数",hits:"统计量至少同样极端的置换次数",
+      planningTitle:"规划下一次运行",expected:"预期尾部概率（0–1）",targetError:"目标近似 Monte Carlo 标准误",
+      calculate:"估算精度",example:"载入示例数值",ready:"输入置换次数、观测到的尾部次数和规划情景。",
+      methodTitle:"公式与解释",methodText:"加一估计可避免当没有置换结果超过观测统计量时报告零值。该估计的最小值为 1/(B+1)。规划公式采用独立随机置换和假设尾部概率 q 的二项近似。",
+      limits:"近似区间描述 Monte Carlo 精度，不是科学效应的置信区间，也不能替代置换检验所需的假设。本工具不评估可交换性、不选择检验统计量，也不处理置换间依赖、有限置换校正、数据抽样不确定性或多重检验。尾部次数为零或全部时，正态近似尤其粗略。",
+      privacy:"输入仅保留在此浏览器标签页中，不会上传、存储或获取。",related:"查看空间标签置换示例",checkResources:"查看已有社区资源",
+      invalidDraws:"请输入正整数随机置换次数。",invalidHits:"尾部次数必须是从零到置换总数之间的整数。",
+      invalidPlan:"预期尾部概率必须在零和一之间，目标标准误必须为正数。",
+      tooLarge:"请求的置换次数超出此浏览器可精确表示的整数范围。",
+      observed:"观测运行：{draws} 次置换中有 {hits} 次达到或超过观测统计量。",
+      corrected:"加一校正尾部比例",resolution:"可报告的最小加一值",mcse:"近似 Monte Carlo 标准误",
+      range:"近似 95% Monte Carlo 范围",planned:"假设 q={expected}，目标标准误 ≤ {error}：规划约 {draws} 次独立置换。",
+      planNote:"规划估算假设置换相互独立，并用 q(1−q)/B 计算 Monte Carlo 方差。它不能保证真实尾部概率为 q。",
+      boundary:"尾部次数为零或全部时，代入式正态近似尤其粗略；可增加置换次数或使用合适的二项区间方法。"
+    }
+  };
+  const language = $("language");
+  let lastResult = null;
+  function t(key) { const selected = copy[language.value] || copy.en; return selected[key] === undefined ? copy.en[key] : selected[key]; }
+  function msg(key, values) { let result = t(key); for (const [name, value] of Object.entries(values || {})) result = result.split("{" + name + "}").join(String(value)); return result; }
+  function fmt(value) {
+    if (!Number.isFinite(value)) return "—";
+    if (value !== 0 && Math.abs(value) < 0.0001) return value.toExponential(3);
+    return Number(value).toPrecision(4);
+  }
+  function applyLanguage() {
+    const lang = language.value;
+    document.documentElement.lang = lang === "zh-CN" ? "zh-Hans" : lang;
+    document.querySelectorAll("[data-i18n]").forEach((node) => { node.textContent = t(node.dataset.i18n); });
+    language.setAttribute("aria-label", t("languageLabel"));
+    const url = new URL(location.href);
+    if (lang === "en") url.searchParams.delete("lang"); else url.searchParams.set("lang", lang);
+    try { history.replaceState(null, "", url); } catch (_) {}
+    if (lastResult) render(lastResult);
+  }
+  function integer(id) {
+    const raw = $(id).value.trim(), value = Number(raw);
+    if (!/^\d+$/.test(raw) || !Number.isSafeInteger(value)) return null;
+    return value;
+  }
+  function calculate() {
+    const draws = integer("draws"), hits = integer("hits");
+    const expectedRaw = $("expected").value.trim(), expected = expectedRaw ? Number(expectedRaw) : NaN;
+    const targetRaw = $("target-error").value.trim(), target = targetRaw ? Number(targetRaw) : NaN;
+    if (draws === null || draws < 1) return fail(t("invalidDraws"));
+    if (hits === null || hits < 0 || hits > draws) return fail(t("invalidHits"));
+    if (!Number.isFinite(expected) || expected <= 0 || expected >= 1 || !Number.isFinite(target) || target <= 0) return fail(t("invalidPlan"));
+    const p = (hits + 1) / (draws + 1);
+    const mcse = Math.sqrt(p * (1 - p) / draws);
+    const lower = Math.max(0, p - 1.96 * mcse), upper = Math.min(1, p + 1.96 * mcse);
+    const needed = Math.ceil(expected * (1 - expected) / (target * target));
+    if (!Number.isSafeInteger(needed) || needed < 1) return fail(t("tooLarge"));
+    lastResult = { draws, hits, p, mcse, lower, upper, resolution:1/(draws+1), expected, target, needed, boundary:hits===0||hits===draws };
+    render(lastResult);
+  }
+  function fail(message) { lastResult = null; $("result").textContent = message; }
+  function render(result) {
+    const out = $("result"); out.replaceChildren();
+    const observed = document.createElement("p");
+    observed.textContent = msg("observed", { hits:result.hits, draws:result.draws });
+    out.append(observed);
+    const grid = document.createElement("div"); grid.className = "result-grid";
+    const values = [
+      [t("corrected"), fmt(result.p)],
+      [t("resolution"), fmt(result.resolution)],
+      [t("mcse"), fmt(result.mcse)],
+      [t("range"), fmt(result.lower) + " – " + fmt(result.upper)]
+    ];
+    values.forEach(([label, value]) => {
+      const card = document.createElement("div"), caption = document.createElement("span"), number = document.createElement("strong");
+      caption.textContent = label; number.textContent = value; card.append(caption, number); grid.append(card);
+    });
+    out.append(grid);
+    const plan = document.createElement("p");
+    plan.textContent = msg("planned", { draws:result.needed, expected:fmt(result.expected), error:fmt(result.target) });
+    out.append(plan);
+    const planNote = document.createElement("p"); planNote.className = "hint"; planNote.textContent = t("planNote"); out.append(planNote);
+    if (result.boundary) { const warning = document.createElement("p"); warning.className = "hint"; warning.textContent = t("boundary"); out.append(warning); }
+  }
+  $("calculate").addEventListener("click", calculate);
+  $("example").addEventListener("click", () => { $("draws").value="999"; $("hits").value="12"; $("expected").value="0.02"; $("target-error").value="0.005"; calculate(); });
+  language.value = new URLSearchParams(location.search).get("lang") || "en";
+  if (!["en","es","zh-CN"].includes(language.value)) language.value="en";
+  language.addEventListener("change", applyLanguage);
+  applyLanguage();
+})();
+</script>
+</body>
+</html>

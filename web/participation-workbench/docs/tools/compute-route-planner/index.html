@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="A browser-local planner for choosing a practical, policy-aware compute route for Virtual Embryo Challenge work.">
+  <title>Compute Access Route Planner · VEC</title>
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<main class="wrap">
+  <header class="tool-head">
+    <nav><a href="../../">← Participation Workbench</a> · <a href="https://virtualembryo.ai/challenge/data">Data access and formats</a></nav>
+    <p class="eyebrow">Compute access · browser-local</p>
+    <h1>Compute Access Route Planner</h1>
+    <p class="lede">Turn your available hardware, software experience, and data access into a short next-step plan for Challenge work.</p>
+    <p class="hint">The planner does not estimate a guaranteed runtime, access private Challenge files, upload data, or recommend a paid service. Check local policies and the current data terms before moving data.</p>
+  </header>
+  <section class="panel">
+    <h2>Your starting point</h2>
+    <label for="task">Task focus</label>
+    <select id="task"><option value="t1">Task 1 · single-cell expression</option><option value="t2">Task 2 · spatial-temporal</option><option value="t3">Task 3 · perturbation</option><option value="explore">Still exploring / learning the Challenge</option></select>
+    <label for="compute">Compute you can use now</label>
+    <select id="compute"><option value="none">No dedicated compute / unsure</option><option value="cpu">Laptop or workstation, CPU only</option><option value="hpc">Institutional cluster or shared server</option><option value="cloud">Cloud notebook or rented instance</option></select>
+    <label for="software">Software experience</label>
+    <select id="software"><option value="new">New to Python and R</option><option value="python">Some Python</option><option value="r">Some R / Bioconductor</option><option value="both">Comfortable with both</option></select>
+    <label for="data">Challenge data access</label>
+    <select id="data"><option value="notyet">Not downloaded / access not confirmed</option><option value="ready">Training files available locally</option><option value="limited">Storage or network limits are uncertain</option></select>
+    <label for="constraints">Practical constraint to remember (optional)</label>
+    <input id="constraints" type="text" maxlength="180" placeholder="e.g. 40 GB free storage, no outbound internet on cluster">
+    <div class="inline"><button id="plan" type="button">Build my route</button><button id="download" type="button" class="secondary" disabled>Download Markdown plan</button></div>
+    <div id="result" class="output" aria-live="polite">Choose the closest match for each field, then build a route.</div>
+  </section>
+  <section class="panel">
+    <h2>Small first steps still count</h2>
+    <p>You can use the browser-local metric lab, synthetic-data lab, community documentation, and contribution finder before downloading large files or requesting compute. They do not need access to held-out answers.</p>
+    <p>For full training runs, measure a small permitted pilot before committing a queue slot or cloud budget. Actual runtime, memory, and storage depend on implementation and environment.</p>
+  </section>
+  <footer class="foot">
+    <a href="../../tools/compute-budget/">Compute Budget Estimator</a> ·
+    <a href="../../tools/runtime-forecast/">Runtime Forecast Planner</a> ·
+    <a href="../../tools/verified-download/">Verified Download Script Builder</a> ·
+    <a href="https://virtualembryo.ai/challenge/data">Official data page</a>
+  </footer>
+</main>
+<script>
+(() => {
+  const $=id=>document.getElementById(id);let report="";
+  const links={
+    basics:"https://random-guy-05.github.io/vec-participation-workbench/",
+    synthetic:"https://random-guy-05.github.io/vec-participation-workbench/tools/synthetic-data-lab/",
+    metric:"https://random-guy-05.github.io/vec-participation-workbench/metric-lab/",
+    budget:"https://random-guy-05.github.io/vec-participation-workbench/tools/compute-budget/",
+    runtime:"https://random-guy-05.github.io/vec-participation-workbench/tools/runtime-forecast/",
+    verified:"https://random-guy-05.github.io/vec-participation-workbench/tools/verified-download/",
+    slurm:"https://github.com/random-guy-05/vec-slurm-starter",
+    pbs:"https://github.com/random-guy-05/vec-pbs-lsf-starter",
+    python:"https://github.com/aristoteleo/veckit"
+  };
+  function build(){
+    const task=$("task").value,compute=$("compute").value,software=$("software").value,data=$("data").value,constraint=$("constraints").value.trim();
+    const steps=[];
+    if(data==="notyet")steps.push("Confirm your signed-in account can access the training release. Start from the official data page; the planner does not fetch files.");
+    if(data==="limited")steps.push("Check file sizes, storage quota, and network policy before downloading. Use the official file list and keep a checksum/provenance record.");
+    if(data==="ready")steps.push("Inventory local file sizes and free storage, then keep source files read-only while preparing working copies.");
+    if(compute==="none"){
+      steps.push("Start with the browser-local metric lab or synthetic-data lab to learn schemas and analysis ideas without installing software or moving Challenge data.");
+      steps.push("Ask a team, mentor, or institutional research-computing group about a small CPU pilot or shared queue before planning a full run.");
+    } else if(compute==="cpu"){
+      steps.push("Begin with a small permitted pilot and inspect peak memory before scaling up. Use synthetic data for code debugging and reserve full data for a measured workflow.");
+      steps.push("Use the Compute Budget Estimator for array-size arithmetic and the Runtime Forecast Planner only after you have measured a pilot.");
+    } else if(compute==="hpc"){
+      steps.push("Read the cluster's local storage, module, container, and queue policies. Start with the matching Slurm or PBS/LSF starter template and adapt it to your site.");
+      steps.push("Run a short pilot in the intended environment, capture resource usage, then forecast queue wall time from measured timings.");
+    } else {
+      steps.push("Before using a cloud notebook or rented instance, check the service terms, data-use rules, storage location, and whether the Challenge data may be uploaded there.");
+      steps.push("Use synthetic data until the service is approved for your intended data. Compare expected storage and measured pilot runtime with the service's published limits and cost controls.");
+    }
+    if(task==="t1")steps.push("Task 1 uses single-cell RNA with 32,285 genes. Check the current matrix dimensions and scorer behavior before estimating memory or batch size.");
+    else if(task==="t2"||task==="t3")steps.push("Tasks 2 and 3 use 500-gene spatial data and require 3D coordinates. Keep expression and coordinate arrays aligned to the same cells.");
+    else steps.push("Use the task pages to compare input formats and held-out splits before choosing which dataset to download.");
+    if(software==="new")steps.push("If you are new to programming, begin with the no-install browser resources and a small reproducible walkthrough; ask a collaborator to pair on environment setup before a long compute run.");
+    if(software==="python")steps.push("Use the official veckit instructions as the source for supported Python setup; pin the environment and record the version before a full run.");
+    if(software==="r")steps.push("Use the R Data Tour for data inspection, and keep any Python-only scorer environment separate unless the current scorer instructions say otherwise.");
+    if(software==="both")steps.push("Record which language and environment produced each artifact so later comparisons remain reproducible.");
+    steps.push("Never train on measured data from held-out stages or genotypes, including through pretraining, fine-tuning, or transfer. Disclose every permitted external data source.");
+    const refs=[links.basics,links.synthetic,links.metric,links.budget,links.runtime,links.verified,links.slurm,links.pbs,links.python,"https://virtualembryo.ai/challenge/data","https://virtualembryo.ai/challenge/rules"];
+    report=`# VEC compute access route\n\nBuilt locally on ${new Date().toISOString().slice(0,10)}\nTask focus: ${$("task").selectedOptions[0].textContent}\nCompute: ${$("compute").selectedOptions[0].textContent}\nSoftware experience: ${$("software").selectedOptions[0].textContent}\nData access: ${$("data").selectedOptions[0].textContent}\nConstraint note: ${constraint||"Not supplied"}\n\n## Suggested next steps\n${steps.map((s,i)=>`${i+1}. ${s}`).join("\n")}\n\n## References\n${refs.map(u=>"- "+u).join("\n")}\n\nThis is a planning aid, not a compute estimate or approval to upload data. Follow local policies and the current official Challenge rules.\n`;
+    const out=$("result");out.replaceChildren();const h=document.createElement("h3");h.textContent="Suggested route";out.appendChild(h);const list=document.createElement("ol");steps.forEach(s=>{const li=document.createElement("li");li.textContent=s;list.appendChild(li);});out.appendChild(list);
+    const p=document.createElement("p");p.className="hint";p.textContent="Use current official rules and local computing policies. No data or credentials were sent.";out.appendChild(p);$("download").disabled=false;
+  }
+  $("plan").addEventListener("click",build);
+  $("download").addEventListener("click",()=>{if(!report)build();const url=URL.createObjectURL(new Blob([report],{type:"text/markdown;charset=utf-8"}));const a=document.createElement("a");a.href=url;a.download="vec-compute-access-route.md";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
+})();
+</script>
+</body>
+</html>

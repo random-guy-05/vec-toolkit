@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Compare gene-effect rankings, top-k overlap, and sign agreement across replicate-level results.">
+  <title>Gene Rank Stability Reporter · VEC</title>
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<main class="wrap">
+  <header class="tool-head">
+    <nav><a href="../../">← Participation Workbench</a> · <a href="https://virtualembryo.ai/challenge/evaluation?section=scoring">Scoring reference</a> · <a href="https://virtualembryo.ai/challenge/resources">Community resources</a></nav>
+    <p class="eyebrow">Replicate robustness · browser-local</p>
+    <h1>Gene Rank Stability Reporter</h1>
+    <p class="lede">Compare gene-effect rankings across replicate-level result sets. See pairwise Spearman correlation, top-k Jaccard overlap, and sign agreement on genes shared by each pair.</p>
+  </header>
+  <section class="panel">
+    <h2>Paste replicate-level effects</h2>
+    <label for="data">CSV with replicate_id, gene, effect</label>
+    <textarea id="data" rows="12" spellcheck="false" placeholder="replicate_id,gene,effect\nrep1,gene_A,0.8\nrep1,gene_B,-0.3\nrep2,gene_A,0.6\nrep2,gene_B,-0.5"></textarea>
+    <div class="cols">
+      <div><label for="topk">Top-k genes to compare</label><input id="topk" type="number" min="1" max="500" value="50"></div>
+      <div><label for="ranking">Ranking basis</label><select id="ranking"><option value="abs" selected>Absolute effect size</option><option value="signed">Signed effect (largest first)</option></select></div>
+    </div>
+    <div class="inline"><button id="analyze" type="button">Analyze stability</button><button id="example" type="button" class="secondary">Load synthetic example</button><button id="clear" type="button" class="secondary">Clear</button><button id="download" type="button" class="secondary" disabled>Download pairwise report</button></div>
+    <div id="result" class="output" aria-live="polite">Use the same effect definition and direction across replicates. The analysis compares the entered results only.</div>
+  </section>
+  <section class="panel">
+    <h2>Interpretation</h2>
+    <p>Spearman correlation compares relative ranks among genes shared by a replicate pair. Top-k Jaccard summarizes set overlap, while sign agreement checks whether nonzero effects point in the same direction. These are descriptive summaries; high agreement does not establish biological truth or statistical significance.</p>
+    <p class="hint">Results can change with the feature universe, top-k, ties, and effect definition. This tool does not compute an official Challenge metric, align gene aliases, or replace sample-level inference. All data stay in this browser tab.</p>
+  </section>
+  <footer class="foot"><a href="../../tools/contrast-reporter/">Replicate-Aware Contrast Reporter</a> · <a href="../../tools/replicate-concordance/">Replicate Concordance Reporter</a> · <a href="../../tools/signature-coverage/">Gene Signature Coverage Auditor</a></footer>
+</main>
+<script>
+(() => {
+  const $=id=>document.getElementById(id);let pairRows=[];
+  function parse(text){const rows=[];let row=[],field="",q=false;for(let i=0;i<text.length;i++){const c=text[i];if(q){if(c==='"'&&text[i+1]==='"'){field+='"';i++;}else if(c==='"')q=false;else field+=c;}else if(c==='"'&&field==="")q=true;else if(c===","){row.push(field);field="";}else if(c==="\n"||c==="\r"){if(c==="\r"&&text[i+1]==="\n")i++;row.push(field);rows.push(row);row=[];field="";}else field+=c;}if(q)throw Error("CSV contains an unclosed quoted field.");if(field!==""||row.length){row.push(field);rows.push(row);}return rows;}
+  const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  function ranks(values){const sorted=[...values].sort((a,b)=>a.value-b.value),out=new Map();for(let i=0;i<sorted.length;){let j=i+1;while(j<sorted.length&&sorted[j].value===sorted[i].value)j++;const rank=(i+1+j)/2;for(let k=i;k<j;k++)out.set(sorted[k].gene,rank);i=j;}return out;}
+  function corr(x,y){const mx=x.reduce((s,v)=>s+v,0)/x.length,my=y.reduce((s,v)=>s+v,0)/y.length;let a=0,b=0,c=0;for(let i=0;i<x.length;i++){const dx=x[i]-mx,dy=y[i]-my;a+=dx*dy;b+=dx*dx;c+=dy*dy;}return b&&c?a/Math.sqrt(b*c):NaN;}
+  function analyze(){const out=$("result");pairRows=[];$("download").disabled=true;try{const rows=parse($("data").value.trim());if(rows.length<2)throw Error("Add a header row and effect rows.");const h=rows[0].map(x=>x.trim().toLowerCase()),ri=h.indexOf("replicate_id"),gi=h.indexOf("gene"),ei=h.indexOf("effect");if(ri<0||gi<0||ei<0)throw Error("CSV headers must include replicate_id, gene, and effect.");const reps=new Map();for(const r of rows.slice(1)){if(r.every(x=>x.trim()===""))continue;const rep=(r[ri]||"").trim(),gene=(r[gi]||"").trim(),effect=Number(r[ei]);if(!rep||!gene||!Number.isFinite(effect))throw Error("Every non-empty row needs replicate_id, gene, and a finite effect.");if(!reps.has(rep))reps.set(rep,new Map());if(reps.get(rep).has(gene))throw Error(`Duplicate gene in replicate ${rep}: ${gene}`);reps.get(rep).set(gene,effect);}if(reps.size<2)throw Error("Enter at least two replicate IDs.");const k=Number($("topk").value),basis=$("ranking").value;if(!Number.isInteger(k)||k<1||k>500)throw Error("Top-k must be an integer from 1 through 500.");const names=[...reps.keys()],ranked=new Map();for(const [name,values] of reps){const list=[...values].map(([gene,effect])=>({gene,effect,value:basis==="abs"?Math.abs(effect):effect})).sort((a,b)=>b.value-a.value||a.gene.localeCompare(b.gene));ranked.set(name,list);}
+    for(let i=0;i<names.length;i++)for(let j=i+1;j<names.length;j++){const a=names[i],b=names[j],va=reps.get(a),vb=reps.get(b),shared=[...va.keys()].filter(g=>vb.has(g));if(shared.length<2)continue;const rankA=ranks(shared.map(g=>({gene:g,value:basis==="abs"?Math.abs(va.get(g)):va.get(g)}))),rankB=ranks(shared.map(g=>({gene:g,value:basis==="abs"?Math.abs(vb.get(g)):vb.get(g)}))),orderedA=ranked.get(a).filter(x=>vb.has(x.gene)),orderedB=ranked.get(b).filter(x=>va.has(x.gene)),topA=new Set(orderedA.slice(0,k).map(x=>x.gene)),topB=new Set(orderedB.slice(0,k).map(x=>x.gene)),intersection=[...topA].filter(x=>topB.has(x)).length,union=new Set([...topA,...topB]).size,nonzero=shared.filter(g=>va.get(g)!==0&&vb.get(g)!==0),agree=nonzero.length?nonzero.filter(g=>Math.sign(va.get(g))===Math.sign(vb.get(g))).length/nonzero.length:NaN;pairRows.push({replicate_a:a,replicate_b:b,shared_genes:shared.length,top_k:Math.min(k,shared.length),spearman:corr(shared.map(g=>rankA.get(g)),shared.map(g=>rankB.get(g))),top_k_jaccard:union?intersection/union:NaN,sign_agreement:agree,nonzero_shared:nonzero.length});}
+    if(!pairRows.length)throw Error("No replicate pair shares at least two gene identifiers.");const tbody=pairRows.map(x=>`<tr><td>${esc(x.replicate_a)}</td><td>${esc(x.replicate_b)}</td><td>${x.shared_genes}</td><td>${Number.isFinite(x.spearman)?x.spearman.toFixed(3):"undefined"}</td><td>${Number.isFinite(x.top_k_jaccard)?x.top_k_jaccard.toFixed(3):"undefined"}</td><td>${Number.isFinite(x.sign_agreement)?(100*x.sign_agreement).toFixed(1)+"%":"undefined"}</td><td>${x.nonzero_shared}</td></tr>`).join("");out.innerHTML=`<p><strong>${names.length}</strong> replicates · <strong>${pairRows.length}</strong> comparable pairs · ranking basis: ${basis==="abs"?"absolute effect":"signed effect"} · requested top-k: ${k}.</p><div class="table-wrap"><table><thead><tr><th>Replicate A</th><th>Replicate B</th><th>Shared genes</th><th>Spearman rank correlation</th><th>Top-k Jaccard</th><th>Nonzero sign agreement</th><th>Nonzero shared genes</th></tr></thead><tbody>${tbody}</tbody></table></div><p class="hint">Top-k is capped at the number of shared genes for each pair. Tied effect ranks receive average ranks; ties in the top-k boundary are broken by gene identifier.</p>`;$("download").disabled=false;}catch(e){out.textContent=e.message;}}
+  $("analyze").addEventListener("click",analyze);$("example").addEventListener("click",()=>{$("data").value="replicate_id,gene,effect\nr1,gene_A,0.8\nr1,gene_B,-0.3\nr1,gene_C,0.2\nr1,gene_D,-0.1\nr2,gene_A,0.6\nr2,gene_B,-0.5\nr2,gene_C,0.25\nr2,gene_D,0.02\nr3,gene_A,0.4\nr3,gene_B,-0.45\nr3,gene_C,-0.08\nr3,gene_E,0.3\n";analyze();});$("clear").addEventListener("click",()=>{$("data").value="";pairRows=[];$("download").disabled=true;$("result").textContent="Use the same effect definition and direction across replicates. The analysis compares the entered results only.";});$("download").addEventListener("click",()=>{const q=s=>'"'+String(s).replace(/"/g,'""')+'"',header=["replicate_a","replicate_b","shared_genes","top_k","spearman","top_k_jaccard","sign_agreement","nonzero_shared"],content=[header,...pairRows.map(x=>header.map(k=>x[k]))].map(r=>r.map(q).join(",")).join("\r\n"),url=URL.createObjectURL(new Blob([content],{type:"text/csv;charset=utf-8"})),a=document.createElement("a");a.href=url;a.download="vec-gene-rank-stability.csv";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
+})();
+</script>
+</body>
+</html>

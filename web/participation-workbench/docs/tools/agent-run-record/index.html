@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Prepare a local Agent Team configuration-lock record and evidence checklist for one Virtual Embryo Challenge run.">
+  <title>VEC Agent Run Lock & Evidence Record · VEC</title>
+  <link rel="stylesheet" href="../../assets/style.css">
+  <link rel="stylesheet" href="../../assets/analysis-labs-l10n.css">
+</head>
+<body>
+<main class="wrap">
+  <header class="tool-head">
+    <nav><a href="../../">← Participation Workbench</a> · <a href="https://virtualembryo.ai/challenge/rules">Official Rules §9</a> · <a href="https://virtualembryo.ai/challenge/community">Community resources</a></nav>
+    <div id="language-control"></div>
+    <p id="eyebrow" class="eyebrow">Agent Team workflow · browser-local</p>
+    <h1 id="title">VEC Agent Run Lock &amp; Evidence Record</h1>
+    <p id="description" class="lede">Create a compact record of the configuration fixed at the start of one Agent Team run, then check that its required evidence is ready. This page does not upload or store your entries.</p>
+  </header>
+  <section class="panel">
+    <h2 id="config-heading">Before the run: configuration lock</h2>
+    <p id="config-help">Record the exact choices that are fixed when the run starts. Use a run ID and public or repository-relative artifact labels; do not paste credentials, private data, or unpublished results.</p>
+    <div class="cols">
+      <div><label id="run-label" for="run">Run ID or label</label><input id="run" maxlength="120"></div>
+      <div><label id="task-label" for="task">Task / board</label><input id="task" maxlength="120"></div>
+      <div><label id="framework-label" for="framework">Agent framework and version</label><input id="framework" maxlength="200"></div>
+      <div><label id="model-label" for="model">Model string used</label><input id="model" maxlength="200"></div>
+      <div><label id="commit-label" for="commit">Harness repository and commit</label><input id="commit" maxlength="240"></div>
+      <div><label id="lock-label" for="lock-time">Configuration lock time (UTC)</label><input id="lock-time" type="text" maxlength="40" placeholder="2026-10-14T19:30:00Z"></div>
+    </div>
+    <label id="prompt-label" for="prompt-ref">Initial prompt record (path, version, or hash)</label><textarea id="prompt-ref" rows="2" maxlength="500"></textarea>
+    <label id="tools-label" for="tools">Tools, permissions, and budget fixed at lock</label><textarea id="tools" rows="3" maxlength="1500"></textarea>
+    <label id="data-label" for="data-scope">Permitted input data and exclusions</label><textarea id="data-scope" rows="3" maxlength="1500"></textarea>
+  </section>
+  <section class="panel">
+    <h2 id="evidence-heading">After the run: evidence packet</h2>
+    <p id="evidence-help">The current Rules require at least two distinct evidence kinds for an Agent Team submission, including the trajectory, and each item must correspond to this run. Record where each exact artifact is saved and whether it has been attached in the portal.</p>
+    <div class="cols">
+      <div><label id="trajectory-label" for="trajectory">Trajectory (required kind): location or hash</label><input id="trajectory" maxlength="500"><label class="check"><input id="trajectory-attached" type="checkbox"><span id="trajectory-attached-label">Attached to the portal</span></label></div>
+      <div><label id="prompts-label" for="prompts">Prompts: location or hash</label><input id="prompts" maxlength="500"><label class="check"><input id="prompts-attached" type="checkbox"><span id="prompts-attached-label">Attached to the portal</span></label></div>
+      <div><label id="harness-label" for="harness">Harness code: location or hash</label><input id="harness" maxlength="500"><label class="check"><input id="harness-attached" type="checkbox"><span id="harness-attached-label">Attached to the portal</span></label></div>
+      <div><label id="other-label" for="other">Other evidence: kind and location</label><input id="other" maxlength="500"><label class="check"><input id="other-attached" type="checkbox"><span id="other-attached-label">Attached to the portal</span></label></div>
+      <div><label id="largest-label" for="largest-mb">Largest evidence file (MB, self-reported)</label><input id="largest-mb" type="number" min="0" step="0.1"></div>
+      <div><label id="total-label" for="total-mb">Team evidence total (MB, self-reported)</label><input id="total-mb" type="number" min="0" step="0.1"></div>
+    </div>
+    <fieldset>
+      <legend id="checks-heading">Review statements for this run</legend>
+      <label class="check"><input id="same-run" type="checkbox"><span id="same-run-label">Evidence items are from the exact run identified above.</span></label>
+      <label class="check"><input id="fixed-config" type="checkbox"><span id="fixed-config-label">The locked configuration stayed fixed through the run.</span></label>
+      <label class="check"><input id="no-steering" type="checkbox"><span id="no-steering-label">No person used intermediate results to steer this locked run.</span></label>
+    </fieldset>
+    <div class="inline"><button id="generate" type="button">Build local record</button><button id="download" class="secondary" type="button">Download Markdown</button><button id="copy" class="secondary" type="button">Copy Markdown</button><button id="clear" class="secondary" type="button">Clear this page</button></div>
+    <div id="status" class="output" aria-live="polite">Fill the configuration and evidence fields, then build the record.</div>
+    <label id="preview-label" for="preview">Generated Markdown</label><textarea id="preview" rows="18" readonly spellcheck="false"></textarea>
+  </section>
+  <section class="panel">
+    <h2 id="scope-heading">What this record checks</h2>
+    <p id="scope-one">Rules §9 says a person may not inspect a locked Agent Team run's intermediate results and steer the next step. The required evidence kinds are trajectory, prompts, harness, and other material; at least two distinct kinds must be attached, one of them the trajectory. Choosing among completed runs is a separate decision.</p>
+    <p id="scope-two">Evidence is capped at 200 MB per file and 600 MB per team. The size fields are self-reported; this tool does not inspect files or verify portal uploads. It is a documentation aid, not an eligibility decision. Check the live rules before each submission.</p>
+  </section>
+  <footer class="foot"><a href="https://virtualembryo.ai/challenge/rules">Official Rules §9</a> · <a href="https://virtualembryo.ai/challenge/faq">Official FAQ</a> · <a href="https://virtualembryo.ai/challenge/community">Community resources</a></footer>
+</main>
+<script src="locales.js"></script>
+<script>
+(() => {
+  "use strict";
+  const $ = id => document.getElementById(id);
+  const locales = window.agentRunRecordLocales || {};
+  let language = "en";
+  let output = "";
+  const copy = () => locales[language] || locales.en;
+  const t = key => copy()[key] || key;
+  const fields = ["run", "task", "framework", "model", "commit", "lock-time", "prompt-ref", "tools", "data-scope", "trajectory", "prompts", "harness", "other", "largest-mb", "total-mb"];
+
+  function initLanguage() {
+    const wrap = document.createElement("div");
+    wrap.className = "language-control";
+    const label = document.createElement("label");
+    label.htmlFor = "interface-language";
+    const select = document.createElement("select");
+    select.id = "interface-language";
+    select.setAttribute("aria-label", "Interface language / Idioma de la interfaz / 界面语言");
+    [["en", "English"], ["es", "Español"], ["zh-CN", "简体中文"]].forEach(([value, name]) => {
+      const option = document.createElement("option"); option.value = value; option.textContent = name; select.append(option);
+    });
+    wrap.append(label, select); $("language-control").append(wrap);
+    const requested = new URLSearchParams(location.search).get("lang");
+    language = locales[requested] ? requested : "en";
+    select.addEventListener("change", () => {
+      language = locales[select.value] ? select.value : "en";
+      const url = new URL(location.href);
+      if (language === "en") url.searchParams.delete("lang"); else url.searchParams.set("lang", language);
+      history.replaceState(null, "", url); updateLanguage();
+    });
+    updateLanguage();
+  }
+
+  function updateLanguage() {
+    const c = copy();
+    document.documentElement.lang = language === "zh-CN" ? "zh-Hans" : language;
+    document.title = c.pageTitle + " · VEC";
+    for (const [id, key] of Object.entries(c.ids)) $(id).textContent = c[key];
+    for (const id of ["trajectory", "prompts", "harness", "other"]) {
+      $(id + "-attached-label").textContent = c.attached;
+    }
+    $("preview-label").textContent = c.previewLabel;
+    $("generate").textContent = c.generate;
+    $("download").textContent = c.download;
+    $("copy").textContent = c.copy;
+    $("clear").textContent = c.clear;
+    const nav = document.querySelectorAll(".tool-head nav a");
+    if (nav[0]) nav[0].textContent = c.back;
+    if (nav[1]) nav[1].textContent = c.rulesLink;
+    if (nav[2]) nav[2].textContent = c.resourcesLink;
+    const footer = document.querySelectorAll(".foot a");
+    if (footer[0]) footer[0].textContent = c.rulesLink;
+    if (footer[1]) footer[1].textContent = c.faqLink;
+    if (footer[2]) footer[2].textContent = c.resourcesLink;
+    const select = $("interface-language");
+    if (select) select.value = language;
+    const languageLabel = document.querySelector('label[for="interface-language"]');
+    if (languageLabel) languageLabel.textContent = c.language;
+    if (output) buildRecord();
+    else { $("status").textContent = c.initial; $("status").className = "output"; }
+  }
+
+  function values() {
+    return Object.fromEntries(fields.map(id => [id, $(id).value.trim()]));
+  }
+
+  function evidenceState() {
+    const items = [
+      {name: t("kindTrajectory"), key: "trajectory"},
+      {name: t("kindPrompts"), key: "prompts"},
+      {name: t("kindHarness"), key: "harness"},
+      {name: t("kindOther"), key: "other"}
+    ].map(item => ({...item, attached: $(item.key + "-attached").checked, location: $(item.key).value.trim()}));
+    const attached = items.filter(item => item.attached);
+    const readyItems = items.filter(item => item.attached && item.location);
+    const trajectoryReady = readyItems.some(item => item.key === "trajectory");
+    const minimumReady = trajectoryReady && readyItems.length >= 2;
+    const checksComplete = ["same-run", "fixed-config", "no-steering"].every(id => $(id).checked);
+    const largest = Number($("largest-mb").value);
+    const total = Number($("total-mb").value);
+    const sizesEntered = $("largest-mb").value !== "" && $("total-mb").value !== "";
+    const sizesWithin = sizesEntered && largest >= 0 && total >= 0 && largest <= 200 && total <= 600;
+    return {items, attached, readyItems, trajectoryReady, minimumReady, checksComplete, largest, total, sizesEntered, sizesWithin};
+  }
+
+  function renderOutput() {
+    const state = evidenceState();
+    const status = $("status");
+    const evidenceMessage = state.minimumReady ? t("minEvidenceReady") : t("minEvidenceMissing");
+    const sizeMessage = state.sizesWithin ? t("sizeWithin") : state.sizesEntered ? t("sizeOver") : t("sizeNotChecked");
+    const checksMessage = state.checksComplete ? t("checksMarked") : t("checksIncomplete");
+    status.textContent = evidenceMessage + " " + sizeMessage + " " + checksMessage;
+    status.className = "output " + (state.minimumReady && state.sizesWithin && state.checksComplete ? "success" : "warning");
+    $("preview").value = output;
+  }
+
+  function buildRecord() {
+    const c = copy();
+    const v = values();
+    const state = evidenceState();
+    const yes = id => $(id).checked ? c.yes : c.no;
+    const lines = [
+      "# " + c.recordTitle,
+      "",
+      "- **" + c.runLabel + ":** " + (v.run || c.notRecorded),
+      "- **" + c.taskLabel + ":** " + (v.task || c.notRecorded),
+      "- **" + c.frameworkLabel + ":** " + (v.framework || c.notRecorded),
+      "- **" + c.modelLabel + ":** " + (v.model || c.notRecorded),
+      "- **" + c.commitLabel + ":** " + (v.commit || c.notRecorded),
+      "- **" + c.lockLabel + ":** " + (v["lock-time"] || c.notRecorded),
+      "- **" + c.promptLabel + ":** " + (v["prompt-ref"] || c.notRecorded),
+      "- **" + c.toolsLabel + ":** " + (v.tools || c.notRecorded),
+      "- **" + c.dataLabel + ":** " + (v["data-scope"] || c.notRecorded),
+      "",
+      "## " + c.lockChecks,
+      "- " + c.sameRun + ": " + yes("same-run"),
+      "- " + c.fixedConfig + ": " + yes("fixed-config"),
+      "- " + c.noSteering + ": " + yes("no-steering"),
+      "",
+      "## " + c.evidenceChecklist
+    ];
+    state.items.forEach(item => {
+      lines.push("- [" + (item.attached ? "x" : " ") + "] **" + item.name + "** — " + (item.location || c.notRecorded) +
+        (item.key === "trajectory" ? " (" + c.requiredKind + ")" : ""));
+    });
+    lines.push(
+      "",
+      "- " + c.evidenceMinimum + ": " + (state.minimumReady ? c.minimumMet : c.minimumNotMet),
+      "- " + c.largestFile + ": " + (state.sizesEntered ? v["largest-mb"] + " MB" : c.notRecorded),
+      "- " + c.teamTotal + ": " + (state.sizesEntered ? v["total-mb"] + " MB" : c.notRecorded),
+      "- " + c.sizeCheck + ": " + (state.sizesWithin ? c.sizeWithin : c.sizeNotChecked),
+      "",
+      c.disclaimer,
+      ""
+    );
+    output = lines.join("\n");
+    renderOutput();
+  }
+
+  function download() {
+    if (!output) buildRecord();
+    const url = URL.createObjectURL(new Blob([output], {type: "text/markdown;charset=utf-8"}));
+    const link = document.createElement("a"); link.href = url; link.download = "vec-agent-run-record.md"; link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  $("generate").addEventListener("click", buildRecord);
+  $("download").addEventListener("click", download);
+  $("copy").addEventListener("click", async () => {
+    if (!output) buildRecord();
+    try { await navigator.clipboard.writeText(output); $("status").textContent = t("copied"); }
+    catch { $("status").textContent = t("copyUnavailable"); $("preview").focus(); }
+  });
+  $("clear").addEventListener("click", () => {
+    if (!window.confirm(t("confirmClear"))) return;
+    fields.forEach(id => $(id).value = "");
+    ["trajectory-attached", "prompts-attached", "harness-attached", "other-attached", "same-run", "fixed-config", "no-steering"].forEach(id => $(id).checked = false);
+    $("status").textContent = t("initial"); $("status").className = "output"; $("preview").value = ""; output = "";
+  });
+  [...fields, "trajectory-attached", "prompts-attached", "harness-attached", "other-attached", "same-run", "fixed-config", "no-steering"].forEach(id => {
+    $(id).addEventListener("input", () => { if (output) buildRecord(); });
+    $(id).addEventListener("change", () => { if (output) buildRecord(); });
+  });
+  initLanguage();
+})();
+</script>
+</body>
+</html>

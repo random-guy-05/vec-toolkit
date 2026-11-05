@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Generate a reproducible Cartesian run matrix for model comparisons and estimate measured compute cost.">
+  <title>Model Sweep Matrix Planner · VEC</title>
+  <link rel="stylesheet" href="../../assets/style.css">
+  <style>
+    .language,.actions{display:flex;gap:.5rem;flex-wrap:wrap;margin:1rem 0}
+    .language button[aria-pressed="true"]{outline:2px solid currentColor;outline-offset:2px}
+    .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));gap:1rem}
+    .cols textarea{width:100%;min-height:8rem}
+    .compact{max-width:14rem}
+    .numeric{font-variant-numeric:tabular-nums}
+  </style>
+</head>
+<body><main class="wrap">
+  <header class="tool-head">
+    <nav><a href="../../" data-i="home">← Participation Workbench</a></nav>
+    <p class="eyebrow" data-i="eyebrow">EXPERIMENT PLANNING · BROWSER-LOCAL</p>
+    <h1 data-i="title">Model Sweep Matrix Planner</h1>
+    <p class="lede" data-i="lede">Expand tasks, model configurations, validation splits, and seeds into a traceable run list. Estimate the compute implied by a measured pilot before launching a sweep.</p>
+    <p class="hint" data-i="privacy">Everything runs in this tab. No experiment labels or run details are uploaded or saved.</p>
+    <div class="language" role="group" aria-label="Language">
+      <button type="button" data-lang="en" aria-pressed="true">English</button>
+      <button type="button" data-lang="es" aria-pressed="false">Español</button>
+      <button type="button" data-lang="zh" aria-pressed="false">简体中文</button>
+    </div>
+  </header>
+  <section class="panel">
+    <h2 data-i="inputsTitle">Define the run dimensions</h2>
+    <p data-i="inputsHint">Enter one label per line. Every combination is generated; use concise configuration labels such as “baseline; lr=0.001; window=8”.</p>
+    <div class="cols">
+      <div><label for="tasks" data-i="tasks">Task or board</label><textarea id="tasks" spellcheck="false">T1</textarea></div>
+      <div><label for="configs" data-i="configs">Model configuration</label><textarea id="configs" spellcheck="false">baseline; lr=0.001&#10;regularized; lr=0.001; l2=0.01</textarea></div>
+      <div><label for="splits" data-i="splits">Validation split</label><textarea id="splits" spellcheck="false">grouped-sample-holdout</textarea></div>
+      <div><label for="seeds" data-i="seeds">Random seed</label><textarea id="seeds" spellcheck="false">11&#10;29&#10;47</textarea></div>
+    </div>
+    <div class="cols">
+      <div><label for="minutes" data-i="minutes">Measured minutes per run (optional)</label><input id="minutes" class="compact" type="number" min="0" step="any" inputmode="decimal" placeholder="e.g. 18.5"></div>
+      <div><label for="workers" data-i="workers">Available concurrent workers</label><input id="workers" class="compact" type="number" min="1" max="1000" step="1" value="1" inputmode="numeric"></div>
+    </div>
+    <div class="actions">
+      <button id="build" type="button" data-i="build">Build run matrix</button>
+      <button id="example" class="secondary" type="button" data-i="example">Load example</button>
+      <button id="clear" class="secondary" type="button" data-i="clear">Clear</button>
+      <button id="download" class="secondary" type="button" disabled data-i="download">Download run CSV</button>
+    </div>
+    <p id="status" class="hint" role="status" aria-live="polite" data-i="initial">Edit the dimensions and build the matrix.</p>
+    <div id="results" class="output" aria-live="polite"></div>
+  </section>
+  <section class="panel">
+    <h2 data-i="limitsTitle">Planning limits</h2>
+    <ul>
+      <li data-i="limit1">The matrix is a Cartesian product, so it includes every entered combination. Remove invalid or scientifically unjustified combinations before running it.</li>
+      <li data-i="limit2">The wall-time estimate assumes each run takes the measured duration and workers stay busy. It excludes setup, queue delay, stragglers, failures, and shared-resource contention.</li>
+      <li data-i="limit3">A run list does not make comparisons fair: use the same data boundaries, scoring procedure, and selection rule across candidates.</li>
+      <li data-i="limit4">A task or board label here is only a user label. Confirm current official split and submission rules separately.</li>
+    </ul>
+    <p data-i="scope">Use a short pilot from the same workflow to estimate per-run time. Treat the result as a planning scenario, not a guaranteed runtime or validation design.</p>
+  </section>
+</main>
+<script>
+(() => {
+  const $=id=>document.getElementById(id);
+  const EX={tasks:"T1\nT2",configs:"baseline; lr=0.001\nregularized; lr=0.001; l2=0.01",splits:"grouped-sample-holdout\nchronological-holdout",seeds:"11\n29\n47",minutes:"18.5",workers:"2"};
+  const L={
+    en:{home:"← Participation Workbench",eyebrow:"EXPERIMENT PLANNING · BROWSER-LOCAL",title:"Model Sweep Matrix Planner",lede:"Expand tasks, model configurations, validation splits, and seeds into a traceable run list. Estimate the compute implied by a measured pilot before launching a sweep.",privacy:"Everything runs in this tab. No experiment labels or run details are uploaded or saved.",inputsTitle:"Define the run dimensions",inputsHint:"Enter one label per line. Every combination is generated; use concise configuration labels such as “baseline; lr=0.001; window=8”.",tasks:"Task or board",configs:"Model configuration",splits:"Validation split",seeds:"Random seed",minutes:"Measured minutes per run (optional)",workers:"Available concurrent workers",build:"Build run matrix",example:"Load example",clear:"Clear",download:"Download run CSV",initial:"Edit the dimensions and build the matrix.",limitsTitle:"Planning limits",limit1:"The matrix is a Cartesian product, so it includes every entered combination. Remove invalid or scientifically unjustified combinations before running it.",limit2:"The wall-time estimate assumes each run takes the measured duration and workers stay busy. It excludes setup, queue delay, stragglers, failures, and shared-resource contention.",limit3:"A run list does not make comparisons fair: use the same data boundaries, scoring procedure, and selection rule across candidates.",limit4:"A task or board label here is only a user label. Confirm current official split and submission rules separately.",scope:"Use a short pilot from the same workflow to estimate per-run time. Treat the result as a planning scenario, not a guaranteed runtime or validation design.",done:(n,s,w)=>`${n.toLocaleString()} runs generated from ${s} dimension values. ${w}`,time:(total,wall)=>`Estimated serial compute: ${total} min; ideal wall time across the entered workers: ${wall} min.`,headers:["run_id","task_or_board","configuration","validation_split","seed"],run:"Run",all:"Showing all",some:"Showing first",of:"of",tooMany:"The Cartesian product exceeds the 5,000-run limit. Reduce one or more dimensions.",empty:"Enter at least one value in every dimension.",dupe:"Duplicate label in ",invalidWorkers:"Workers must be an integer from 1 to 1,000.",invalidTime:"Pilot minutes must be a positive finite number.",failed:"Could not create the CSV download.",cleared:"Cleared. Enter one or more values in every dimension.",lang:"Language"},
+    es:{home:"← Banco de herramientas de participación",eyebrow:"PLANIFICACIÓN DE EXPERIMENTOS · LOCAL EN EL NAVEGADOR",title:"Planificador de matriz de experimentos",lede:"Combina tareas, configuraciones del modelo, particiones de validación y semillas en una lista de ejecuciones trazable. Estima el cómputo de un piloto medido antes de iniciar una búsqueda.",privacy:"Todo se ejecuta en esta pestaña. No se cargan ni guardan etiquetas ni detalles de ejecución.",inputsTitle:"Define las dimensiones de ejecución",inputsHint:"Introduce una etiqueta por línea. Se generan todas las combinaciones; usa etiquetas breves como «base; lr=0.001; window=8».",tasks:"Tarea o tablero",configs:"Configuración del modelo",splits:"Partición de validación",seeds:"Semilla aleatoria",minutes:"Minutos medidos por ejecución (opcional)",workers:"Procesos concurrentes disponibles",build:"Crear matriz",example:"Cargar ejemplo",clear:"Borrar",download:"Descargar CSV de ejecuciones",initial:"Edita las dimensiones y crea la matriz.",limitsTitle:"Límites de planificación",limit1:"La matriz es un producto cartesiano e incluye todas las combinaciones introducidas. Elimina combinaciones inválidas o injustificadas científicamente antes de ejecutarla.",limit2:"La estimación supone que cada ejecución tarda lo mismo que el piloto y que los procesos están ocupados. Excluye preparación, cola, retrasos, fallos y competencia por recursos compartidos.",limit3:"Una lista no hace justas las comparaciones: usa los mismos límites de datos, procedimiento de puntuación y regla de selección para cada candidato.",limit4:"La etiqueta de tarea o tablero es solo una etiqueta tuya. Confirma aparte las reglas oficiales vigentes de partición y envío.",scope:"Usa un piloto breve del mismo flujo para estimar el tiempo por ejecución. El resultado es un escenario de planificación, no una duración garantizada ni un diseño de validación.",done:(n,s,w)=>`${n.toLocaleString()} ejecuciones generadas a partir de ${s} valores dimensionales. ${w}`,time:(total,wall)=>`Cómputo secuencial estimado: ${total} min; tiempo ideal con los procesos indicados: ${wall} min.`,headers:["id_ejecución","tarea_o_tablero","configuración","partición_validación","semilla"],run:"Ejecución",all:"Se muestran todas",some:"Se muestran las primeras",of:"de",tooMany:"El producto cartesiano supera el límite de 5 000 ejecuciones. Reduce una o más dimensiones.",empty:"Introduce al menos un valor en cada dimensión.",dupe:"Etiqueta duplicada en ",invalidWorkers:"Los procesos deben ser un entero entre 1 y 1 000.",invalidTime:"Los minutos del piloto deben ser un número positivo y finito.",failed:"No se pudo crear la descarga CSV.",cleared:"Borrado. Introduce uno o más valores en cada dimensión.",lang:"Idioma"},
+    zh:{home:"← 参与工作台",eyebrow:"实验规划 · 浏览器本地处理",title:"模型参数搜索矩阵规划器",lede:"将任务、模型配置、验证划分和随机种子展开为可追踪的运行清单。在启动搜索前，根据实测试运行估算计算资源需求。",privacy:"所有操作均在此标签页完成。实验标签和运行详情不会上传或保存。",inputsTitle:"定义运行维度",inputsHint:"每行输入一个标签。工具会生成所有组合；配置可简写为“baseline; lr=0.001; window=8”。",tasks:"任务或评分板",configs:"模型配置",splits:"验证划分",seeds:"随机种子",minutes:"每次实测分钟数（可选）",workers:"可并行工作进程数",build:"生成运行矩阵",example:"载入示例",clear:"清空",download:"下载运行 CSV",initial:"编辑维度，然后生成矩阵。",limitsTitle:"规划限制",limit1:"矩阵采用笛卡尔积，会包含所有输入组合。运行前请删除无效或缺乏科学依据的组合。",limit2:"用时估算假定每次运行都与实测耗时相同且工作进程持续繁忙；不包含初始化、排队、长尾、失败或共享资源争用。",limit3:"运行清单本身不能保证比较公平；不同候选方案应使用相同的数据边界、评分流程和选择规则。",limit4:"任务或评分板名称只是用户自定义标签。请另行确认当前官方数据划分和提交规则。",scope:"用相同流程的短时试运行估算单次耗时。结果仅是规划情景，不是运行时间或验证设计的保证。",done:(n,s,w)=>`已从 ${s} 个维度值生成 ${n.toLocaleString()} 次运行。${w}`,time:(total,wall)=>`估算串行计算时间：${total} 分钟；按输入进程数理想并行耗时：${wall} 分钟。`,headers:["run_id","任务或评分板","配置","验证划分","随机种子"],run:"运行",all:"显示全部",some:"显示前",of:"共",tooMany:"笛卡尔积超过 5,000 次运行上限。请减少一个或多个维度。",empty:"每个维度至少输入一个值。",dupe:"维度中有重复标签：",invalidWorkers:"工作进程数必须是 1 到 1,000 之间的整数。",invalidTime:"试运行分钟数必须是有限的正数。",failed:"无法创建 CSV 下载。",cleared:"已清空。请为每个维度输入至少一个值。",lang:"语言"}
+  };
+  const params=new URLSearchParams(location.search);let lang=params.get("lang")==="es"?"es":params.get("lang")==="zh"?"zh":"en",runs=[];
+  function t(id,value){const e=$(id);if(e)e.textContent=value;}
+  function apply(){const d=L[lang];document.documentElement.lang=lang==="zh"?"zh-CN":lang;document.querySelectorAll("[data-i]").forEach(e=>{if(d[e.dataset.i])e.textContent=d[e.dataset.i];});document.querySelector(".language").setAttribute("aria-label",d.lang);document.querySelectorAll("[data-lang]").forEach(e=>e.setAttribute("aria-pressed",String(e.dataset.lang===lang)));if(runs.length)build();else $("status").textContent=d.initial;}
+  document.querySelectorAll("[data-lang]").forEach(e=>e.addEventListener("click",()=>{lang=e.dataset.lang;params.set("lang",lang);history.replaceState(null,"",location.pathname+"?"+params.toString());apply();}));
+  function values(id){return $(id).value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);}
+  function build(){
+    const d=L[lang],dims=[{key:"task",label:d.tasks,values:values("tasks")},{key:"config",label:d.configs,values:values("configs")},{key:"split",label:d.splits,values:values("splits")},{key:"seed",label:d.seeds,values:values("seeds")}];
+    for(const dim of dims){if(!dim.values.length){runs=[];$("status").textContent=d.empty;$("download").disabled=true;$("results").replaceChildren();return;}const seen=new Set();for(const value of dim.values){if(seen.has(value)){runs=[];$("status").textContent=d.dupe+dim.label+": "+value;$("download").disabled=true;$("results").replaceChildren();return;}seen.add(value);}}
+    let count=1;for(const dim of dims)count*=dim.values.length;
+    if(count>5000){runs=[];$("status").textContent=d.tooMany;$("download").disabled=true;$("results").replaceChildren();return;}
+    const workers=Number($("workers").value),minutes=$("minutes").value.trim()===""?null:Number($("minutes").value);
+    if(!Number.isInteger(workers)||workers<1||workers>1000){runs=[];$("status").textContent=d.invalidWorkers;$("download").disabled=true;$("results").replaceChildren();return;}
+    if(minutes!==null&&(!Number.isFinite(minutes)||minutes<=0)){runs=[];$("status").textContent=d.invalidTime;$("download").disabled=true;$("results").replaceChildren();return;}
+    runs=[];for(const task of dims[0].values)for(const config of dims[1].values)for(const split of dims[2].values)for(const seed of dims[3].values)runs.push({task,config,split,seed});
+    const totalValues=dims.reduce((n,x)=>n+x.values.length,0),when=minutes===null?"":d.time((runs.length*minutes).toFixed(1),(Math.ceil(runs.length/workers)*minutes).toFixed(1));
+    $("status").textContent=d.done(runs.length,totalValues,when);$("download").disabled=false;render();
+  }
+  function render(){const d=L[lang],out=$("results");out.replaceChildren();const shown=runs.slice(0,50),p=document.createElement("p");p.textContent=runs.length<=50?`${d.all} ${runs.length} ${d.of} ${runs.length}.`:`${d.some} 50 ${d.of} ${runs.length}.`;out.appendChild(p);const table=document.createElement("table"),thead=document.createElement("thead"),hr=document.createElement("tr");[d.headers[0],...d.headers.slice(1)].forEach(x=>{const th=document.createElement("th");th.scope="col";th.textContent=x;hr.appendChild(th);});thead.appendChild(hr);table.appendChild(thead);const body=document.createElement("tbody");shown.forEach((r,i)=>{const tr=document.createElement("tr"),vals=[`run_${String(i+1).padStart(4,"0")}`,r.task,r.config,r.split,r.seed];vals.forEach(x=>{const td=document.createElement("td");td.textContent=x;tr.appendChild(td);});body.appendChild(tr);});table.appendChild(body);out.appendChild(table);}
+  function csv(v){return '"'+String(v).replace(/"/g,'""')+'"';}
+  function download(){const d=L[lang];try{const body=[d.headers,...runs.map((r,i)=>[`run_${String(i+1).padStart(4,"0")}`,r.task,r.config,r.split,r.seed])].map(row=>row.map(csv).join(",")).join("\r\n")+"\r\n",url=URL.createObjectURL(new Blob([body],{type:"text/csv;charset=utf-8"})),a=document.createElement("a");a.href=url;a.download="vec-model-sweep-run-matrix.csv";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}catch(e){$("status").textContent=d.failed;}}
+  $("build").addEventListener("click",build);$("download").addEventListener("click",download);
+  for(const id of ["tasks","configs","splits","seeds","minutes","workers"])$(id).addEventListener("input",()=>{runs=[];$("results").replaceChildren();$("download").disabled=true;$("status").textContent=L[lang].initial;});
+  $("example").addEventListener("click",()=>{for(const [id,v] of Object.entries(EX))$(id).value=v;build();});
+  $("clear").addEventListener("click",()=>{for(const id of ["tasks","configs","splits","seeds","minutes"])$(id).value="";$("workers").value="1";runs=[];$("results").replaceChildren();$("status").textContent=L[lang].cleared;$("download").disabled=true;});
+  apply();
+})();
+</script></main></body></html>

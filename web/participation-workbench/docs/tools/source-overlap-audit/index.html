@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Find repeated cell or sample identifiers across dataset sources before combining training data.">
+  <title>VEC Source Overlap Audit</title>
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<main class="wrap">
+  <header class="tool-head">
+    <nav><a href="../../">← Participation Workbench</a> · <a href="https://virtualembryo.ai/challenge/data">Official data page</a> · <a href="https://virtualembryo.ai/challenge/rules">Current rules</a></nav>
+    <p class="eyebrow">Data provenance · browser-local</p>
+    <h1>Source Overlap Audit</h1>
+    <p class="lede">Find exact sample or cell identifiers that recur within one source or across sources before combining datasets. Review possible overlaps against the source records; this tool never removes rows or decides whether reuse is allowed.</p>
+  </header>
+  <section class="panel">
+    <h2>Paste an identifier manifest</h2>
+    <p>Use two CSV columns named <code>source</code> and <code>id</code>. Each row is one sample or cell identifier. Keep identifier values as text so leading zeros are preserved.</p>
+    <label for="manifest">CSV manifest</label>
+    <textarea id="manifest" rows="12" spellcheck="false" placeholder="source,id&#10;atlas_a,cell_001&#10;atlas_b,cell_001"></textarea>
+    <div class="inline">
+      <label class="check"><input id="trim" type="checkbox" checked> Trim surrounding whitespace</label>
+      <label class="check"><input id="fold" type="checkbox"> Match identifiers without case sensitivity</label>
+    </div>
+    <p class="hint">Case folding can create false matches for case-sensitive identifiers. Turn it on only when the source conventions support it. No fuzzy matching or alias inference is performed.</p>
+    <div class="inline"><button id="analyze" type="button">Audit overlap</button><button id="example" type="button" class="secondary">Load synthetic example</button><button id="clear" type="button" class="secondary">Clear</button><button id="download" type="button" class="secondary" disabled>Download report CSV</button></div>
+    <div id="result" class="output" aria-live="polite">Paste a manifest or load the synthetic example, then audit it.</div>
+  </section>
+  <section class="panel">
+    <h2>Interpret the report</h2>
+    <ul>
+      <li><strong>Cross-source candidate:</strong> the same normalized identifier appears under two or more source labels. Confirm that the identifiers refer to the same kind of entity before treating it as an overlap.</li>
+      <li><strong>Repeated within source:</strong> an identifier occurs on multiple rows under one source. These may be duplicate records, repeated measurements, or a valid source design.</li>
+      <li>Identifiers absent from one or both columns are skipped and counted. The report is a review queue, not a deletion list, data-use ruling, or proof of leakage.</li>
+    </ul>
+    <p class="hint">Processing stays in this browser tab. Nothing is uploaded, stored, or sent to a server. Use public or synthetic manifests and follow the Challenge's current rules for external-data eligibility and disclosure.</p>
+  </section>
+  <footer class="foot"><a href="../../tools/manifest-integrity/">Sample Manifest Integrity Auditor</a> · <a href="../../tools/external-data-eligibility/">External Data Eligibility Checker</a> · <a href="https://virtualembryo.ai/challenge/resources">Community resources</a></footer>
+</main>
+<script>
+(() => {
+  const $=id=>document.getElementById(id);
+  let report=[];
+  function parseCSV(text){
+    const rows=[];let row=[],field="",quoted=false;
+    for(let i=0;i<text.length;i++){
+      const c=text[i];
+      if(quoted){if(c==='"'&&text[i+1]==='"'){field+='"';i++;}else if(c==='"')quoted=false;else field+=c;}
+      else if(c==='"'&&field==="")quoted=true;
+      else if(c===","){row.push(field);field="";}
+      else if(c==="\n"||c==="\r"){if(c==="\r"&&text[i+1]==="\n")i++;row.push(field);rows.push(row);row=[];field="";}
+      else field+=c;
+    }
+    if(quoted)throw new Error("CSV contains an unclosed quoted field.");
+    if(field!==""||row.length){row.push(field);rows.push(row);}
+    return rows;
+  }
+  function escapeHTML(value){return String(value).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+  function audit(){
+    const output=$("result");report=[];
+    try{
+      const rows=parseCSV($("manifest").value.trim());
+      if(rows.length<2)throw new Error("Add a header row and at least one data row.");
+      const header=rows[0].map(v=>v.trim().toLowerCase()),sourceCol=header.indexOf("source"),idCol=header.indexOf("id");
+      if(sourceCol<0||idCol<0)throw new Error("The header must include columns named source and id.");
+      if(sourceCol===idCol)throw new Error("Source and ID must be separate columns.");
+      const groups=new Map();let skipped=0,accepted=0;
+      for(const values of rows.slice(1)){
+        if(values.every(v=>v.trim()===""))continue;
+        let source=values[sourceCol]??"",id=values[idCol]??"";
+        if($("trim").checked){source=source.trim();id=id.trim();}
+        if(!source||!id){skipped++;continue;}
+        const key=$("fold").checked?id.toLocaleLowerCase():id;
+        if(!groups.has(key))groups.set(key,{sources:new Map(),raw:new Set()});
+        const group=groups.get(key);group.raw.add(id);group.sources.set(source,(group.sources.get(source)||0)+1);accepted++;
+      }
+      for(const [key,group] of groups){
+        const cross=group.sources.size>1,within=[...group.sources.values()].some(count=>count>1);
+        if(!cross&&!within)continue;
+        for(const [source,count] of group.sources)report.push({id:key,source,rows:count,sources:group.sources.size,classes:[cross?"cross-source candidate":"",count>1?"repeated within source":""].filter(Boolean).join("; "),variants:[...group.raw].join(" | ")});
+      }
+      report.sort((a,b)=>a.id.localeCompare(b.id)||a.source.localeCompare(b.source));
+      const crossIds=new Set(report.filter(r=>r.sources>1).map(r=>r.id)).size;
+      const withinPairs=report.filter(r=>r.rows>1).length;
+      const summary=`<p><strong>${accepted}</strong> usable rows · <strong>${groups.size}</strong> unique normalized IDs · <strong>${crossIds}</strong> cross-source candidate IDs · <strong>${withinPairs}</strong> source/ID groups with repeated rows · <strong>${skipped}</strong> incomplete rows skipped.</p>`;
+      if(!report.length){output.innerHTML=summary+"<p>No exact repeated identifiers were found with the selected normalization. This does not rule out aliases or reused material with different IDs.</p>";$("download").disabled=true;return;}
+      const body=report.map(r=>`<tr><td>${escapeHTML(r.id)}</td><td>${escapeHTML(r.source)}</td><td>${r.rows}</td><td>${r.sources}</td><td>${escapeHTML(r.classes)}</td><td>${escapeHTML(r.variants)}</td></tr>`).join("");
+      output.innerHTML=summary+`<div class="table-wrap"><table><thead><tr><th>Matched ID</th><th>Source</th><th>Rows here</th><th>Sources</th><th>Candidate type</th><th>Original ID value(s)</th></tr></thead><tbody>${body}</tbody></table></div><p class="hint">Review each row against original accession and sample metadata. Repeated identifiers are signals to investigate, not an instruction to exclude data.</p>`;
+      $("download").disabled=false;
+    }catch(error){output.textContent=error.message;$("download").disabled=true;}
+  }
+  $("analyze").addEventListener("click",audit);
+  $("example").addEventListener("click",()=>{$("manifest").value='source,id\natlas_A,cell_001\natlas_A,cell_002\natlas_A,cell_002\natlas_B,cell_001\natlas_B,cell_003\natlas_C,"cell,004"\natlas_C,\n';audit();});
+  $("clear").addEventListener("click",()=>{$("manifest").value="";report=[];$("download").disabled=true;$("result").textContent="Paste a manifest or load the synthetic example, then audit it.";});
+  $("download").addEventListener("click",()=>{const esc=value=>'"'+String(value).replace(/"/g,'""')+'"';const lines=[["matched_id","source","rows_here","source_count","candidate_type","original_id_values"],...report.map(r=>[r.id,r.source,r.rows,r.sources,r.classes,r.variants])].map(row=>row.map(esc).join(",")).join("\r\n");const url=URL.createObjectURL(new Blob([lines],{type:"text/csv;charset=utf-8"})),a=document.createElement("a");a.href=url;a.download="vec-source-overlap-audit.csv";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
+})();
+</script>
+</body>
+</html>

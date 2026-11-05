@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Explore how converting independent cell-type counts to proportions that sum to one can induce negative correlations between parts.">
+  <title>Compositional Closure Demonstrator · VEC</title>
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<main class="wrap">
+  <header class="tool-head">
+    <nav><a href="../../">← Participation Workbench</a> · <a href="https://virtualembryo.ai/challenge/data">Official data page</a> · <a href="https://virtualembryo.ai/challenge/resources">Community resources</a></nav>
+    <p class="eyebrow">Population data · synthetic demonstration</p>
+    <h1>Compositional Closure Demonstrator</h1>
+    <p class="lede">Simulate independent noisy counts for three cell populations, then compare one pair as raw counts and as fractions of a total. The fractions must sum to one, which can create relationships that are absent from the absolute counts.</p>
+  </header>
+  <section class="panel">
+    <h2>Choose synthetic count scales</h2>
+    <div class="cols">
+      <div><label for="n">Synthetic samples (20–500)</label><input id="n" type="number" min="20" max="500" step="10" value="200"></div>
+      <div><label for="a">Mean count for population A (10–50)</label><input id="a" type="number" min="10" max="50" step="5" value="30"></div>
+      <div><label for="b">Mean count for population B (10–50)</label><input id="b" type="number" min="10" max="50" step="5" value="30"></div>
+      <div><label for="c">Mean count for other populations combined (10–50)</label><input id="c" type="number" min="10" max="50" step="5" value="40"></div>
+      <div><label for="seed">Seed</label><input id="seed" type="number" min="0" max="4294967295" value="5"></div>
+    </div>
+    <div class="inline"><button id="simulate" type="button">Simulate</button><button id="download" class="secondary" type="button" disabled>Download synthetic table</button></div>
+    <div id="summary" class="output" aria-live="polite">Run the simulation to compare correlations from independent counts with correlations after converting counts to proportions.</div>
+    <div class="table-wrap"><canvas id="chart" width="900" height="380" role="img" aria-label="Scatter plots comparing population A and B in raw counts and as proportions"></canvas></div>
+  </section>
+  <section class="panel">
+    <h2>Why this happens</h2>
+    <p>For each sample, all proportions share the same denominator: the total number of cells. With only two parts, their fractions sum exactly to one and therefore have a perfect negative relationship. With more parts, closure still constrains the fractions and can induce correlations even when the underlying count processes were generated independently.</p>
+    <p>Cell counts and proportions answer different questions. Counts depend on sampling depth and total abundance; proportions describe relative composition. Neither view alone establishes a biological interaction or causal change.</p>
+    <p class="hint">The simulated counts are independent Poisson draws for teaching. This is not a VEC dataset, official scoring formula, or substitute for a compositional-data model. No data are uploaded.</p>
+  </section>
+  <footer class="foot"><a href="../../tools/composition-distance/">Cell Composition Distance Explorer</a> · <a href="../../tools/composition-expression/">Composition–Expression Decomposer</a> · <a href="../../simulations/composition-shift/">Composition Shift Demonstrator</a></footer>
+</main>
+<script>
+(() => {
+  const $=id=>document.getElementById(id);let samples=[];
+  function pearson(x,y){const mx=x.reduce((s,v)=>s+v,0)/x.length,my=y.reduce((s,v)=>s+v,0)/y.length;let xy=0,xx=0,yy=0;for(let i=0;i<x.length;i++){const dx=x[i]-mx,dy=y[i]-my;xy+=dx*dy;xx+=dx*dx;yy+=dy*dy;}return xx&&yy?xy/Math.sqrt(xx*yy):0;}
+  function draw(x,y,u,v){const canvas=$("chart"),ctx=canvas.getContext("2d"),w=canvas.width,h=canvas.height;ctx.clearRect(0,0,w,h);ctx.font="16px system-ui";ctx.fillStyle="#202833";ctx.fillText("Raw counts: A vs B",32,28);ctx.fillText("Closed proportions: A vs B",480,28);const panels=[{x:32,y:55,w:390,h:270,a:x,b:y,color:"#157a74",xl:"A count",yl:"B count"},{x:480,y:55,w:390,h:270,a:u,b:v,color:"#ae4b72",xl:"A (%)",yl:"B (%)"}];for(const p of panels){const minX=Math.min(...p.a),maxX=Math.max(...p.a),minY=Math.min(...p.b),maxY=Math.max(...p.b),padX=Math.max((maxX-minX)*.08,1),padY=Math.max((maxY-minY)*.08,1),lx=minX-padX,hx=maxX+padX,ly=minY-padY,hy=maxY+padY;ctx.strokeStyle="#9aa5b1";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p.x,p.y+p.h);ctx.lineTo(p.x+p.w,p.y+p.h);ctx.stroke();ctx.fillStyle="#4a5563";ctx.font="12px system-ui";ctx.fillText(p.yl,p.x,p.y-6);ctx.fillText(p.xl,p.x+p.w/2,p.y+p.h+25);ctx.globalAlpha=.55;for(let i=0;i<p.a.length;i++){const px=p.x+(p.a[i]-lx)/(hx-lx)*p.w,py=p.y+p.h-(p.b[i]-ly)/(hy-ly)*p.h;ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(px,py,3.2,0,Math.PI*2);ctx.fill();}ctx.globalAlpha=1;}}
+  function run(){const n=Number($("n").value),a=Number($("a").value),b=Number($("b").value),c=Number($("c").value),seed=Number($("seed").value),out=$("summary");if(!Number.isInteger(n)||n<20||n>500||![a,b,c].every(x=>Number.isFinite(x)&&x>=10&&x<=50)||!Number.isInteger(seed)||seed<0||seed>4294967295){out.textContent="Enter 20–500 samples, means from 10 through 50, and an integer seed.";return;}let state=seed>>>0;const random=()=>{state+=0x6D2B79F5;let x=state;x=Math.imul(x^(x>>>15),x|1);x^=x+Math.imul(x^(x>>>7),x|61);return((x^(x>>>14))>>>0)/4294967296;};function poisson(lambda){const limit=Math.exp(-lambda);let product=1,k=0;do{product*=random();k++;}while(product>limit);return k-1;}samples=[];for(let i=0;i<n;i++){const ca=poisson(a),cb=poisson(b),cc=poisson(c),total=ca+cb+cc;samples.push({sample:i+1,a:ca,b:cb,other:cc,total,pa:ca/total,pb:cb/total,po:cc/total});}const raw=pearson(samples.map(x=>x.a),samples.map(x=>x.b)),closed=pearson(samples.map(x=>x.pa),samples.map(x=>x.pb));draw(samples.map(x=>x.a),samples.map(x=>x.b),samples.map(x=>x.pa*100),samples.map(x=>x.pb*100));out.innerHTML=`<p><strong>Raw A/B count correlation:</strong> ${raw.toFixed(3)} · <strong>A/B proportion correlation:</strong> ${closed.toFixed(3)}</p><p>Counts are independent Poisson draws with means ${a}, ${b}, and ${c}. In the right panel, A and B share the total-count denominator; each sample's A+B+other proportions sum to 100%.</p><p class="hint">Synthetic seed ${seed}; ${n} samples. Correlation values vary with the seed and count means. A correlation among proportions is not evidence of a biological interaction.</p>`;$("download").disabled=false;}
+  $("simulate").addEventListener("click",run);$("download").addEventListener("click",()=>{const rows=[["synthetic_sample","A_count","B_count","other_count","total","A_proportion","B_proportion","other_proportion"],...samples.map(x=>[x.sample,x.a,x.b,x.other,x.total,x.pa,x.pb,x.po])],csv=rows.map(r=>r.join(",")).join("\r\n"),url=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"})),a=document.createElement("a");a.href=url;a.download="vec-compositional-closure-simulation.csv";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});run();
+})();
+</script>
+</body>
+</html>

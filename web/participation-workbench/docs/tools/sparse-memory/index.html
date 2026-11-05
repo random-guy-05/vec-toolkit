@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Estimate dense and sparse numeric matrix payload sizes from shape, nonzero count, dtypes, and planned copies.">
+  <title>Sparse Matrix Footprint Estimator · VEC</title>
+  <link rel="stylesheet" href="../../assets/style.css">
+  <style>
+    .language-row{display:flex;justify-content:flex-end;margin-bottom:1rem}
+    .table-wrap{overflow-x:auto}
+    table{border-collapse:collapse;width:100%;min-width:650px}
+    th,td{border-bottom:1px solid var(--line,#ddd);padding:.55rem .65rem;text-align:left;vertical-align:top}
+    th{font-size:.9rem}
+    #result p{margin:.55rem 0}
+  </style>
+</head>
+<body>
+<main class="wrap">
+  <header class="tool-head">
+    <nav><a href="../../" data-i18n="back">← Workbench</a> · <a href="https://virtualembryo.ai/challenge/resources" data-i18n="community">Community resources</a> · <a href="https://virtualembryo.ai/challenge/data" data-i18n="official">Official data page</a></nav>
+    <p class="eyebrow" data-i18n="eyebrow">Compute planning · browser-local</p>
+    <h1 data-i18n="title">Sparse Matrix Footprint Estimator</h1>
+    <p class="lede" data-i18n="description">Compare dense, CSR, CSC, and COO numeric payload sizes from a matrix shape and stored nonzero count before choosing an in-memory representation.</p>
+  </header>
+  <section class="panel">
+    <div class="language-row">
+      <label for="language" data-i18n="languageLabel">Interface language</label>
+      <select id="language" aria-label="Interface language">
+        <option value="en">English</option><option value="es">Español</option><option value="zh-CN">简体中文</option>
+      </select>
+    </div>
+    <h2 data-i18n="inputsTitle">Matrix and storage assumptions</h2>
+    <div class="cols">
+      <div><label for="rows" data-i18n="rows">Rows</label><input id="rows" type="number" min="1" step="1" value="1000000"></div>
+      <div><label for="columns" data-i18n="columns">Columns</label><input id="columns" type="number" min="1" step="1" value="500"></div>
+      <div><label for="nnz" data-i18n="nnz">Stored nonzero entries</label><input id="nnz" type="number" min="0" step="1" value="10000000"></div>
+      <div><label for="value-dtype" data-i18n="valueDtype">Value dtype</label><select id="value-dtype"><option value="4">float32</option><option value="8">float64</option></select></div>
+      <div><label for="index-dtype" data-i18n="indexDtype">Sparse index width</label><select id="index-dtype"><option value="4" data-i18n="index32">32-bit indices</option><option value="8" data-i18n="index64">64-bit indices</option></select></div>
+      <div><label for="copies" data-i18n="copies">Simultaneous matrix copies to budget for</label><select id="copies"><option value="1">1</option><option value="2" selected>2</option><option value="3">3</option><option value="4">4</option></select></div>
+    </div>
+    <p class="hint" data-i18n="inputHint">Enter nnz as the number of stored values in the matrix you plan to load, not a percent. The copy count is your planning scenario for simultaneous copies of that same representation.</p>
+    <div class="inline"><button id="calculate" type="button" data-i18n="calculate">Estimate footprint</button><button id="example" class="secondary" type="button" data-i18n="example">Load example</button></div>
+    <div id="result" class="output" aria-live="polite" data-i18n="ready">Change the defaults or choose the example, then estimate.</div>
+  </section>
+  <section class="panel">
+    <h2 data-i18n="formulasTitle">What the estimate includes</h2>
+    <ul>
+      <li data-i18n="formulaDense">Dense payload: rows × columns × bytes per value.</li>
+      <li data-i18n="formulaCsr">CSR payload: values and column indices for each stored entry, plus a row-pointer array.</li>
+      <li data-i18n="formulaCsc">CSC payload: values and row indices for each stored entry, plus a column-pointer array.</li>
+      <li data-i18n="formulaCoo">COO payload: values and two indices for each stored entry.</li>
+    </ul>
+    <p class="hint" data-i18n="limits">These are raw array payload estimates, not peak RAM or on-disk H5AD size. They omit compression, object metadata, other AnnData slots, allocator overhead, index conversions, and temporary arrays. Actual readers may keep multiple copies; the selected copy factor is only a scenario, not a prediction.</p>
+    <p data-i18n="privacy">Inputs stay in this browser tab. Nothing is uploaded, stored, or fetched. Use matrix dimensions and counts, never private data.</p>
+  </section>
+  <footer class="foot"><a href="../../tools/compute-budget/" data-i18n="related">Compare with the prediction-array budget calculator</a> · <a href="https://virtualembryo.ai/challenge/resources" data-i18n="checkResources">Check existing community resources</a></footer>
+</main>
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const copy = {
+    en: {
+      back:"← Workbench",community:"Community resources",official:"Official data page",eyebrow:"Compute planning · browser-local",
+      title:"Sparse Matrix Footprint Estimator",description:"Compare dense, CSR, CSC, and COO numeric payload sizes from a matrix shape and stored nonzero count before choosing an in-memory representation.",
+      languageLabel:"Interface language",inputsTitle:"Matrix and storage assumptions",rows:"Rows",columns:"Columns",nnz:"Stored nonzero entries",
+      valueDtype:"Value dtype",indexDtype:"Sparse index width",index32:"32-bit indices",index64:"64-bit indices",
+      copies:"Simultaneous matrix copies to budget for",inputHint:"Enter nnz as the number of stored values in the matrix you plan to load, not a percent. The copy count is your planning scenario for simultaneous copies of that same representation.",
+      calculate:"Estimate footprint",example:"Load example",ready:"Change the defaults or choose the example, then estimate.",
+      formulasTitle:"What the estimate includes",formulaDense:"Dense payload: rows × columns × bytes per value.",
+      formulaCsr:"CSR payload: values and column indices for each stored entry, plus a row-pointer array.",
+      formulaCsc:"CSC payload: values and row indices for each stored entry, plus a column-pointer array.",
+      formulaCoo:"COO payload: values and two indices for each stored entry.",
+      limits:"These are raw array payload estimates, not peak RAM or on-disk H5AD size. They omit compression, object metadata, other AnnData slots, allocator overhead, index conversions, and temporary arrays. Actual readers may keep multiple copies; the selected copy factor is only a scenario, not a prediction.",
+      privacy:"Inputs stay in this browser tab. Nothing is uploaded, stored, or fetched. Use matrix dimensions and counts, never private data.",
+      related:"Compare with the prediction-array budget calculator",checkResources:"Check existing community resources",
+      invalid:"Enter positive integer rows and columns, and an integer nonzero count from zero through rows × columns.",
+      tooLarge:"These values exceed exact integer arithmetic in this browser. Reduce the dimensions or counts.",
+      indexOverflow:"The selected index width cannot represent these dimensions or stored-entry count. Choose 64-bit indices.",
+      summary:"Dense value payload: {dense}. Density: {density}%. With {copies} planned copy/copies, the dense payload scenario is {planned}.",
+      headers:["Representation","Bytes for one matrix","Bytes for planned copies","Fraction of dense payload"],
+      dense:"Dense",csr:"CSR",csc:"CSC",coo:"COO",best:"Smallest estimated payload here: {name} at {ratio}% of the dense value array.",
+      note:"Sparse and dense arrays contain the same logical matrix only when the supplied dimensions, values, duplicate handling, and zero semantics match. This estimator compares storage arithmetic; it does not recommend a format or guarantee that a library will use the selected index width.",
+      gib:"{gib} GiB ({gb} GB)",copySingular:"",copyPlural:""
+    },
+    es: {
+      back:"← Herramientas",community:"Recursos comunitarios",official:"Datos oficiales",eyebrow:"Planificación de cómputo · local en el navegador",
+      title:"Estimador de memoria de matrices dispersas",description:"Compara el tamaño de los datos numéricos en formatos denso, CSR, CSC y COO a partir de la forma de la matriz y el número de valores almacenados.",
+      languageLabel:"Idioma de la interfaz",inputsTitle:"Matriz y supuestos de almacenamiento",rows:"Filas",columns:"Columnas",nnz:"Valores no nulos almacenados",
+      valueDtype:"Tipo de datos de valores",indexDtype:"Ancho de índices dispersos",index32:"Índices de 32 bits",index64:"Índices de 64 bits",
+      copies:"Copias simultáneas para el presupuesto",inputHint:"Introduce nnz como el número de valores almacenados en la matriz que cargarás, no como un porcentaje. El número de copias es un escenario de planificación para copias simultáneas de la misma representación.",
+      calculate:"Estimar tamaño",example:"Cargar ejemplo",ready:"Cambia los valores iniciales o carga el ejemplo y estima.",
+      formulasTitle:"Qué incluye la estimación",formulaDense:"Matriz densa: filas × columnas × bytes por valor.",
+      formulaCsr:"CSR: valores e índices de columna por cada entrada almacenada, más un vector de punteros por fila.",
+      formulaCsc:"CSC: valores e índices de fila por cada entrada almacenada, más un vector de punteros por columna.",
+      formulaCoo:"COO: valores y dos índices por cada entrada almacenada.",
+      limits:"Son estimaciones del contenido de las matrices, no de la RAM máxima ni del tamaño del archivo H5AD. No incluyen compresión, metadatos, otros componentes de AnnData, sobrecarga del asignador, conversiones ni matrices temporales. Los lectores pueden mantener varias copias; el factor elegido es un escenario, no una predicción.",
+      privacy:"Los valores permanecen en esta pestaña. No se suben, guardan ni descargan datos. Usa dimensiones y conteos, nunca datos privados.",
+      related:"Comparar con el calculador de presupuesto para matrices de predicción",checkResources:"Consultar recursos comunitarios existentes",
+      invalid:"Introduce filas y columnas como enteros positivos, y un nnz entero entre cero y filas × columnas.",
+      tooLarge:"Los valores superan la aritmética entera exacta de este navegador. Reduce las dimensiones o los conteos.",
+      indexOverflow:"El ancho de índice elegido no puede representar estas dimensiones o el número de entradas. Elige índices de 64 bits.",
+      summary:"Contenido de matriz densa: {dense}. Densidad: {density}%. Con {copies} copias planificadas, el escenario denso es {planned}.",
+      headers:["Representación","Bytes de una matriz","Bytes de las copias previstas","Fracción del contenido denso"],
+      dense:"Densa",csr:"CSR",csc:"CSC",coo:"COO",best:"Menor contenido estimado: {name}, con {ratio}% del vector denso de valores.",
+      note:"Las matrices dispersa y densa representan la misma matriz lógica solo si coinciden las dimensiones, los valores, el tratamiento de duplicados y la semántica de ceros. Esta herramienta compara tamaños de almacenamiento; no recomienda un formato ni garantiza el ancho de índice utilizado por una biblioteca.",
+      gib:"{gib} GiB ({gb} GB)",copySingular:"",copyPlural:""
+    },
+    "zh-CN": {
+      back:"← 工具箱",community:"社区资源",official:"官方数据页",eyebrow:"计算资源规划 · 浏览器本地处理",
+      title:"稀疏矩阵内存占用估算器",description:"根据矩阵形状和存储的非零值数量，比较稠密、CSR、CSC 和 COO 数值数组的大小，辅助选择内存表示。",
+      languageLabel:"界面语言",inputsTitle:"矩阵与存储假设",rows:"行数",columns:"列数",nnz:"已存储的非零项",
+      valueDtype:"数值类型",indexDtype:"稀疏索引宽度",index32:"32 位索引",index64:"64 位索引",
+      copies:"预算中同时存在的矩阵副本数",inputHint:"nnz 应填写计划加载矩阵中实际存储的值数量，而不是百分比。副本数代表同一表示同时存在时的规划情景。",
+      calculate:"估算内存",example:"载入示例",ready:"修改默认值或载入示例，然后进行估算。",
+      formulasTitle:"估算包含的内容",formulaDense:"稠密数组：行数 × 列数 × 每个值的字节数。",
+      formulaCsr:"CSR：每个已存储项的数值和列索引，另加行指针数组。",
+      formulaCsc:"CSC：每个已存储项的数值和行索引，另加列指针数组。",
+      formulaCoo:"COO：每个已存储项的数值和两个索引。",
+      limits:"这些是原始数组载荷估算，不是峰值内存或磁盘 H5AD 大小。未包括压缩、对象元数据、AnnData 的其他槽位、分配器开销、索引转换和临时数组。读取器可能保留多个副本；所选副本数只是情景，不是预测。",
+      privacy:"输入仅保留在此浏览器标签页中，不会上传、存储或获取。请只输入矩阵维度和计数，不要使用私有数据。",
+      related:"与预测数组预算计算器对比",checkResources:"查看已有社区资源",
+      invalid:"行数和列数必须为正整数；非零项数量必须是介于零与行数 × 列数之间的整数。",
+      tooLarge:"这些值超出浏览器可精确表示的整数范围。请减小维度或计数。",
+      indexOverflow:"所选索引宽度无法表示这些维度或存储项数。请选择 64 位索引。",
+      summary:"稠密数值载荷：{dense}。密度：{density}%。按 {copies} 个计划副本计算，稠密载荷情景为 {planned}。",
+      headers:["表示方式","单个矩阵的字节数","计划副本的字节数","相对于稠密载荷"],
+      dense:"稠密",csr:"CSR",csc:"CSC",coo:"COO",best:"本次估算中最小载荷：{name}，占稠密数值数组的 {ratio}%。",
+      note:"只有在维度、数值、重复项处理方式和零值语义相同的情况下，稀疏与稠密数组才表示同一逻辑矩阵。本工具仅比较存储运算，不推荐格式，也不保证库会使用所选索引宽度。",
+      gib:"{gib} GiB（{gb} GB）",copySingular:"",copyPlural:""
+    }
+  };
+  const language = $("language");
+  let last = false;
+  function t(key) { const selected = copy[language.value] || copy.en; return selected[key] === undefined ? copy.en[key] : selected[key]; }
+  function message(key, values) {
+    let text = t(key);
+    for (const [name, value] of Object.entries(values || {})) text = text.split("{" + name + "}").join(String(value));
+    return text;
+  }
+  function applyLanguage() {
+    const lang = language.value;
+    document.documentElement.lang = lang === "zh-CN" ? "zh-Hans" : lang;
+    document.querySelectorAll("[data-i18n]").forEach((node) => { node.textContent = t(node.dataset.i18n); });
+    language.setAttribute("aria-label", t("languageLabel"));
+    const url = new URL(location.href);
+    if (lang === "en") url.searchParams.delete("lang"); else url.searchParams.set("lang", lang);
+    try { history.replaceState(null, "", url); } catch (_) {}
+    if (last) calculate();
+  }
+  function integer(id, min) {
+    const raw = $(id).value.trim(), value = Number(raw);
+    if (!/^\d+$/.test(raw) || !Number.isSafeInteger(value) || value < min) throw new Error(t("invalid"));
+    return value;
+  }
+  function exactProduct(a, b) {
+    const value = a * b;
+    if (!Number.isSafeInteger(value)) throw new Error(t("tooLarge"));
+    return value;
+  }
+  function bytesLabel(bytes) {
+    return message("gib", { gib: (bytes / 1073741824).toFixed(3), gb: (bytes / 1000000000).toFixed(3) });
+  }
+  function calculate() {
+    const out = $("result");
+    out.replaceChildren();
+    try {
+      const rows = integer("rows", 1), columns = integer("columns", 1), nnz = integer("nnz", 0);
+      const cells = exactProduct(rows, columns);
+      if (nnz > cells) throw new Error(t("invalid"));
+      const valueBytes = Number($("value-dtype").value), indexBytes = Number($("index-dtype").value), copies = Number($("copies").value);
+      const maxIndex = indexBytes === 4 ? 2147483647 : Number.MAX_SAFE_INTEGER;
+      if (rows + 1 > maxIndex || columns + 1 > maxIndex || nnz > maxIndex) throw new Error(t("indexOverflow"));
+      const dense = exactProduct(cells, valueBytes);
+      const csr = exactProduct(nnz, valueBytes + indexBytes) + exactProduct(rows + 1, indexBytes);
+      const csc = exactProduct(nnz, valueBytes + indexBytes) + exactProduct(columns + 1, indexBytes);
+      const coo = exactProduct(nnz, valueBytes + 2 * indexBytes);
+      if (![csr, csc, coo].every(Number.isSafeInteger)) throw new Error(t("tooLarge"));
+      const entries = [["dense", dense], ["csr", csr], ["csc", csc], ["coo", coo]];
+      const summary = document.createElement("p");
+      summary.textContent = message("summary", {
+        dense: bytesLabel(dense), density: (100 * nnz / cells).toPrecision(4),
+        copies, planned: bytesLabel(exactProduct(dense, copies))
+      });
+      out.append(summary);
+      const wrap = document.createElement("div");
+      wrap.className = "table-wrap";
+      const table = document.createElement("table");
+      const thead = document.createElement("thead"), headRow = document.createElement("tr");
+      t("headers").forEach((label) => { const th = document.createElement("th"); th.textContent = label; headRow.append(th); });
+      thead.append(headRow);
+      const tbody = document.createElement("tbody");
+      entries.forEach(([key, bytes]) => {
+        const tr = document.createElement("tr");
+        const values = [t(key), bytesLabel(bytes), bytesLabel(exactProduct(bytes, copies)), (100 * bytes / dense).toPrecision(4) + "%"];
+        values.forEach((value) => { const td = document.createElement("td"); td.textContent = String(value); tr.append(td); });
+        tbody.append(tr);
+      });
+      table.append(thead, tbody);
+      wrap.append(table);
+      out.append(wrap);
+      const best = entries.slice(1).reduce((a, b) => a[1] < b[1] ? a : b);
+      const bestNote = document.createElement("p");
+      bestNote.textContent = message("best", { name: t(best[0]), ratio: (100 * best[1] / dense).toPrecision(4) });
+      out.append(bestNote);
+      const caveat = document.createElement("p");
+      caveat.className = "hint";
+      caveat.textContent = t("note");
+      out.append(caveat);
+      last = true;
+    } catch (error) {
+      out.textContent = error.message;
+      last = false;
+    }
+  }
+  $("calculate").addEventListener("click", calculate);
+  $("example").addEventListener("click", () => {
+    $("rows").value = "1000000"; $("columns").value = "500"; $("nnz").value = "10000000";
+    $("value-dtype").value = "4"; $("index-dtype").value = "4"; $("copies").value = "2";
+    calculate();
+  });
+  language.value = new URLSearchParams(location.search).get("lang") || "en";
+  if (!["en", "es", "zh-CN"].includes(language.value)) language.value = "en";
+  language.addEventListener("change", applyLanguage);
+  applyLanguage();
+})();
+</script>
+</body>
+</html>

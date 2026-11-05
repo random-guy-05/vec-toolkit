@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="An interactive visual map of released and held-out Virtual Embryo Challenge task stages and conditions.">
+  <title>VEC Data Release Map · Participation Workbench</title>
+  <link rel="stylesheet" href="../../assets/style.css">
+  <style>
+    .map-row{margin:1.2rem 0;padding:1rem;border:1px solid var(--line,#ddd);border-radius:.7rem;background:var(--panel,#fff)}
+    .map-row h3{margin:.1rem 0 .4rem}.track{display:flex;gap:.6rem;overflow-x:auto;padding:.6rem 0 1rem;align-items:stretch}
+    .stage-card{flex:1 0 8rem;min-width:8rem;max-width:14rem;border:1px solid var(--line,#ddd);border-top:4px solid #64748b;border-radius:.55rem;padding:.65rem;background:var(--surface,#fff)}
+    .stage-card.train{border-top-color:#15803d}.stage-card.validation{border-top-color:#d97706}.stage-card.test{border-top-color:#b91c1c}.stage-card.reference{border-top-color:#2563eb}.stage-card.withheld{border-top-color:#7c3aed}
+    .stage-card strong{display:block;font-size:1.15rem}.stage-card .role{display:inline-block;margin:.35rem 0;padding:.1rem .4rem;border-radius:999px;font-size:.78rem;font-weight:700;background:#f1f5f9;color:#1e293b}
+    .map-legend{display:flex;flex-wrap:wrap;gap:.6rem 1rem;margin:.5rem 0}.legend-item{display:flex;align-items:center;gap:.4rem}.swatch{width:.8rem;height:.8rem;border-radius:50%;background:#64748b}.swatch.train{background:#15803d}.swatch.validation{background:#d97706}.swatch.test{background:#b91c1c}.swatch.reference{background:#2563eb}.swatch.withheld{background:#7c3aed}
+    .callout{padding:.8rem 1rem;border-left:4px solid #7c3aed;background:var(--panel,#f8fafc);margin:1rem 0}
+  </style>
+</head>
+<body>
+<main class="wrap">
+  <header class="tool-head">
+    <nav><a href="../../">← Participation Workbench</a> · <a href="https://virtualembryo.ai/challenge/data">Official data page</a></nav>
+    <p class="eyebrow">Visual guide · browser-local</p>
+    <h1>VEC Data Release Map</h1>
+    <p class="lede">See how the released developmental stages and conditions connect to each task’s training, validation, and hidden test split.</p>
+    <p class="hint">This visual summarizes the current public data page. It is not a data downloader, and it does not reveal validation or test answers.</p>
+  </header>
+  <section class="panel">
+    <label for="task">Choose a task</label>
+    <select id="task">
+      <option value="t1">Task 1 · single-cell temporal expression</option>
+      <option value="t2e">Task 2 · embryo interpolation</option>
+      <option value="t2h">Task 2 · heart interpolation and extrapolation</option>
+      <option value="t3">Task 3 · conditional knockouts</option>
+    </select>
+    <div class="map-legend" aria-label="Split legend">
+      <span class="legend-item"><i class="swatch train"></i>Training</span>
+      <span class="legend-item"><i class="swatch validation"></i>Validation</span>
+      <span class="legend-item"><i class="swatch test"></i>Hidden test</span>
+      <span class="legend-item"><i class="swatch reference"></i>Matched reference</span>
+      <span class="legend-item"><i class="swatch withheld"></i>Not released / held out elsewhere</span>
+    </div>
+    <div id="map" aria-live="polite"></div>
+  </section>
+  <section class="panel">
+    <h2>Read the split carefully</h2>
+    <ul>
+      <li>Task 2 embryo is interpolation: the hidden E7.5 and E7.75 targets sit between released E7.25 and E8.0.</li>
+      <li>Task 2 heart validates interpolation at E8.5 and extrapolation at E10.5; the hidden test target E12.5 is also extrapolation.</li>
+      <li>Task 3 predicts the mutant embryo population. Matched wild-type references are inputs for scoring; the prediction itself is not a mutant-minus-wild-type difference.</li>
+    </ul>
+    <p class="callout">Do not use measured data from a held-out stage or genotype through external training, pretraining, fine-tuning, or transfer. The official rules and data page define eligibility and can change.</p>
+  </section>
+  <footer class="foot">
+    <a href="https://virtualembryo.ai/challenge/data">Official data page</a> ·
+    <a href="https://virtualembryo.ai/challenge/tasks">Tasks</a> ·
+    <a href="https://virtualembryo.ai/challenge/rules">Rules</a>
+  </footer>
+</main>
+<script>
+(() => {
+  const data = {
+    t1:{title:"Task 1 · temporal single-cell RNA",subtitle:"Whole-transcriptome expression prediction · 32,285 genes · heart-centered dissection",min:7.75,max:12.5,rows:[
+      {stage:"E7.75",x:7.75,role:"Not released",type:"withheld",note:"Held-out Task 2 embryo test stage. It is shown to explain the gap; no Task 1 single-cell file is released."},
+      {stage:"E8.5",x:8.5,role:"Train",type:"train",note:"Released Task 1 single-cell RNA."},
+      {stage:"E9.5",x:9.5,role:"Train",type:"train",note:"Released Task 1 single-cell RNA."},
+      {stage:"E10.5",x:10.5,role:"Validation",type:"validation",note:"Validation target; answers are withheld while validation affects the board."},
+      {stage:"E12.5",x:12.5,role:"Hidden test",type:"test",note:"Hidden test target."}
+    ],note:"The observed population reflects stage-dependent dissection. Cell-type composition can change because the sampled tissue changes, not only because cell states change."},
+    t2e:{title:"Task 2 · whole-embryo MERFISH",subtitle:"Spatial-temporal expression and 3D location · 500-gene panel · per-embryo local coordinate frame",min:6.75,max:8.0,rows:[
+      {stage:"E6.75",x:6.75,role:"Train",type:"train",note:"Earliest released embryo stage."},
+      {stage:"E7.25",x:7.25,role:"Train",type:"train",note:"Last released stage before the hidden interpolation pair."},
+      {stage:"E7.5",x:7.5,role:"Validation · interpolation",type:"validation",note:"Held-out interpolation validation target."},
+      {stage:"E7.75",x:7.75,role:"Hidden test · interpolation",type:"test",note:"Hidden interpolation test target."},
+      {stage:"E8.0",x:8.0,role:"Train",type:"train",note:"Released stage after both held-out targets; the targets are bracketed."}
+    ],note:"Coordinates are local to each embryo and are not registered across time points. The two held-out stages sit between E7.25 and E8.0."},
+    t2h:{title:"Task 2 · heart MERFISH",subtitle:"Spatial-temporal expression and 3D location · 500-gene panel · per-embryo local coordinate frame",min:8.25,max:12.5,rows:[
+      {stage:"E8.25",x:8.25,role:"Train",type:"train",note:"Released stage before interpolation validation."},
+      {stage:"E8.5",x:8.5,role:"Validation · interpolation",type:"validation",note:"Held-out interpolation validation target, bracketed by E8.25 and E8.75."},
+      {stage:"E8.75",x:8.75,role:"Train",type:"train",note:"Released stage after the interpolation target; also the Task 3 wild-type reference."},
+      {stage:"E9.5",x:9.5,role:"Train",type:"train",note:"Released stage; also the Task 3 wild-type reference."},
+      {stage:"E10.5",x:10.5,role:"Validation · extrapolation",type:"validation",note:"Held-out extrapolation validation target."},
+      {stage:"E12.5",x:12.5,role:"Hidden test · extrapolation",type:"test",note:"Hidden extrapolation test target."}
+    ],note:"The heart setting tests two different questions: interpolation at E8.5 and extrapolation at E10.5/E12.5. They are scored separately."},
+    t3:{title:"Task 3 · conditional knockouts",subtitle:"Spatial expression and 3D location · two biological replicates for knockout conditions",min:8.75,max:9.5,rows:[
+      {stage:"E8.75",x:8.75,role:"Wild-type reference",type:"reference",note:"Matched wild-type reference used to score E8.75 knockouts."},
+      {stage:"E8.75 · Gata4 KO",x:8.75,role:"Validation · 2 replicates",type:"validation",note:"Mesp1-Cre; Gata4 F/F; Gata6 F/+; validation answers are released in the final phase."},
+      {stage:"E8.75 · β-catenin KO",x:8.75,role:"Hidden test · 2 replicates",type:"test",note:"Mesp1-Cre; β-catenin F/F; held-out test genotype."},
+      {stage:"E9.5 · WT",x:9.5,role:"Wild-type reference",type:"reference",note:"Matched wild-type reference used to score the training knockout."},
+      {stage:"E9.5 · Mab21l2 KO",x:9.5,role:"Train",type:"train",note:"Released training knockout condition."}
+    ],note:"The scoring reference is the matched wild type at the same stage. Replicate scores help show how much measured differences can vary between embryos of the same genotype."}
+  };
+  const select=document.getElementById("task"),host=document.getElementById("map");
+  function render(){
+    const item=data[select.value];host.replaceChildren();
+    const heading=document.createElement("h2");heading.textContent=item.title;host.appendChild(heading);
+    const sub=document.createElement("p");sub.className="hint";sub.textContent=item.subtitle;host.appendChild(sub);
+    const row=document.createElement("div");row.className="map-row";row.setAttribute("role","group");row.setAttribute("aria-label",item.title+" stage sequence");
+    const track=document.createElement("div");track.className="track";
+    item.rows.forEach(stage=>{const card=document.createElement("article");card.className="stage-card "+stage.type;const st=document.createElement("strong");st.textContent=stage.stage;const role=document.createElement("span");role.className="role";role.textContent=stage.role;const note=document.createElement("p");note.textContent=stage.note;card.append(st,role,note);track.appendChild(card);});
+    row.appendChild(track);const note=document.createElement("p");note.className="callout";note.textContent=item.note;row.appendChild(note);host.appendChild(row);
+  }
+  select.addEventListener("change",render);render();
+})();
+</script>
+</body>
+</html>

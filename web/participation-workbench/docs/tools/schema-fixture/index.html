@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Generate a local Python script for deterministic, synthetic AnnData prediction-file fixtures with the selected VEC task schema.">
+  <title>VEC Prediction Schema Fixture Generator</title>
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<main class="wrap">
+  <header class="tool-head">
+    <nav><a href="../../">← Participation Workbench</a> · <a href="https://virtualembryo.ai/challenge/data">Official gene panels and data schema</a></nav>
+    <p class="eyebrow">Safe prototyping · browser-local</p>
+    <h1>Prediction Schema Fixture Generator</h1>
+    <p class="lede">Create a deterministic local Python script that writes a synthetic AnnData prediction fixture with the selected board panel size and required spatial key.</p>
+    <p class="hint">The output has fake measurements and is for software smoke work only. It is not a biological prediction, baseline, valid score claim, or leaderboard submission. The generated script reads a local official panel file but does not download or transmit it.</p>
+  </header>
+  <section class="panel">
+    <h2>Choose the output schema</h2>
+    <label for="task">Task output</label>
+    <select id="task">
+      <option value="t1">Task 1 · 32,285-gene single-cell output</option>
+      <option value="t2e">Task 2 · embryo interpolation board · 498-gene panel</option>
+      <option value="t2h">Task 2 · heart board · 500-gene panel</option>
+      <option value="t3">Task 3 · knockout board · 500-gene panel</option>
+    </select>
+    <label for="cells">Synthetic cells (8–256)</label>
+    <input id="cells" type="number" min="8" max="256" step="1" value="64">
+    <label for="seed">Deterministic seed</label>
+    <input id="seed" type="number" min="0" max="4294967295" step="1" value="17">
+    <div class="inline"><button id="generate" type="button">Generate script</button><button id="download" type="button" class="secondary" disabled>Download Python script</button></div>
+    <label for="script">Generated Python script</label>
+    <textarea id="script" rows="22" spellcheck="false" readonly placeholder="Choose a schema and generate the script."></textarea>
+    <p id="status" class="hint" aria-live="polite">The script requires numpy, pandas, scipy, and anndata in the environment where you run it.</p>
+  </section>
+  <section class="panel">
+    <h2>Run it locally</h2>
+    <ol>
+      <li>Download the exact one-gene-per-line panel file for the selected board from the official data page.</li>
+      <li>Run the generated script in a Python environment that already has NumPy, pandas, SciPy, and AnnData installed. Pass the panel file path with <code>--panel-file</code>.</li>
+      <li>Point your own pipeline at the generated H5AD file. The cell values and coordinates are random synthetic fixtures and must never be treated as Challenge data or a model result.</li>
+    </ol>
+    <p class="hint">The generated file contains no cell-type labels and does not contain official answers. It uses sparse, non-negative synthetic expression; spatial tasks include <code>obsm["spatial_3D"]</code> with arbitrary local coordinates.</p>
+  </section>
+  <footer class="foot"><a href="https://virtualembryo.ai/challenge/data">Official data page</a> · <a href="https://virtualembryo.ai/challenge/rules">Current rules</a> · <a href="../../tools/synthetic-data-lab/">Generic Synthetic Data Lab</a></footer>
+</main>
+<script>
+(() => {
+  const $=id=>document.getElementById(id),configs={t1:{genes:32285,spatial:false,name:"t1"},t2e:{genes:498,spatial:true,name:"t2_embryo"},t2h:{genes:500,spatial:true,name:"t2_heart"},t3:{genes:500,spatial:true,name:"t3"}};
+  function generate(){
+    const cfg=configs[$("task").value],cells=Number($("cells").value),seed=Number($("seed").value);
+    if(!Number.isInteger(cells)||cells<8||cells>256){$("status").textContent="Cell count must be an integer from 8 through 256.";return;}
+    if(!Number.isInteger(seed)||seed<0||seed>4294967295){$("status").textContent="Seed must be an integer from 0 through 4,294,967,295.";return;}
+    const spatial=cfg.spatial?"    adata.obsm[\"spatial_3D\"] = rng.normal(0, 1, size=(N_CELLS, 3)).astype(np.float32)\n":"";
+    const script=`"""Synthetic VEC prediction-schema fixture; not a biological prediction or submission."""
+from pathlib import Path
+import argparse
+
+import anndata as ad
+import numpy as np
+import pandas as pd
+from scipy.sparse import coo_matrix
+
+TASK = ${JSON.stringify(cfg.name)}
+EXPECTED_GENES = ${cfg.genes}
+N_CELLS = ${cells}
+SEED = ${seed}
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--panel-file", required=True, help="Official one-gene-per-line panel file for the chosen board")
+    parser.add_argument("--output", default=f"vec_{TASK}_synthetic_fixture.h5ad")
+    args = parser.parse_args()
+
+    genes = [line.strip() for line in Path(args.panel_file).read_text().splitlines() if line.strip()]
+    if len(genes) != EXPECTED_GENES:
+        raise ValueError(f"Panel has {len(genes)} genes; expected {EXPECTED_GENES} for {TASK}.")
+    if len(set(genes)) != len(genes):
+        raise ValueError("Panel file contains duplicate gene identifiers.")
+
+    rng = np.random.default_rng(SEED)
+    nnz = max(N_CELLS, int(N_CELLS * EXPECTED_GENES * 0.02))
+    rows = rng.integers(0, N_CELLS, size=nnz)
+    cols = rng.integers(0, EXPECTED_GENES, size=nnz)
+    values = np.log1p(rng.gamma(shape=1.5, scale=0.8, size=nnz)).astype(np.float32)
+    X = coo_matrix((values, (rows, cols)), shape=(N_CELLS, EXPECTED_GENES), dtype=np.float32).tocsr()
+    X.sum_duplicates()
+    X.eliminate_zeros()
+    obs = pd.DataFrame(index=[f"synthetic_cell_{i:04d}" for i in range(N_CELLS)])
+    var = pd.DataFrame(index=genes)
+    adata = ad.AnnData(X=X, obs=obs, var=var)
+${spatial}    adata.write_h5ad(args.output, compression="gzip")
+    print(f"Wrote synthetic fixture: {args.output}")
+    print(f"Shape: {adata.n_obs} cells × {adata.n_vars} genes; sparse non-negative fake expression")
+    print("This file is for local pipeline prototyping only; do not treat it as a Challenge prediction.")
+
+
+if __name__ == "__main__":
+    main()
+`;
+    $("script").value=script;$("download").disabled=false;$("status").textContent="Generated a deterministic "+cfg.name+" fixture script for "+cells+" cells and "+cfg.genes+" genes.";
+  }
+  $("generate").addEventListener("click",generate);
+  $("download").addEventListener("click",()=>{if(!$("script").value)generate();if(!$("script").value)return;const u=URL.createObjectURL(new Blob([$("script").value],{type:"text/x-python;charset=utf-8"})),a=document.createElement("a");a.href=u;a.download="vec-synthetic-schema-fixture.py";a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);});
+})();
+</script>
+</body>
+</html>

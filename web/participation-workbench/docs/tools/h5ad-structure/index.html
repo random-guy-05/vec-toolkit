@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Inspect H5AD structure locally without printing cell identifiers or matrix values.">
+  <title>H5AD Structure Profiler · VEC</title>
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<main class="wrap">
+  <header class="tool-head">
+    <nav><a href="../../">← Participation Workbench</a> · <a href="https://virtualembryo.ai/challenge/data">Official data page</a> · <a href="https://virtualembryo.ai/challenge/rules">Current rules</a></nav>
+    <p class="eyebrow">Local data inspection · read-only</p>
+    <h1>H5AD Structure Profiler</h1>
+    <p class="lede">Download a small Python script that reports AnnData shape, storage layout, metadata column names, and array dtypes without printing cell identifiers or expression values.</p>
+  </header>
+  <section class="panel">
+    <h2>Use the local profiler</h2>
+    <ol>
+      <li>Download the script and install <code>h5py</code> in the Python environment you plan to use.</li>
+      <li>Run <code>python vec_h5ad_structure_report.py path/to/file.h5ad</code> to print a JSON report.</li>
+      <li>Add <code>--output report.json</code> to save the report locally instead of printing it.</li>
+    </ol>
+    <p><a class="button-link" href="vec_h5ad_structure_report.py" download>Download read-only H5AD profiler</a></p>
+    <p class="hint">The script opens the file read-only and inspects HDF5 metadata, dataset shapes, and dtypes. It does not read matrix values or identifiers into the report, and does not alter the input file.</p>
+  </section>
+  <section class="panel">
+    <h2>What the report includes</h2>
+    <ul>
+      <li>Observation and variable counts when available.</li>
+      <li>The <code>X</code> or <code>raw/X</code> storage encoding, shape, dtype, compression, and sparse nonzero count when represented by standard sparse arrays.</li>
+      <li>Names and storage summaries for <code>obs</code>, <code>var</code>, <code>obsm</code>, <code>varm</code>, layers, pairwise arrays, and unstructured keys.</li>
+    </ul>
+    <p>It is a structural inventory, not a schema validator. It does not confirm that columns have the right biological meaning, that data are eligible for a task, or that a model file is valid for submission.</p>
+    <p class="hint">A report still contains file and metadata field names. Review it before sharing. Keep Challenge data on approved storage and follow the current data-use rules.</p>
+  </section>
+  <footer class="foot"><a href="../../tools/schema-fixture/">Prediction Schema Fixture Generator</a> · <a href="../../tools/data-provenance/">Dataset Provenance Manifest Builder</a> · <a href="../../tools/logcheck/">LogCheck</a></footer>
+</main>
+</body>
+</html>

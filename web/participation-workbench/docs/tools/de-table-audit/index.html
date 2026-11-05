@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Check gene-level differential-expression summary tables for missing identifiers, duplicates, and malformed statistics.">
+  <title>Differential-Expression Table Readiness Auditor · VEC</title>
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<main class="wrap">
+  <header class="tool-head">
+    <nav><a href="../../">← Participation Workbench</a> · <a href="https://virtualembryo.ai/challenge/data">Official data page</a> · <a href="https://virtualembryo.ai/challenge/evaluation">Evaluation</a></nav>
+    <p class="eyebrow">Result-file quality · browser-local</p>
+    <h1>Differential-Expression Table Readiness Auditor</h1>
+    <p class="lede">Catch missing or duplicated gene identifiers and malformed effect or p-value columns before ranking genes or comparing result tables.</p>
+  </header>
+  <section class="panel">
+    <h2>Paste a gene-level results CSV</h2>
+    <p>Provide one row per reported gene. The auditor checks structure and value ranges; it does not repeat or validate the differential-expression analysis.</p>
+    <label for="data">CSV results</label>
+    <textarea id="data" rows="9" spellcheck="false" placeholder="gene_id,log2FoldChange,pvalue,padj&#10;gene_A,1.2,0.004,0.03&#10;gene_B,-0.7,0.08,0.21&#10;gene_C,0.1,0.7,0.9"></textarea>
+    <div class="inline"><button id="read-headers" type="button" class="secondary">Read column headers</button><button id="example" type="button" class="secondary">Load synthetic example</button><button id="clear" type="button" class="secondary">Clear</button></div>
+    <div id="controls" class="cols"></div>
+    <div class="inline"><button id="audit" type="button" disabled>Audit table</button><button id="download" type="button" class="secondary" disabled>Download audit summary</button></div>
+    <div id="result" class="output" aria-live="polite">Paste results and read the column headers to begin.</div>
+  </section>
+  <section class="panel">
+    <h2>What this audit checks</h2>
+    <p>It reports repeated or blank identifiers, missing or nonnumeric effects, and missing, malformed, or out-of-range p-values for any selected p-value columns. It counts effect directions and values below the optional threshold without removing or reordering rows.</p>
+    <p>Duplicate IDs may represent transcripts, isoforms, or a merge error; decide from the analysis design rather than silently deduplicating. A valid p-value range does not establish correct modeling, independent replicates, a valid contrast, or appropriate multiple-testing correction.</p>
+    <p class="hint">Inputs stay in this browser tab. The tool does not upload, store, or fetch data. Limits: 5 MB of text and 200,000 data rows.</p>
+  </section>
+  <footer class="foot"><a href="../../tools/gene-rank-stability/">Gene Rank Stability Reporter</a> · <a href="../../tools/gene-set-enrichment/">Gene Set Enrichment Calculator</a> · <a href="https://virtualembryo.ai/challenge/rules">Current rules</a></footer>
+</main>
+<script>
+(() => {
+  "use strict";
+  const $ = id => document.getElementById(id), MAX_CHARS = 5_000_000, MAX_ROWS = 200_000;
+  let headers = [], auditRows = null;
+  function parseCsv(text, firstOnly = false) {
+    text = text.replace(/^\uFEFF/, "");
+    const rows = []; let row = [], field = "", quoted = false, closed = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (quoted) {
+        if (c === '"' && text[i + 1] === '"') { field += '"'; i++; }
+        else if (c === '"') { quoted = false; closed = true; }
+        else field += c;
+      } else if (closed) {
+        if (c === ",") { row.push(field); field = ""; closed = false; }
+        else if (c === "\n" || c === "\r") { if (c === "\r" && text[i + 1] === "\n") i++; row.push(field); rows.push(row); if (firstOnly) return rows; row = []; field = ""; closed = false; }
+        else if (c !== " " && c !== "\t") throw Error("A quoted value must be followed by a comma or new line.");
+      } else if (c === '"') { if (field !== "") throw Error("A quote may only start an empty CSV field."); quoted = true; }
+      else if (c === ",") { row.push(field); field = ""; }
+      else if (c === "\n" || c === "\r") { if (c === "\r" && text[i + 1] === "\n") i++; row.push(field); rows.push(row); if (firstOnly) return rows; row = []; field = ""; }
+      else field += c;
+    }
+    if (quoted) throw Error("The CSV has an unclosed quoted value.");
+    if (field !== "" || row.length || closed) { row.push(field); rows.push(row); }
+    return rows;
+  }
+  const esc = value => String(value).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  function control(id, label, guess, optional = false) {
+    const wrap = document.createElement("div"), lab = document.createElement("label"), select = document.createElement("select");
+    select.id = id; lab.htmlFor = id; lab.textContent = label;
+    const match = headers.find(h => h.toLowerCase() === guess);
+    const placeholder = document.createElement("option"); placeholder.value = ""; placeholder.textContent = optional ? "(not supplied)" : "Choose a column"; placeholder.selected = optional || !match; select.append(placeholder);
+    headers.forEach(name => { const option = document.createElement("option"); option.value = name; option.textContent = name; if (match === name) option.selected = true; select.append(option); });
+    wrap.append(lab,select); return wrap;
+  }
+  function readHeaders() {
+    headers = []; auditRows = null; $("controls").replaceChildren(); $("audit").disabled = true; $("download").disabled = true;
+    try {
+      const text = $("data").value; if (text.length > MAX_CHARS) throw Error("Input exceeds the 5 MB text limit.");
+      const first = parseCsv(text,true); if (!first.length) throw Error("Paste a header row first.");
+      headers = first[0].map(x => x.trim());
+      if (headers.some(x => !x) || new Set(headers).size !== headers.length) throw Error("Column names must be non-empty and unique.");
+      const box = $("controls");
+      box.append(control("gene-col","Gene identifier column","gene_id"),control("effect-col","Effect-size column (for example log2 fold change)","log2foldchange"),control("p-col","Raw p-value column","pvalue",true),control("padj-col","Adjusted p-value column","padj",true));
+      const wrap = document.createElement("div"), label = document.createElement("label"), input = document.createElement("input");
+      label.htmlFor = "threshold"; label.textContent = "Threshold for optional value counts"; input.id = "threshold"; input.type = "number"; input.min = "0"; input.max = "1"; input.step = "any"; input.value = "0.05"; wrap.append(label,input); box.append(wrap);
+      $("audit").disabled = false; $("result").textContent = "Choose a gene-ID and effect column; p-value columns are optional.";
+    } catch (error) { $("result").textContent = error.message; }
+  }
+  function numericStats(rows, column, index, threshold) {
+    const s = {column,missing:0,nonnumeric:0,outOfRange:0,valid:0,below:0,min:null,max:null};
+    if (index < 0) return null;
+    for (const row of rows) {
+      const raw = (row[index] || "").trim();
+      if (!raw) { s.missing++; continue; }
+      const n = Number(raw);
+      if (!Number.isFinite(n)) { s.nonnumeric++; continue; }
+      if (n < 0 || n > 1) { s.outOfRange++; continue; }
+      s.valid++; if (n <= threshold) s.below++;
+      s.min = s.min === null ? n : Math.min(s.min,n); s.max = s.max === null ? n : Math.max(s.max,n);
+    }
+    return s;
+  }
+  function audit() {
+    auditRows = null; $("download").disabled = true; const out = $("result");
+    try {
+      const text = $("data").value; if (text.length > MAX_CHARS) throw Error("Input exceeds the 5 MB text limit.");
+      const rows = parseCsv(text); if (rows.length < 2) throw Error("Add at least one gene row below the header.");
+      const h = rows[0].map(x => x.trim()); if (h.join("\u0000") !== headers.join("\u0000")) throw Error("The header changed. Read the column headers again.");
+      const gi = h.indexOf($("gene-col").value), ei = h.indexOf($("effect-col").value), pi = $("p-col").value ? h.indexOf($("p-col").value) : -1, ai = $("padj-col").value ? h.indexOf($("padj-col").value) : -1;
+      if (gi < 0 || ei < 0 || gi === ei || (pi >= 0 && (pi === gi || pi === ei)) || (ai >= 0 && [gi,ei,pi].includes(ai)) || (pi >= 0 && pi === ai)) throw Error("Choose distinct, valid gene and effect columns; optional p-value columns must also be distinct.");
+      const threshold = Number($("threshold").value); if (!Number.isFinite(threshold) || threshold < 0 || threshold > 1) throw Error("The optional threshold must be between zero and one.");
+      let n=0, blankGene=0, duplicateRows=0, missingEffect=0, invalidEffect=0, positive=0, negative=0, zero=0; const seen = new Set();
+      const nonblank = [];
+      for (const row of rows.slice(1)) {
+        if (row.every(x => x.trim() === "")) continue;
+        n++; if (n > MAX_ROWS) throw Error("Input exceeds the 200,000 data-row limit.");
+        if (row.length !== h.length) throw Error(`Data record ${n} has ${row.length} fields; expected ${h.length}.`);
+        nonblank.push(row);
+        const gene = row[gi].trim(); if (!gene) blankGene++; else if (seen.has(gene)) duplicateRows++; else seen.add(gene);
+        const rawEffect = row[ei].trim();
+        if (!rawEffect) missingEffect++;
+        else { const effect = Number(rawEffect); if (!Number.isFinite(effect)) invalidEffect++; else if (effect > 0) positive++; else if (effect < 0) negative++; else zero++; }
+      }
+      if (!n) throw Error("No nonblank gene rows were found.");
+      const rawStats = numericStats(nonblank,"Raw p-value",pi,threshold), adjustedStats = numericStats(nonblank,"Adjusted p-value",ai,threshold);
+      const stats = [
+        ["Data rows",n,"Nonblank records below the header."],
+        ["Unique nonblank gene IDs",seen.size,"Exact string IDs after trimming surrounding whitespace."],
+        ["Blank gene IDs",blankGene,"Rows with no selected gene identifier."],
+        ["Repeated gene-ID rows",duplicateRows,"Surplus rows sharing a previously seen ID; inspect before ranking or merging."],
+        ["Missing effects",missingEffect,"Rows with no selected effect value."],
+        ["Nonnumeric or non-finite effects",invalidEffect,"Rows whose selected effect cannot be interpreted as a finite number."],
+        ["Positive / negative / zero effects",`${positive} / ${negative} / ${zero}`,"Sign counts for finite effect values; direction depends on the contrast definition."]
+      ];
+      for (const s of [rawStats,adjustedStats].filter(Boolean)) stats.push([`${s.column} missing / malformed / out of [0,1]`,`${s.missing} / ${s.nonnumeric} / ${s.outOfRange}`,`Range check only; ${s.below} valid values are ≤ ${threshold}.`],[`${s.column} valid min / max`,s.valid ? `${s.min} / ${s.max}` : "—","Valid numeric values in the selected column."]);
+      auditRows = [["check","value","interpretation"],...stats]; $("download").disabled = false;
+      const body = stats.map(([a,b,c]) => `<tr><td>${esc(a)}</td><td>${esc(b)}</td><td>${esc(c)}</td></tr>`).join("");
+      const note = duplicateRows || blankGene ? `<p class="hint">Review identifier coverage before any gene-level ranking. This report leaves all rows untouched.</p>` : `<p class="hint">No blank or repeated gene IDs were found. Continue to inspect model assumptions and contrast provenance.</p>`;
+      out.innerHTML = `<p>Audited <strong>${n.toLocaleString()}</strong> nonblank rows. The selected columns are structural checks, not evidence of a valid statistical model.</p><div class="table-wrap"><table><thead><tr><th>Check</th><th>Value</th><th>Interpretation</th></tr></thead><tbody>${body}</tbody></table></div>${note}`;
+    } catch (error) { out.textContent = error.message; }
+  }
+  function csvCell(value) { return '"' + String(value).replace(/"/g,'""') + '"'; }
+  $("read-headers").addEventListener("click",readHeaders); $("audit").addEventListener("click",audit);
+  $("download").addEventListener("click",() => { if (!auditRows) return; const text=auditRows.map(row=>row.map(csvCell).join(",")).join("\r\n")+"\r\n",url=URL.createObjectURL(new Blob([text],{type:"text/csv;charset=utf-8"})),a=document.createElement("a");a.href=url;a.download="vec-de-table-audit.csv";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000); });
+  $("example").addEventListener("click",() => { $("data").value="gene_id,log2FoldChange,pvalue,padj\ngene_A,1.2,0.004,0.03\ngene_B,-0.7,0.08,0.21\ngene_C,0.1,0.7,0.9\ngene_C,0.2,0.6,0.9\n,0.3,1.2,0.8\ngene_D,not-a-number,,"; readHeaders(); });
+  $("clear").addEventListener("click",() => { $("data").value=""; headers=[]; auditRows=null; $("controls").replaceChildren(); $("audit").disabled=true; $("download").disabled=true; $("result").textContent="Paste results and read the column headers to begin."; });
+})();
+</script>
+</body>
+</html>

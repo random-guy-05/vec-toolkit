@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Find candidate meeting starts that fit several participants' local availability windows on a chosen date.">
+  <title>Community Time-Zone Overlap Planner · VEC</title>
+  <link rel="stylesheet" href="../../assets/style.css">
+  <style>
+    .language,.actions{display:flex;gap:.5rem;flex-wrap:wrap;margin:1rem 0}
+    .language button[aria-pressed="true"]{outline:2px solid currentColor;outline-offset:2px}
+    .controls{display:flex;gap:1rem;flex-wrap:wrap;align-items:end}
+    .controls label{display:block}
+    textarea{width:100%}
+    .note{border-left:4px solid #64748b;padding:.5rem 1rem}
+    .results li{margin:.5rem 0}
+  </style>
+</head>
+<body><main class="wrap">
+  <header class="tool-head">
+    <nav><a href="../../" data-i="home">← Participation Workbench</a></nav>
+    <p class="eyebrow" data-i="eyebrow">COMMUNITY COORDINATION · BROWSER-LOCAL</p>
+    <h1 data-i="title">Community Time-Zone Overlap Planner</h1>
+    <p class="lede" data-i="lede">Find meeting starts that fit a set of local availability windows on a chosen date. Share a timezone and time window—not names, emails, or account details.</p>
+    <p class="hint" data-i="privacy">The schedule is calculated in this tab and is not uploaded or saved.</p>
+    <div class="language" role="group" aria-label="Language">
+      <button type="button" data-lang="en" aria-pressed="true">English</button>
+      <button type="button" data-lang="es" aria-pressed="false">Español</button>
+      <button type="button" data-lang="zh" aria-pressed="false">简体中文</button>
+    </div>
+  </header>
+  <section class="panel">
+    <h2 data-i="setup">Set the date and availability</h2>
+    <p data-i="format">Enter one participant per line as IANA-time-zone|local-start|local-end. Use a 24-hour clock, for example Europe/Madrid|18:00|21:00. Each line represents one availability window on the selected local date.</p>
+    <label for="participants" data-i="participants">Time zones and local availability</label>
+    <textarea id="participants" rows="8" spellcheck="false" autocapitalize="off" autocomplete="off">America/Los_Angeles|09:00|12:00
+Europe/Madrid|18:00|21:00</textarea>
+    <div class="controls">
+      <div><label for="date" data-i="date">Local date for every participant</label><input id="date" type="date" value="2026-10-21"></div>
+      <div><label for="duration" data-i="duration">Meeting duration</label><select id="duration"><option value="30">30 min</option><option value="45">45 min</option><option value="60">60 min</option><option value="90">90 min</option></select></div>
+    </div>
+    <div class="actions">
+      <button id="find" type="button" data-i="find">Find overlap</button>
+      <button id="example" class="secondary" type="button" data-i="example">Load example</button>
+      <button id="clear" class="secondary" type="button" data-i="clear">Clear</button>
+      <button id="download" class="secondary" type="button" disabled data-i="download">Download all matches CSV</button>
+    </div>
+    <p id="status" class="hint" role="status" aria-live="polite" data-i="initial">Enter the participants' IANA time zones and local windows, then find overlap.</p>
+    <div id="results" class="results output" aria-live="polite"></div>
+  </section>
+  <section class="panel">
+    <h2 data-i="limits">Scope and caveats</h2>
+    <ul>
+      <li data-i="limit1">This searches one chosen calendar date and one non-overnight interval per participant. To schedule across several days, repeat for each date.</li>
+      <li data-i="limit2">Candidate starts are checked every 15 minutes. Results use the browser's IANA time-zone database, including its daylight-saving transitions.</li>
+      <li data-i="limit3">Local times shown for participants may fall on different UTC dates. Confirm the invitation date and local time with everyone before sending it.</li>
+      <li data-i="limit4">This is a candidate finder, not a booking or attendance service. It has no access to calendars or participant identity.</li>
+    </ul>
+    <p class="note" data-i="scope">For privacy, omit names and contact details. A timezone and a broad time window are enough to find an overlap.</p>
+  </section>
+</main>
+<script>
+(() => {
+  const $=id=>document.getElementById(id);
+  const EX={date:"2026-10-21",duration:"30",participants:"America/Los_Angeles|09:00|12:00\nEurope/Madrid|18:00|21:00"};
+  const L={
+    en:{home:"← Participation Workbench",eyebrow:"COMMUNITY COORDINATION · BROWSER-LOCAL",title:"Community Time-Zone Overlap Planner",lede:"Find meeting starts that fit a set of local availability windows on a chosen date. Share a timezone and time window—not names, emails, or account details.",privacy:"The schedule is calculated in this tab and is not uploaded or saved.",setup:"Set the date and availability",format:"Enter one participant per line as IANA-time-zone|local-start|local-end. Use a 24-hour clock, for example Europe/Madrid|18:00|21:00. Each line represents one availability window on the selected local date.",participants:"Time zones and local availability",date:"Local date for every participant",duration:"Meeting duration",find:"Find overlap",example:"Load example",clear:"Clear",download:"Download all matches CSV",initial:"Enter the participants' IANA time zones and local windows, then find overlap.",limits:"Scope and caveats",limit1:"This searches one chosen calendar date and one non-overnight interval per participant. To schedule across several days, repeat for each date.",limit2:"Candidate starts are checked every 15 minutes. Results use the browser's IANA time-zone database, including its daylight-saving transitions.",limit3:"Local times shown for participants may fall on different UTC dates. Confirm the invitation date and local time with everyone before sending it.",limit4:"This is a candidate finder, not a booking or attendance service. It has no access to calendars or participant identity.",scope:"For privacy, omit names and contact details. A timezone and a broad time window are enough to find an overlap.",lang:"Language",required:"Enter a date and at least one availability window.",badLine:"Each non-empty line must have this form: Zone|HH:MM|HH:MM. Problem on line ",badZone:"Unrecognized IANA time zone on line ",badTime:"Use valid 24-hour start/end times with start before end. Problem on line ",tooMany:"Enter no more than 12 availability windows.",noMatches:"No common start times found on this date. Try a different date, duration, or window.",found:(n,d)=>`${n} candidate start times found for a ${d}-minute meeting. Showing up to 30.`,headers:["UTC start","Participant local times"],exampleReady:"Example loaded. Find overlap to calculate candidate times.",cleared:"Cleared. Enter a date and availability windows.",downloadFail:"Could not create the CSV download.",resultName:"Local times",zone:"Time zone"},
+    es:{home:"← Banco de herramientas de participación",eyebrow:"COORDINACIÓN COMUNITARIA · LOCAL EN EL NAVEGADOR",title:"Planificador de horarios por zona horaria",lede:"Encuentra horas de reunión que coincidan con intervalos de disponibilidad local en una fecha elegida. Comparte zona horaria y horario, no nombres, correos ni datos de cuentas.",privacy:"El horario se calcula en esta pestaña y no se carga ni se guarda.",setup:"Define la fecha y disponibilidad",format:"Introduce una persona por línea con el formato Zona-IANA|inicio-local|fin-local. Usa el reloj de 24 horas; por ejemplo Europe/Madrid|18:00|21:00. Cada línea representa un intervalo en la fecha local elegida.",participants:"Zonas horarias y disponibilidad local",date:"Fecha local para cada persona",duration:"Duración de la reunión",find:"Buscar coincidencias",example:"Cargar ejemplo",clear:"Borrar",download:"Descargar coincidencias CSV",initial:"Introduce las zonas IANA y los intervalos locales; después busca coincidencias.",limits:"Alcance y límites",limit1:"Busca una sola fecha y un intervalo sin cruce de medianoche por persona. Para coordinar varios días, repite la búsqueda para cada fecha.",limit2:"Comprueba inicios posibles cada 15 minutos. Usa la base de zonas IANA del navegador, incluidos los cambios de horario estacional.",limit3:"Las horas locales pueden corresponder a fechas UTC diferentes. Confirma la fecha y la hora local con todas las personas antes de enviar una invitación.",limit4:"Encuentra opciones, pero no reserva ni registra asistencia. No accede a calendarios ni a identidades.",scope:"Para cuidar la privacidad, omite nombres y datos de contacto. Basta con la zona horaria y una ventana aproximada.",lang:"Idioma",required:"Introduce una fecha y al menos un intervalo de disponibilidad.",badLine:"Cada línea no vacía debe seguir este formato: Zona|HH:MM|HH:MM. Error en la línea ",badZone:"Zona horaria IANA no reconocida en la línea ",badTime:"Usa horas válidas de 24 horas con inicio anterior al fin. Error en la línea ",tooMany:"Introduce como máximo 12 intervalos.",noMatches:"No hay horas comunes en esta fecha. Prueba otra fecha, duración o ventana.",found:(n,d)=>`Se encontraron ${n} horas de inicio para una reunión de ${d} minutos. Se muestran hasta 30.`,headers:["Inicio UTC","Horas locales de participantes"],exampleReady:"Ejemplo cargado. Busca coincidencias para calcular opciones.",cleared:"Borrado. Introduce una fecha e intervalos de disponibilidad.",downloadFail:"No se pudo crear la descarga CSV.",resultName:"Horas locales",zone:"Zona horaria"},
+    zh:{home:"← 参与工作台",eyebrow:"社区协作 · 浏览器本地处理",title:"社区时区重叠规划器",lede:"在选定日期内查找符合多人当地可用时间的会议开始时刻。只需分享时区和时间段，无需姓名、邮箱或账户信息。",privacy:"排期在此标签页内计算，不会上传或保存。",setup:"设置日期和可用时间",format:"每行填写一人，格式为 IANA时区|当地开始|当地结束。使用 24 小时制，例如 Europe/Madrid|18:00|21:00。每行代表此人在所选当地日期的一个可用时段。",participants:"时区和当地可用时段",date:"每位参与者的当地日期",duration:"会议时长",find:"查找重叠时段",example:"载入示例",clear:"清空",download:"下载全部匹配 CSV",initial:"输入参与者的 IANA 时区和当地时段，然后查找重叠时间。",limits:"范围与注意事项",limit1:"只搜索选定的一个日期和每人一个不跨午夜的时段。需协调多天时，请逐日重复搜索。",limit2:"候选开始时间按 15 分钟间隔检查。结果使用浏览器的 IANA 时区数据库，并考虑夏令时切换。",limit3:"参与者当地时间可能落在不同 UTC 日期。发送邀请前，请与所有人确认会议日期和当地时间。",limit4:"本工具仅查找候选时间，不负责预订或出席记录，也无法访问日历或参与者身份。",scope:"为了保护隐私，请省略姓名和联系方式。时区及大致可用时间段就足以查找重叠。",lang:"语言",required:"请填写日期和至少一个可用时段。",badLine:"每个非空行需采用格式：时区|HH:MM|HH:MM。出错行：",badZone:"第 ",badZoneEnd:" 行时区不是可识别的 IANA 时区。",badTime:"请使用有效的 24 小时制时间，且开始时间早于结束时间。出错行：",tooMany:"最多可输入 12 个可用时段。",noMatches:"所选日期没有共同开始时间。请尝试其他日期、时长或时段。",found:(n,d)=>`找到 ${n} 个时长为 ${d} 分钟的候选开始时间，最多显示 30 个。`,headers:["UTC 开始时间","参与者当地时间"],exampleReady:"已载入示例。点击查找重叠时段以计算候选时间。",cleared:"已清空。请填写日期和可用时段。",downloadFail:"无法创建 CSV 下载。",resultName:"当地时间",zone:"时区"}
+  };
+  const params=new URLSearchParams(location.search);let lang=params.get("lang")==="es"?"es":params.get("lang")==="zh"?"zh":"en",matches=[];
+  function apply(){const d=L[lang];document.documentElement.lang=lang==="zh"?"zh-CN":lang;document.querySelectorAll("[data-i]").forEach(e=>{if(d[e.dataset.i])e.textContent=d[e.dataset.i];});document.querySelector(".language").setAttribute("aria-label",d.lang);document.querySelectorAll("[data-lang]").forEach(e=>e.setAttribute("aria-pressed",String(e.dataset.lang===lang)));if(matches.length)findSlots();else $("status").textContent=d.initial;}
+  document.querySelectorAll("[data-lang]").forEach(e=>e.addEventListener("click",()=>{lang=e.dataset.lang;params.set("lang",lang);history.replaceState(null,"",location.pathname+"?"+params.toString());apply();}));
+  function parseWindows(){
+    const d=L[lang],lines=$("participants").value.split(/\r?\n/).map((x,i)=>({text:x.trim(),line:i+1})).filter(x=>x.text);
+    if(!$("date").value||!lines.length)throw new Error(d.required);if(lines.length>12)throw new Error(d.tooMany);
+    return lines.map(({text,line})=>{
+      const parts=text.split("|").map(x=>x.trim());if(parts.length!==3)throw new Error(d.badLine+line+".");
+      const [zone,start,end]=parts;
+      try{new Intl.DateTimeFormat("en",{timeZone:zone}).format(new Date());}catch(e){if(lang==="zh")throw new Error(d.badZone+line+d.badZoneEnd);throw new Error(d.badZone+line+".");}
+      const a=start.match(/^(\d{2}):(\d{2})$/),b=end.match(/^(\d{2}):(\d{2})$/);
+      if(!a||!b||Number(a[1])>23||Number(b[1])>23||Number(a[2])>59||Number(b[2])>59||Number(a[1])*60+Number(a[2])>=Number(b[1])*60+Number(b[2]))throw new Error(d.badTime+line+".");
+      return {zone,start:start,end:end,startMin:Number(a[1])*60+Number(a[2]),endMin:Number(b[1])*60+Number(b[2])};
+    });
+  }
+  function partsAt(date,zone){
+    const parts=new Intl.DateTimeFormat("en-CA",{timeZone:zone,year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).formatToParts(date),m=Object.fromEntries(parts.filter(p=>p.type!=="literal").map(p=>[p.type,p.value]));
+    return {date:`${m.year}-${m.month}-${m.day}`,minute:Number(m.hour)*60+Number(m.minute)};
+  }
+  function fits(start,window,duration,targetDate){
+    for(let offset=0;offset<duration;offset+=15){const local=partsAt(new Date(start+offset*60000),window.zone);if(local.date!==targetDate||local.minute<window.startMin||local.minute>=window.endMin)return false;}
+    return true;
+  }
+  function display(date,zone){return new Intl.DateTimeFormat(lang==="zh"?"zh-CN":lang,{weekday:"short",year:"numeric",month:"short",day:"numeric",hour:"2-digit",minute:"2-digit",timeZoneName:"short",timeZone:zone}).format(date);}
+  function findSlots(){
+    const d=L[lang];try{
+      const windows=parseWindows(),target=$("date").value,duration=Number($("duration").value),base=Date.parse(target+"T00:00:00Z");
+      if(!Number.isFinite(base))throw new Error(d.required);
+      matches=[];const from=base-24*3600000,to=base+48*3600000,step=15*60000;
+      for(let t=from;t<to;t+=step)if(windows.every(w=>fits(t,w,duration,target)))matches.push(t);
+      $("download").disabled=matches.length===0;
+      $("status").textContent=matches.length?d.found(matches.length,duration):d.noMatches;
+      render(windows);
+    }catch(e){matches=[];$("results").replaceChildren();$("download").disabled=true;$("status").textContent=e instanceof Error?e.message:String(e);}
+  }
+  function render(windows){
+    const out=$("results");out.replaceChildren();if(!matches.length)return;
+    const list=document.createElement("ol");matches.slice(0,30).forEach(ts=>{const li=document.createElement("li"),date=new Date(ts),local=windows.map(w=>w.zone+": "+display(date,w.zone)).join(" · ");li.textContent=new Intl.DateTimeFormat("en-GB",{year:"numeric",month:"short",day:"numeric",hour:"2-digit",minute:"2-digit",timeZone:"UTC",timeZoneName:"short"}).format(date)+" — "+local;list.appendChild(li);});out.appendChild(list);
+  }
+  function download(){
+    const d=L[lang];try{const windows=parseWindows(),rows=[[d.headers[0],...windows.map(w=>w.zone)],...matches.map(ts=>[new Date(ts).toISOString(),...windows.map(w=>display(new Date(ts),w.zone))])],content=rows.map(row=>row.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(",")).join("\r\n")+"\r\n",url=URL.createObjectURL(new Blob([content],{type:"text/csv;charset=utf-8"})),a=document.createElement("a");a.href=url;a.download="vec-time-zone-overlap.csv";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}catch(e){$("status").textContent=d.downloadFail;}
+  }
+  $("find").addEventListener("click",findSlots);$("download").addEventListener("click",download);
+  $("example").addEventListener("click",()=>{$("date").value=EX.date;$("duration").value=EX.duration;$("participants").value=EX.participants;matches=[];$("results").replaceChildren();$("download").disabled=true;$("status").textContent=L[lang].exampleReady;});
+  $("clear").addEventListener("click",()=>{$("participants").value="";matches=[];$("results").replaceChildren();$("download").disabled=true;$("status").textContent=L[lang].cleared;});
+  for(const id of ["participants","date","duration"])$(id).addEventListener("input",()=>{matches=[];$("results").replaceChildren();$("download").disabled=true;$("status").textContent=L[lang].initial;});
+  apply();
+})();
+</script>
+</main></body>
+</html>

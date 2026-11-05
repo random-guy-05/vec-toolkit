@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Generate a small Python script that reports selected package versions and basic runtime details without printing paths or environment variables.">
+  <title>Reproducible Environment Snapshot Builder · VEC</title>
+  <link rel="stylesheet" href="../../assets/style.css">
+  <style>
+    .language,.actions{display:flex;gap:.5rem;flex-wrap:wrap;margin:1rem 0}
+    .language button[aria-pressed="true"]{outline:2px solid currentColor;outline-offset:2px}
+    textarea{width:100%}pre{overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere}
+    .notice{border-left:4px solid #64748b;padding:.5rem 1rem}
+  </style>
+</head>
+<body><main class="wrap">
+  <header class="tool-head">
+    <nav><a href="../../" data-i="home">← Participation Workbench</a></nav>
+    <p class="eyebrow" data-i="eyebrow">REPRODUCIBLE SUPPORT · BROWSER-LOCAL</p>
+    <h1 data-i="title">Environment Snapshot Builder</h1>
+    <p class="lede" data-i="lede">Generate a small Python script for a focused support request: Python version, operating-system family, architecture, and selected package versions. Optionally check PyTorch CUDA availability.</p>
+    <p class="hint" data-i="privacy">This page creates code only. It does not inspect your computer, run the script, or upload information.</p>
+    <div class="language" role="group" aria-label="Language">
+      <button type="button" data-lang="en" aria-pressed="true">English</button>
+      <button type="button" data-lang="es" aria-pressed="false">Español</button>
+      <button type="button" data-lang="zh" aria-pressed="false">简体中文</button>
+    </div>
+  </header>
+  <section class="panel">
+    <h2 data-i="configTitle">Choose what the snapshot includes</h2>
+    <label for="packages" data-i="packages">Python distribution names, one per line</label>
+    <textarea id="packages" rows="8" spellcheck="false" autocapitalize="off" autocomplete="off">numpy
+pandas
+scipy
+anndata
+scanpy
+torch
+veckit</textarea>
+    <p class="hint" data-i="packageHint">Use package names as shown by pip, not import aliases. Up to 50 names. No package is installed or updated.</p>
+    <label><input id="gpu" type="checkbox"> <span data-i="gpu">Include an optional PyTorch CUDA availability probe</span></label>
+    <div class="actions">
+      <button id="generate" type="button" data-i="generate">Generate Python script</button>
+      <button id="copy" class="secondary" type="button" disabled data-i="copy">Copy script</button>
+      <button id="download" class="secondary" type="button" disabled data-i="download">Download .py</button>
+    </div>
+    <p id="status" class="hint" role="status" aria-live="polite" data-i="initial">Generate the script, review it, and decide whether its output is appropriate to share.</p>
+    <label for="script" data-i="preview">Generated script</label>
+    <pre id="script" class="output" tabindex="0" aria-label="Generated Python script"></pre>
+  </section>
+  <section class="panel">
+    <h2 data-i="limitsTitle">Before sharing a report</h2>
+    <ul>
+      <li data-i="limit1">The script prints only Python version, OS family, machine architecture, requested distribution versions, and—if selected—PyTorch CUDA availability/version/device count.</li>
+      <li data-i="limit2">It does not print usernames, hostnames, file paths, environment variables, tokens, package inventories beyond your list, or data values.</li>
+      <li data-i="limit3">The optional GPU probe imports PyTorch and can take time or initialize CUDA. Leave it unchecked if that is unsuitable on a shared cluster.</li>
+      <li data-i="limit4">Review both the script and its output before posting. Environment metadata can still identify a specialized setup; this is a troubleshooting aid, not a privacy audit.</li>
+    </ul>
+    <p class="notice" data-i="scope">The script uses Python's standard library for platform and package metadata. It never contacts a network service; the optional probe requires PyTorch already to be installed.</p>
+  </section>
+</main>
+<script>
+(() => {
+  const $=id=>document.getElementById(id);
+  const L={
+    en:{home:"← Participation Workbench",eyebrow:"REPRODUCIBLE SUPPORT · BROWSER-LOCAL",title:"Environment Snapshot Builder",lede:"Generate a small Python script for a focused support request: Python version, operating-system family, architecture, and selected package versions. Optionally check PyTorch CUDA availability.",privacy:"This page creates code only. It does not inspect your computer, run the script, or upload information.",configTitle:"Choose what the snapshot includes",packages:"Python distribution names, one per line",packageHint:"Use package names as shown by pip, not import aliases. Up to 50 names. No package is installed or updated.",gpu:"Include an optional PyTorch CUDA availability probe",generate:"Generate Python script",copy:"Copy script",download:"Download .py",initial:"Generate the script, review it, and decide whether its output is appropriate to share.",preview:"Generated script",limitsTitle:"Before sharing a report",limit1:"The script prints only Python version, OS family, machine architecture, requested distribution versions, and—if selected—PyTorch CUDA availability/version/device count.",limit2:"It does not print usernames, hostnames, file paths, environment variables, tokens, package inventories beyond your list, or data values.",limit3:"The optional GPU probe imports PyTorch and can take time or initialize CUDA. Leave it unchecked if that is unsuitable on a shared cluster.",limit4:"Review both the script and its output before posting. Environment metadata can still identify a specialized setup; this is a troubleshooting aid, not a privacy audit.",scope:"The script uses Python's standard library for platform and package metadata. It never contacts a network service; the optional probe requires PyTorch already to be installed.",lang:"Language",empty:"Add at least one package name.",many:"Enter no more than 50 package names.",bad:"Use package distribution names containing only letters, digits, dots, underscores, and hyphens. Invalid entry: ",duplicate:"Repeated package name: ",generated:"Script ready. Inspect it before downloading or running it.",copied:"Script copied to the clipboard.",copyFail:"Clipboard access was unavailable. Select the script above and copy it manually.",downloadFail:"Could not create the Python download.",downloadName:"vec-environment-snapshot.py"},
+    es:{home:"← Banco de herramientas de participación",eyebrow:"SOPORTE REPRODUCIBLE · LOCAL EN EL NAVEGADOR",title:"Generador de informe del entorno",lede:"Genera un pequeño script de Python para una solicitud de soporte concreta: versión de Python, familia del sistema operativo, arquitectura y versiones de paquetes elegidos. También puede comprobar la disponibilidad de CUDA en PyTorch.",privacy:"Esta página solo crea código. No inspecciona el ordenador, ejecuta el script ni carga información.",configTitle:"Elige qué incluir en el informe",packages:"Nombres de distribuciones de Python, uno por línea",packageHint:"Usa los nombres que muestra pip, no alias de importación. Máximo 50. No se instala ni actualiza ningún paquete.",gpu:"Incluir una comprobación opcional de disponibilidad de CUDA en PyTorch",generate:"Generar script de Python",copy:"Copiar script",download:"Descargar .py",initial:"Genera el script, revísalo y decide si conviene compartir su salida.",preview:"Script generado",limitsTitle:"Antes de compartir un informe",limit1:"El script imprime solo la versión de Python, la familia del sistema operativo, la arquitectura, las versiones solicitadas y, si se elige, la disponibilidad, versión y cantidad de dispositivos CUDA de PyTorch.",limit2:"No imprime usuarios, nombres de equipos, rutas, variables de entorno, tokens, paquetes fuera de la lista ni valores de datos.",limit3:"La comprobación opcional de GPU importa PyTorch y puede tardar o inicializar CUDA. Déjala sin marcar si no es adecuado en un clúster compartido.",limit4:"Revisa el script y su salida antes de publicar. Los metadatos aún pueden identificar un entorno especializado; esto ayuda a diagnosticar, pero no es una auditoría de privacidad.",scope:"El script usa la biblioteca estándar de Python para metadatos del sistema y paquetes. No contacta servicios de red; la comprobación opcional requiere que PyTorch ya esté instalado.",lang:"Idioma",empty:"Añade al menos un nombre de paquete.",many:"Introduce como máximo 50 nombres de paquete.",bad:"Usa nombres de distribución con letras, números, puntos, guiones bajos y guiones. Entrada no válida: ",duplicate:"Nombre de paquete repetido: ",generated:"Script listo. Revísalo antes de descargarlo o ejecutarlo.",copied:"Script copiado al portapapeles.",copyFail:"No se pudo acceder al portapapeles. Selecciona el script y cópialo manualmente.",downloadFail:"No se pudo crear la descarga de Python.",downloadName:"vec-informe-entorno.py"},
+    zh:{home:"← 参与工作台",eyebrow:"可复现支持 · 浏览器本地处理",title:"运行环境快照生成器",lede:"生成用于清晰求助的简短 Python 脚本：报告 Python 版本、操作系统类型、硬件架构和指定软件包版本。还可选择检测 PyTorch CUDA 状态。",privacy:"此页面仅生成代码，不会检查你的电脑、运行脚本或上传信息。",configTitle:"选择快照包含的内容",packages:"Python 发行包名称，每行一个",packageHint:"填写 pip 显示的包名，而非 import 别名。最多 50 个；不会安装或更新任何包。",gpu:"可选：加入 PyTorch CUDA 可用性检测",generate:"生成 Python 脚本",copy:"复制脚本",download:"下载 .py",initial:"生成脚本后先检查，再决定是否适合分享其输出。",preview:"生成的脚本",limitsTitle:"分享报告前",limit1:"脚本仅输出 Python 版本、操作系统类型、硬件架构、所选发行包版本；若勾选，还会输出 PyTorch CUDA 可用性、版本及设备数量。",limit2:"不会输出用户名、主机名、文件路径、环境变量、令牌、列表以外的软件包或数据值。",limit3:"可选 GPU 检测会导入 PyTorch，可能耗时或初始化 CUDA。在共享集群上不适用时请勿勾选。",limit4:"发布前请检查脚本及其输出。环境元数据仍可能暴露特殊配置；本工具用于排障，不是隐私审计。",scope:"脚本使用 Python 标准库读取平台及软件包元数据，不连接网络服务；可选检测要求已安装 PyTorch。",lang:"语言",empty:"请至少添加一个软件包名称。",many:"最多可输入 50 个软件包名称。",bad:"发行包名只能包含字母、数字、点、下划线和连字符。无效项：",duplicate:"重复的软件包名称：",generated:"脚本已生成。下载或运行前请先检查。",copied:"脚本已复制到剪贴板。",copyFail:"无法访问剪贴板。请选中上方脚本并手动复制。",downloadFail:"无法创建 Python 下载文件。",downloadName:"vec-environment-snapshot.py"}
+  };
+  const params=new URLSearchParams(location.search);let lang=params.get("lang")==="es"?"es":params.get("lang")==="zh"?"zh":"en",source="";
+  function apply(){const d=L[lang];document.documentElement.lang=lang==="zh"?"zh-CN":lang;document.querySelectorAll("[data-i]").forEach(e=>{if(d[e.dataset.i])e.textContent=d[e.dataset.i];});document.querySelector(".language").setAttribute("aria-label",d.lang);document.querySelectorAll("[data-lang]").forEach(e=>e.setAttribute("aria-pressed",String(e.dataset.lang===lang)));if(source)build();else $("status").textContent=d.initial;}
+  document.querySelectorAll("[data-lang]").forEach(e=>e.addEventListener("click",()=>{lang=e.dataset.lang;params.set("lang",lang);history.replaceState(null,"",location.pathname+"?"+params.toString());apply();}));
+  function build(){
+    const d=L[lang],names=$("packages").value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+    if(!names.length){$("status").textContent=d.empty;return;}
+    if(names.length>50){$("status").textContent=d.many;return;}
+    const unique=new Set();for(const name of names){if(!/^[A-Za-z0-9_.-]+$/.test(name)){$("status").textContent=d.bad+name;return;}const key=name.toLowerCase();if(unique.has(key)){$("status").textContent=d.duplicate+name;return;}unique.add(key);}
+    const pyNames=JSON.stringify(names, null, 4).replace(/\n/g,"\n");
+    const gpu=$("gpu").checked?`\n# Optional probe: imports torch but does not report device model names.\ntry:\n    import torch\n    report["accelerator"] = {\n        "torch_cuda_available": bool(torch.cuda.is_available()),\n        "torch_cuda_version": torch.version.cuda,\n        "torch_device_count": int(torch.cuda.device_count()) if torch.cuda.is_available() else 0,\n    }\nexcept Exception as exc:\n    report["accelerator"] = {"probe": "unavailable", "error_type": type(exc).__name__}\n`:"";
+    source=`#!/usr/bin/env python3\n"""Print a compact, reviewable local environment snapshot. No network access."""\nfrom importlib import metadata\nimport json\nimport platform\nimport sys\n\nPACKAGES = ${pyNames}\n\nreport = {\n    "python_version": ".".join(str(part) for part in sys.version_info[:3]),\n    "python_implementation": platform.python_implementation(),\n    "operating_system": platform.system(),\n    "machine_architecture": platform.machine(),\n    "packages": {},\n}\nfor name in PACKAGES:\n    try:\n        report["packages"][name] = metadata.version(name)\n    except metadata.PackageNotFoundError:\n        report["packages"][name] = None\n${gpu}\nprint(json.dumps(report, indent=2, sort_keys=True))\n`;
+    $("script").textContent=source;$("copy").disabled=false;$("download").disabled=false;$("status").textContent=d.generated;
+  }
+  $("generate").addEventListener("click",build);
+  $("copy").addEventListener("click",async()=>{try{await navigator.clipboard.writeText(source);$("status").textContent=L[lang].copied;}catch(e){$("status").textContent=L[lang].copyFail;}});
+  $("download").addEventListener("click",()=>{try{const blob=new Blob([source],{type:"text/x-python;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=L[lang].downloadName;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}catch(e){$("status").textContent=L[lang].downloadFail;}});
+  for(const id of ["packages","gpu"])$(id).addEventListener("input",()=>{source="";$("script").textContent="";$("copy").disabled=true;$("download").disabled=true;$("status").textContent=L[lang].initial;});
+  apply();
+})();
+</script>
+</main></body>
+</html>

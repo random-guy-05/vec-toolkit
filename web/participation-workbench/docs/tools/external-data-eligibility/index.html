@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="A browser-local screening aid for checking external training data against published Virtual Embryo Challenge held-out-stage and genotype rules.">
+  <title>External Data Eligibility Checker · VEC</title>
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<main class="wrap">
+  <header class="tool-head">
+    <nav><a href="../../">← Participation Workbench</a> · <a href="https://virtualembryo.ai/challenge/data">Official data rules</a></nav>
+    <p class="eyebrow">Data boundaries · browser-local</p>
+    <h1>External Data Eligibility Checker</h1>
+    <p class="lede">Screen an external dataset’s stage and condition against the Challenge’s published held-out boundaries before using it for training, fine-tuning, or transfer.</p>
+    <p class="hint">This is a conservative reading aid, not an organizer decision. It never uploads or stores your entries. Disclose every external source in your submission and check the current rules.</p>
+  </header>
+
+  <section class="panel">
+    <h2>Describe the proposed source</h2>
+    <label for="task">Target task and setting</label>
+    <select id="task">
+      <option value="t1">Task 1 · temporal expression</option>
+      <option value="t2-embryo">Task 2 · embryo interpolation</option>
+      <option value="t2-heart-interp">Task 2 · heart interpolation</option>
+      <option value="t2-heart-extra">Task 2 · heart extrapolation</option>
+      <option value="t3">Task 3 · conditional knockout</option>
+    </select>
+    <label for="organism">Organism and staging system</label>
+    <select id="organism">
+      <option value="mouse">Mouse, stage reported as embryonic day (E)</option>
+      <option value="other">Other organism, staging system, or uncertain mapping</option>
+    </select>
+    <label for="stage">External data stage in E-days (leave blank if unavailable)</label>
+    <input id="stage" type="number" min="0" max="30" step="0.01" inputmode="decimal" placeholder="e.g. 9.25">
+    <label for="heldout">Could the source or a model derived from it contain measured data from a held-out stage or condition?</label>
+    <select id="heldout">
+      <option value="no">No, checked the source and model lineage</option>
+      <option value="unsure">Unsure or lineage is incomplete</option>
+      <option value="yes">Yes</option>
+    </select>
+    <label for="phenocopy">For Task 3: does it include Gata4 or β-catenin knockout data at E8.75, a comparable allele, or a likely phenocopy?</label>
+    <select id="phenocopy">
+      <option value="na">Not applicable / no such data identified</option>
+      <option value="unsure">Unsure; biological comparability needs review</option>
+      <option value="yes">Yes</option>
+    </select>
+    <label for="source">Source citation, accession, version, and stages/conditions</label>
+    <textarea id="source" rows="3" placeholder="Record enough detail to disclose and reproduce the source decision."></textarea>
+    <div class="inline">
+      <button id="check" type="button">Screen this source</button>
+      <button id="download" type="button" class="secondary" disabled>Download screening record</button>
+    </div>
+    <div id="result" class="output" aria-live="polite">Choose the task, enter the closest matching stage, and select “Screen this source.”</div>
+  </section>
+
+  <section class="panel">
+    <h2>What the screen checks</h2>
+    <ul>
+      <li>Task 1’s published exclusion window after E9.5 through E13.5, including E10.5 and E12.5.</li>
+      <li>Task 2 embryo interpolation data strictly between released E7.25 and E8.0.</li>
+      <li>Task 2 heart interpolation data strictly between E8.25 and E8.75, plus extrapolation data closer to a held-out target than the nearest released stage.</li>
+      <li>Task 3 held-out Gata4 and β-catenin knockout conditions at E8.75, comparable alleles, and likely phenocopies when you identify them.</li>
+    </ul>
+    <p class="hint">A result that passes the entered checks means only “no clear overlap found in these fields.” Stage harmonisation, mixed-stage releases, pretraining, genotype comparability, phenocopy, license, and source disclosure still need human review.</p>
+  </section>
+
+  <footer class="foot">
+    <a href="https://virtualembryo.ai/challenge/data">Official data page</a> ·
+    <a href="https://virtualembryo.ai/challenge/rules">Current Rules</a> ·
+    <a href="https://virtualembryo.ai/challenge/resources">Community resources</a>
+  </footer>
+</main>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  let report = "";
+  const titleFor = value => $("task").selectedOptions[0].textContent;
+  const localDate = () => new Date().toISOString().slice(0, 10);
+  function screen() {
+    const task = $("task").value;
+    const organism = $("organism").value;
+    const rawStage = $("stage").value.trim();
+    const stage = rawStage === "" ? NaN : Number(rawStage);
+    const heldout = $("heldout").value;
+    const phenocopy = $("phenocopy").value;
+    const reasons = [];
+    let status = "Potentially consistent with the entered facts; disclose the source";
+    let level = "success";
+
+    if (heldout === "yes") {
+      status = "Do not use without organizer guidance";
+      level = "warning";
+      reasons.push("You indicated that held-out stage or condition data may be present in the source or model lineage.");
+    }
+    if (task === "t3" && phenocopy === "yes") {
+      status = "Do not use without organizer guidance";
+      level = "warning";
+      reasons.push("The source includes a named held-out Task 3 genotype, a comparable allele, or a likely phenocopy.");
+    }
+    if (status.startsWith("Do not")) {
+      // Explicit overlap takes precedence over the softer uncertainty prompts below.
+    } else if (heldout === "unsure" || (task === "t3" && phenocopy === "unsure")) {
+      status = "Review the source and ask the organizers before use";
+      level = "warning";
+      reasons.push("The held-out data lineage or Task 3 biological comparability is uncertain.");
+    } else if (organism !== "mouse") {
+      status = "Manual review needed";
+      level = "warning";
+      reasons.push("The published stage boundaries use mouse embryonic days; this screen cannot harmonize another organism or staging system.");
+    } else if (!Number.isFinite(stage) || stage < 0) {
+      status = "Manual review needed";
+      level = "warning";
+      reasons.push("Enter a comparable stage, or review the source manually when stage is unavailable.");
+    } else if (task === "t1" && stage > 9.5 && stage <= 13.5) {
+      status = "Blocked by the published Task 1 stage window";
+      level = "warning";
+      reasons.push("Task 1 excludes external stages after E9.5 through and including E13.5; E10.5 and E12.5 are held-out targets.");
+    } else if (task === "t1" && Math.abs(stage - 9.5) < 1e-8) {
+      reasons.push("The official data page explicitly says external data measured at exactly E9.5 is permitted; disclose its source and stage.");
+    } else if (task === "t1" && stage > 13.5) {
+      reasons.push("The official data page says stages after E13.5 may be used for Task 1 when their source and stages are disclosed.");
+    } else if (task === "t2-embryo" && stage > 7.25 && stage < 8.0) {
+      status = "Blocked by the published Task 2 embryo interpolation boundary";
+      level = "warning";
+      reasons.push("The official data page excludes external embryo data strictly between the released E7.25 and E8.0 stages, which brackets held-out E7.5 and E7.75.");
+    } else if ((task === "t2-heart-interp" || task === "t2-heart-extra") && [8.5, 10.5, 12.5].some(target => Math.abs(stage - target) < 1e-8)) {
+      status = "Blocked by a published Task 2 heart held-out stage";
+      level = "warning";
+      reasons.push("This exact heart stage is held out in the Challenge. The rule bars measured data from a held-out stage by any route.");
+    } else if ((task === "t2-heart-interp" || task === "t2-heart-extra") && stage > 8.25 && stage < 8.75) {
+      status = "Blocked by the published Task 2 heart interpolation boundary";
+      level = "warning";
+      reasons.push("The official data page excludes external heart data strictly between released E8.25 and E8.75, which brackets held-out E8.5.");
+    } else if ((task === "t2-heart-interp" || task === "t2-heart-extra") && stage > 10.0) {
+      status = "Blocked by the published Task 2 heart extrapolation proximity rule";
+      level = "warning";
+      reasons.push("At this stage the external data are closer to a held-out heart target (E10.5 or E12.5) than to the nearest released stage E9.5.");
+    } else if ((task === "t2-heart-interp" || task === "t2-heart-extra") && Math.abs(stage - 10.0) < 1e-8) {
+      status = "Manual review needed at the stage boundary";
+      level = "warning";
+      reasons.push("E10.0 is equidistant from released E9.5 and held-out E10.5. The rule excludes data closer to the held-out stage; ask the organizers about this tie.");
+    } else if (task === "t3") {
+      reasons.push("No named held-out genotype or phenocopy was identified in the fields. The rule also covers comparable alleles and phenocopies, so check the biology and disclose the source.");
+    } else {
+      reasons.push("No clear overlap with the selected published boundary was found from the supplied stage. Disclose the source and check the full current rules.");
+    }
+
+    const source = $("source").value.trim() || "Not recorded";
+    report = `# VEC external-data screening record\n\nScreened on: ${localDate()}\nTask: ${titleFor(task)}\nOrganism/staging: ${organism === "mouse" ? "Mouse, embryonic day (E)" : "Other or uncertain"}\nStage: ${rawStage || "Not supplied"}\nSource: ${source}\n\n## Screening result\n${status}\n\n${reasons.map(x => "- " + x).join("\n")}\n\n## Scope\nThis browser-local aid checks only the fields supplied. It is not an organizer decision and does not resolve stage harmonisation, mixed-stage releases, model pretraining or transfer, genotype comparability, phenocopy, data licenses, or disclosure completeness. Every external source must be disclosed. Check the current official rules and ask the organizers when uncertain.\n\nOfficial sources: https://virtualembryo.ai/challenge/data and https://virtualembryo.ai/challenge/rules\n`;
+    const out = $("result");
+    out.className = "output " + level;
+    out.textContent = status + "\n\n" + reasons.join(" ") + "\n\nThis is a screening aid only; the official rules and organizer guidance control.";
+    $("download").disabled = false;
+  }
+  $("check").addEventListener("click", screen);
+  $("download").addEventListener("click", () => {
+    if (!report) screen();
+    const a = document.createElement("a");
+    const url = URL.createObjectURL(new Blob([report], {type:"text/markdown"}));
+    a.href = url;
+    a.download = "vec-external-data-screening.md";
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+})();
+</script>
+</body>
+</html>

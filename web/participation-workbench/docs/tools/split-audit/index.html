@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Audit user-defined train, validation, and test assignments for sample groups or exact cell IDs that cross split boundaries.">
+  <title>Holdout Split Auditor · VEC</title>
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<main class="wrap">
+  <header class="tool-head">
+    <nav><a href="../../">← Participation Workbench</a> · <a href="https://virtualembryo.ai/challenge/data">Official data splits</a> · <a href="https://virtualembryo.ai/challenge/rules">Current rules</a></nav>
+    <p class="eyebrow">Validation integrity · browser-local</p>
+    <h1>Holdout Split Auditor</h1>
+    <p class="lede">Inspect a user-defined split manifest for sample groups or exact cell identifiers assigned to more than one partition. This is a leakage screen for your local validation design, not a validator for the official Challenge submission.</p>
+  </header>
+  <section class="panel">
+    <h2>Paste the split manifest</h2>
+    <label for="data">CSV with sample_id and split; cell_id and condition are optional</label>
+    <textarea id="data" rows="12" spellcheck="false" placeholder="sample_id,split,cell_id,condition&#10;embryo_1,train,c1,control&#10;embryo_1,train,c2,control&#10;embryo_2,validation,c3,treated"></textarea>
+    <div class="inline"><button id="audit" type="button">Audit assignments</button><button id="example" type="button" class="secondary">Load synthetic example</button><button id="clear" type="button" class="secondary">Clear</button><button id="download" type="button" class="secondary" disabled>Download findings CSV</button></div>
+    <div id="result" class="output" aria-live="polite">Use one row per cell or sample. Repeated sample_id values within a split are expected for cell-level data.</div>
+  </section>
+  <section class="panel">
+    <h2>Read the findings</h2>
+    <ul>
+      <li>A sample_id assigned to multiple split labels may mean related observations cross the boundary. Confirm that sample_id represents the independent unit for your question.</li>
+      <li>An exact cell_id found in multiple splits is a direct duplicate-identifier signal; it still needs checking against the source manifest.</li>
+      <li>Different split labels or imbalanced condition counts are reported as supplied; this tool does not prescribe a split or decide whether the design is valid.</li>
+    </ul>
+    <p class="hint">Current Challenge train, validation, and hidden-test rules are defined by the official data page and rules. This browser-local tool uses only the CSV you paste and does not upload or store it.</p>
+  </section>
+  <footer class="foot"><a href="../../tutorials/grouped-validation.html">Grouped Validation Walkthrough</a> · <a href="../../tools/manifest-integrity/">Sample Manifest Integrity Auditor</a> · <a href="https://virtualembryo.ai/challenge/resources">Community resources</a></footer>
+</main>
+<script>
+(() => {
+  const $=id=>document.getElementById(id);let findings=[];
+  function parse(text){const rows=[];let row=[],field="",q=false;for(let i=0;i<text.length;i++){const c=text[i];if(q){if(c==='"'&&text[i+1]==='"'){field+='"';i++;}else if(c==='"')q=false;else field+=c;}else if(c==='"'&&field==="")q=true;else if(c===","){row.push(field);field="";}else if(c==="\n"||c==="\r"){if(c==="\r"&&text[i+1]==="\n")i++;row.push(field);rows.push(row);row=[];field="";}else field+=c;}if(q)throw Error("CSV contains an unclosed quoted field.");if(field!==""||row.length){row.push(field);rows.push(row);}return rows;}
+  const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  function audit(){const out=$("result");findings=[];$("download").disabled=true;try{const rows=parse($("data").value.trim());if(rows.length<2)throw Error("Add a header row and at least one data row.");const h=rows[0].map(x=>x.trim().toLowerCase()),si=h.indexOf("sample_id"),pi=h.indexOf("split"),ci=h.indexOf("cell_id"),gi=h.indexOf("condition");if(si<0||pi<0)throw Error("CSV headers must include sample_id and split.");const samples=new Map(),cells=new Map(),splitCounts=new Map(),conditions=new Map();let skipped=0,validRows=0;for(let r=1;r<rows.length;r++){const row=rows[r];if(row.every(x=>x.trim()===""))continue;const sample=(row[si]||"").trim(),split=(row[pi]||"").trim(),cell=ci<0?"":(row[ci]||"").trim(),condition=gi<0?"":(row[gi]||"").trim();if(!sample||!split){skipped++;continue;}validRows++;if(!samples.has(sample))samples.set(sample,new Set());samples.get(sample).add(split);splitCounts.set(split,(splitCounts.get(split)||0)+1);if(condition){if(!conditions.has(split))conditions.set(split,new Map());const m=conditions.get(split);m.set(condition,(m.get(condition)||0)+1);}if(cell){if(!cells.has(cell))cells.set(cell,[]);cells.get(cell).push({split,line:r+1});}}
+    for(const [id,parts] of samples)if(parts.size>1)findings.push({type:"sample_id crosses splits",id,detail:[...parts].sort().join(" | ")});for(const [id,records] of cells){const parts=new Set(records.map(x=>x.split));if(parts.size>1)findings.push({type:"cell_id appears across splits",id,detail:[...parts].sort().join(" | ")});const bySplit=new Map();for(const record of records)bySplit.set(record.split,(bySplit.get(record.split)||0)+1);for(const [split,count] of bySplit)if(count>1)findings.push({type:"duplicate cell_id within split",id,detail:`${split}: ${count} rows`});}
+    const splitRows=[...splitCounts].sort((a,b)=>a[0].localeCompare(b[0])).map(([split,count])=>`<tr><td>${esc(split)}</td><td>${count}</td><td>${new Set([...samples].filter(([,parts])=>parts.has(split)).map(([id])=>id)).size}</td></tr>`).join("");const conditionRows=[...conditions].flatMap(([split,counts])=>[...counts].map(([condition,count])=>`<tr><td>${esc(split)}</td><td>${esc(condition)}</td><td>${count}</td></tr>`)).join("");const findingRows=findings.map(x=>`<tr><td>${esc(x.type)}</td><td>${esc(x.id)}</td><td>${esc(x.detail)}</td></tr>`).join("");let html=`<p><strong>${validRows}</strong> usable rows · <strong>${samples.size}</strong> distinct samples · <strong>${new Set([...splitCounts.keys()]).size}</strong> split labels · <strong>${skipped}</strong> incomplete rows skipped.</p><h3>Rows and samples per split</h3><div class="table-wrap"><table><thead><tr><th>Split</th><th>Rows</th><th>Samples</th></tr></thead><tbody>${splitRows}</tbody></table></div>`;if(conditionRows)html+=`<h3>Supplied condition counts</h3><div class="table-wrap"><table><thead><tr><th>Split</th><th>Condition</th><th>Rows</th></tr></thead><tbody>${conditionRows}</tbody></table></div>`;html+=findings.length?`<h3>Identifiers requiring review (${findings.length})</h3><div class="table-wrap"><table><thead><tr><th>Signal</th><th>Identifier</th><th>Splits or row counts</th></tr></thead><tbody>${findingRows}</tbody></table></div>`:"<p>No repeated sample groups across splits or exact cell IDs shared across splits were found.</p>";html+="<p class=\"hint\">A clean report only checks identifiers present in this manifest; it cannot detect near-duplicate samples, indirect dependencies, or preprocessing leakage.</p>";out.innerHTML=html;$("download").disabled=!findings.length;
+  }catch(e){out.textContent=e.message;}}
+  $("audit").addEventListener("click",audit);$("example").addEventListener("click",()=>{$("data").value="sample_id,split,cell_id,condition\nembryo_1,train,cell_1,control\nembryo_1,train,cell_2,control\nembryo_1,validation,cell_3,control\nembryo_2,train,cell_4,treated\nembryo_3,validation,cell_4,treated\nembryo_4,test,cell_5,treated\n";audit();});$("clear").addEventListener("click",()=>{$("data").value="";findings=[];$("download").disabled=true;$("result").textContent="Use one row per cell or sample. Repeated sample_id values within a split are expected for cell-level data.";});$("download").addEventListener("click",()=>{const q=s=>'"'+String(s).replace(/"/g,'""')+'"',content=[["finding","identifier","detail"],...findings.map(x=>[x.type,x.id,x.detail])].map(r=>r.map(q).join(",")).join("\r\n"),url=URL.createObjectURL(new Blob([content],{type:"text/csv;charset=utf-8"})),a=document.createElement("a");a.href=url;a.download="vec-holdout-split-audit.csv";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
+})();
+</script>
+</body>
+</html>

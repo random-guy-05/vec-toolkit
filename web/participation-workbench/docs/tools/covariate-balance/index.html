@@ -1,0 +1,541 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Compare sample-level covariate distributions between two groups with missingness and standardized differences.">
+  <title>Sample Covariate Balance Auditor · VEC</title>
+  <link rel="stylesheet" href="../../assets/style.css">
+  <style>
+    .language-row { display:flex; justify-content:flex-end; margin-bottom:1rem; }
+    .field-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:1rem; }
+    .check-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:.5rem 1rem; margin:.75rem 0 1.25rem; }
+    .check-grid label { display:flex; align-items:flex-start; gap:.5rem; font-weight:400; }
+    .check-grid input { margin-top:.25rem; }
+    .small-note { font-size:.9rem; }
+    .table-wrap { overflow-x:auto; }
+    table { border-collapse:collapse; width:100%; min-width:1050px; }
+    th,td { border-bottom:1px solid var(--line,#ddd); padding:.55rem .65rem; text-align:left; vertical-align:top; }
+    th { font-size:.88rem; }
+    #result p { margin:.5rem 0; }
+    #result .hint { margin-top:1rem; }
+  </style>
+</head>
+<body>
+<main class="wrap">
+  <header class="tool-head">
+    <nav><a href="../../" data-i18n="back">← Workbench</a> · <a href="https://virtualembryo.ai/challenge/resources" data-i18n="community">Community resources</a> · <a href="https://virtualembryo.ai/challenge/data" data-i18n="official">Official data page</a></nav>
+    <p class="eyebrow" data-i18n="eyebrow">Study design · browser-local</p>
+    <h1 data-i18n="title">Sample Covariate Balance Auditor</h1>
+    <p class="lede" data-i18n="description">Compare sample-level covariates across two groups. Review raw summaries, missingness, and standardized differences before deciding whether a design needs closer attention.</p>
+  </header>
+  <section class="panel">
+    <div class="language-row">
+      <label for="language" data-i18n="languageLabel">Interface language</label>
+      <select id="language" aria-label="Interface language">
+        <option value="en">English</option>
+        <option value="es">Español</option>
+        <option value="zh-CN">简体中文</option>
+      </select>
+    </div>
+    <label for="csv" data-i18n="inputLabel">Sample-level CSV</label>
+    <textarea id="csv" rows="9" spellcheck="false">sample_id,group,batch,stage,age_days
+embryo-01,control,A,E8.5,8.5
+embryo-02,control,B,E8.5,8.6
+embryo-03,treated,A,E8.5,8.4
+embryo-04,treated,B,E8.5,8.7
+embryo-05,control,A,E9.5,9.5
+embryo-06,control,B,E9.5,9.4
+embryo-07,treated,A,E9.5,9.6
+embryo-08,treated,B,E9.5,9.5</textarea>
+    <p class="hint" data-i18n="inputHint">Use one row per independent biological sample or other independent unit—not one row per cell. Include an ID column to detect repeated units. Blank, NA, N/A, NaN, and null values count as missing. Numeric-looking values are treated as continuous; label numeric codes if they represent categories. CSV remains in this tab.</p>
+    <div class="inline">
+      <button id="read-columns" type="button" data-i18n="readColumns">Read columns</button>
+      <button id="load-example" class="secondary" type="button" data-i18n="loadExample">Load synthetic example</button>
+    </div>
+    <section id="settings" hidden>
+      <h2 data-i18n="settingsTitle">Choose the comparison</h2>
+      <div class="field-grid">
+        <div><label for="group-column" data-i18n="groupColumn">Group column</label><select id="group-column"></select></div>
+        <div><label for="id-column" data-i18n="idColumn">Independent-unit ID (optional)</label><select id="id-column"></select></div>
+        <div><label for="reference-group" data-i18n="referenceGroup">Reference group</label><select id="reference-group"></select></div>
+        <div><label for="comparison-group" data-i18n="comparisonGroup">Comparison group</label><select id="comparison-group"></select></div>
+      </div>
+      <h3 data-i18n="covariatesTitle">Covariates to compare</h3>
+      <div id="covariates" class="check-grid"></div>
+      <div class="inline">
+        <button id="analyze" type="button" data-i18n="analyze" disabled>Analyze balance</button>
+        <button id="download" class="secondary" type="button" data-i18n="download" disabled>Download summary CSV</button>
+      </div>
+    </section>
+    <div id="result" class="output" aria-live="polite" data-i18n="ready">Load the example or paste a small sample table, then read its columns.</div>
+  </section>
+  <section class="panel">
+    <h2 data-i18n="interpretTitle">Interpretation and limits</h2>
+    <p data-i18n="interpretText">For continuous covariates, the standardized difference is the comparison-minus-reference mean divided by the square root of the average of the two sample variances. For categorical covariates, it is calculated separately for each level as a binary proportion difference divided by its pooled Bernoulli standard deviation.</p>
+    <p data-i18n="scopeText">These are descriptive summaries, not hypothesis tests, causal estimates, automatic balance thresholds, or adjustment recommendations. A standardized difference does not prove confounding; a small value does not prove the groups are otherwise comparable. Check the study design, measurement units, missingness, and independent sampling structure.</p>
+    <p class="hint" data-i18n="privacyText">Pasted rows are processed only in this browser tab. The tool does not upload, store, or fetch the data. Use public or synthetic values and keep direct identifiers out of the table.</p>
+  </section>
+  <footer class="foot"><a href="https://virtualembryo.ai/challenge/resources" data-i18n="checkResources">Check existing community resources</a> · <a href="https://github.com/random-guy-05/vec-participation-workbench">Source code and issue tracker</a></footer>
+</main>
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const copy = {
+    en: {
+      back:"← Workbench",community:"Community resources",official:"Official data page",eyebrow:"Study design · browser-local",
+      title:"Sample Covariate Balance Auditor",description:"Compare sample-level covariates across two groups. Review raw summaries, missingness, and standardized differences before deciding whether a design needs closer attention.",
+      languageLabel:"Interface language",inputLabel:"Sample-level CSV",
+      inputHint:"Use one row per independent biological sample or other independent unit—not one row per cell. Include an ID column to detect repeated units. Blank, NA, N/A, NaN, and null values count as missing. Numeric-looking values are treated as continuous; label numeric codes if they represent categories. CSV remains in this tab.",
+      readColumns:"Read columns",loadExample:"Load synthetic example",settingsTitle:"Choose the comparison",
+      groupColumn:"Group column",idColumn:"Independent-unit ID (optional)",noId:"No ID check",
+      referenceGroup:"Reference group",comparisonGroup:"Comparison group",covariatesTitle:"Covariates to compare",
+      analyze:"Analyze balance",download:"Download summary CSV",ready:"Load the example or paste a small sample table, then read its columns.",
+      interpretTitle:"Interpretation and limits",
+      interpretText:"For continuous covariates, the standardized difference is the comparison-minus-reference mean divided by the square root of the average of the two sample variances. For categorical covariates, it is calculated separately for each level as a binary proportion difference divided by its pooled Bernoulli standard deviation.",
+      scopeText:"These are descriptive summaries, not hypothesis tests, causal estimates, automatic balance thresholds, or adjustment recommendations. A standardized difference does not prove confounding; a small value does not prove the groups are otherwise comparable. Check the study design, measurement units, missingness, and independent sampling structure.",
+      privacyText:"Pasted rows are processed only in this browser tab. The tool does not upload, store, or fetch the data. Use public or synthetic values and keep direct identifiers out of the table.",
+      checkResources:"Check existing community resources",readSuccess:"Columns loaded. Choose the group comparison and covariates, then analyze.",
+      changed:"Input changed. Read columns again before analyzing.",needCsv:"Paste a CSV table first.",badQuotes:"The CSV contains an unclosed quote or characters after a quoted field.",
+      emptyHeader:"Every column needs a non-empty header.",duplicateHeader:"Column headers must be unique.",rowWidth:"Every data row must have the same number of fields as the header.",
+      tooLarge:"For this browser tool, use at most 10,000 rows and 50 columns.",readFirst:"Read columns again after changing the table.",
+      needGroup:"Choose a valid group column.",needGroups:"The selected group column must contain at least two non-missing values.",
+      sameGroups:"Choose two different group values.",noSelectedRows:"No rows match both selected groups.",needCovariate:"Select at least one covariate.",
+      tooManyGroups:"The selected group column has more than 50 distinct values. Choose a binary or lower-cardinality group column.",
+      tooManyLevels:"Covariate “{name}” has more than 30 levels. Exclude an identifier or choose a lower-cardinality covariate.",
+      emptyCovariate:"Covariate “{name}” has no observed values in the selected groups.",
+      missingId:"The selected independent-unit ID is missing in one or more comparison rows.",
+      duplicateId:"The selected independent-unit ID repeats across comparison rows. Use one row per independent unit or aggregate first.",
+      compared:"Compared {reference} (n={nRef}) with {comparison} (n={nComp}).",
+      ignored:"Rows with a missing group or another group label were excluded: {n}.",
+      outputNote:"Rows are sample-level descriptions. Category differences use the non-missing denominator for that covariate. “Not defined” means the available data do not provide a non-zero standardizing spread.",
+      smallN:"At least one group has fewer than two independent units; some continuous standardized differences are not defined, and all estimates are especially unstable.",
+      headers:["Covariate","Value or summary","Type","Non-missing n (reference)","Non-missing n (comparison)","Reference summary","Comparison summary","Difference (comparison − reference)","Standardized difference","Missing (reference)","Missing (comparison)"],
+      continuous:"continuous",categorical:"categorical",mean:"mean",notDefined:"Not defined",
+      missingFormat:"{count} / {total} ({percent}%)",meanFormat:"mean {mean}; SD {sd}",proportionFormat:"{count} / {total} ({percent}%)",
+      noCovariates:"No eligible covariate columns remain after choosing the group and ID.",downloadName:"vec-sample-covariate-balance.csv"
+    },
+    es: {
+      back:"← Herramientas",community:"Recursos comunitarios",official:"Datos oficiales",eyebrow:"Diseño del estudio · local en el navegador",
+      title:"Auditoría del equilibrio de covariables por muestra",description:"Compara covariables a nivel de muestra entre dos grupos. Revisa los resúmenes, los datos faltantes y las diferencias estandarizadas antes de decidir si el diseño requiere más atención.",
+      languageLabel:"Idioma de la interfaz",inputLabel:"CSV a nivel de muestra",
+      inputHint:"Usa una fila por muestra biológica independiente u otra unidad independiente, no una fila por célula. Incluye una columna de ID para detectar unidades repetidas. Los valores en blanco, NA, N/A, NaN y null cuentan como faltantes. Los valores numéricos se tratan como continuos; etiqueta los códigos numéricos si representan categorías. El CSV permanece en esta pestaña.",
+      readColumns:"Leer columnas",loadExample:"Cargar ejemplo sintético",settingsTitle:"Elige la comparación",
+      groupColumn:"Columna de grupo",idColumn:"ID de unidad independiente (opcional)",noId:"Sin comprobar ID",
+      referenceGroup:"Grupo de referencia",comparisonGroup:"Grupo de comparación",covariatesTitle:"Covariables para comparar",
+      analyze:"Analizar equilibrio",download:"Descargar resumen CSV",ready:"Carga el ejemplo o pega una tabla pequeña de muestras y luego lee sus columnas.",
+      interpretTitle:"Interpretación y límites",
+      interpretText:"Para covariables continuas, la diferencia estandarizada es la media del grupo de comparación menos la media de referencia, dividida por la raíz cuadrada del promedio de las dos varianzas muestrales. Para covariables categóricas, se calcula por separado para cada nivel como diferencia de proporciones binarias dividida por la desviación estándar de Bernoulli combinada.",
+      scopeText:"Son resúmenes descriptivos, no pruebas de hipótesis, estimaciones causales, umbrales automáticos de equilibrio ni recomendaciones de ajuste. Una diferencia estandarizada no demuestra confusión; un valor pequeño no demuestra que los grupos sean comparables en otros aspectos. Revisa el diseño, las unidades, los datos faltantes y la estructura de muestreo independiente.",
+      privacyText:"Las filas pegadas se procesan solo en esta pestaña. La herramienta no sube, almacena ni obtiene los datos. Usa valores públicos o sintéticos y no incluyas identificadores directos.",
+      checkResources:"Consultar recursos comunitarios existentes",readSuccess:"Columnas cargadas. Elige los grupos y las covariables y luego analiza.",
+      changed:"El contenido cambió. Vuelve a leer las columnas antes del análisis.",needCsv:"Pega primero una tabla CSV.",badQuotes:"El CSV contiene una comilla sin cerrar o caracteres después de un campo entre comillas.",
+      emptyHeader:"Cada columna necesita un encabezado no vacío.",duplicateHeader:"Los encabezados de las columnas deben ser únicos.",rowWidth:"Cada fila de datos debe tener el mismo número de campos que el encabezado.",
+      tooLarge:"Para esta herramienta del navegador, usa como máximo 10 000 filas y 50 columnas.",readFirst:"Vuelve a leer las columnas después de cambiar la tabla.",
+      needGroup:"Elige una columna de grupo válida.",needGroups:"La columna seleccionada debe contener al menos dos valores no faltantes.",
+      sameGroups:"Elige dos valores de grupo distintos.",noSelectedRows:"Ninguna fila coincide con los grupos seleccionados.",needCovariate:"Selecciona al menos una covariable.",
+      tooManyGroups:"La columna de grupo seleccionada tiene más de 50 valores distintos. Elige una columna binaria o con menos categorías.",
+      tooManyLevels:"La covariable “{name}” tiene más de 30 niveles. Excluye un identificador o elige una covariable con menos niveles.",
+      emptyCovariate:"La covariable “{name}” no tiene valores observados en los grupos seleccionados.",
+      missingId:"Falta el ID de unidad independiente en una o más filas de comparación.",
+      duplicateId:"El ID de unidad independiente se repite en las filas de comparación. Usa una fila por unidad independiente o agrega primero.",
+      compared:"Se comparó {reference} (n={nRef}) con {comparison} (n={nComp}).",
+      ignored:"Se excluyeron filas con grupo faltante o con otra etiqueta de grupo: {n}.",
+      outputNote:"Las filas son descripciones a nivel de muestra. Las diferencias de categorías usan el denominador no faltante de cada covariable. “No definida” indica que los datos no aportan una dispersión estandarizadora distinta de cero.",
+      smallN:"Al menos un grupo tiene menos de dos unidades independientes; algunas diferencias estandarizadas continuas no están definidas y todas las estimaciones son especialmente inestables.",
+      headers:["Covariable","Valor o resumen","Tipo","n no faltante (referencia)","n no faltante (comparación)","Resumen de referencia","Resumen de comparación","Diferencia (comparación − referencia)","Diferencia estandarizada","Faltantes (referencia)","Faltantes (comparación)"],
+      continuous:"continua",categorical:"categórica",mean:"media",notDefined:"No definida",
+      missingFormat:"{count} / {total} ({percent}%)",meanFormat:"media {mean}; DE {sd}",proportionFormat:"{count} / {total} ({percent}%)",
+      noCovariates:"No quedan columnas de covariables después de elegir el grupo y el ID.",downloadName:"vec-equilibrio-covariables-muestra.csv"
+    },
+    "zh-CN": {
+      back:"← 工具箱",community:"社区资源",official:"官方数据页",eyebrow:"研究设计 · 浏览器本地处理",
+      title:"样本协变量平衡审查器",description:"比较两个组的样本级协变量。查看原始摘要、缺失情况和标准化差异，再判断设计是否需要进一步审查。",
+      languageLabel:"界面语言",inputLabel:"样本级 CSV",
+      inputHint:"每行代表一个独立生物样本或其他独立单位，而不是一个细胞。加入 ID 列可检测重复单位。空白、NA、N/A、NaN 和 null 均视为缺失值。看起来像数字的值会按连续变量处理；若数字编码代表类别，请先改成类别标签。CSV 只保留在此浏览器标签页。",
+      readColumns:"读取列",loadExample:"载入合成示例",settingsTitle:"选择比较组",
+      groupColumn:"分组列",idColumn:"独立单位 ID（可选）",noId:"不检查 ID",
+      referenceGroup:"参考组",comparisonGroup:"比较组",covariatesTitle:"要比较的协变量",
+      analyze:"分析平衡情况",download:"下载摘要 CSV",ready:"载入示例或粘贴小型样本表，然后读取列。",
+      interpretTitle:"解释与局限",
+      interpretText:"对于连续协变量，标准化差异为比较组均值减去参考组均值，再除以两组样本方差平均值的平方根。对于分类协变量，会对每个类别分别计算二元比例差，并除以合并的伯努利标准差。",
+      scopeText:"这些是描述性摘要，不是假设检验、因果估计、自动平衡阈值或调整建议。标准化差异不能证明存在混杂；数值较小也不能证明两组在其他方面可比。请检查研究设计、测量单位、缺失情况和独立抽样结构。",
+      privacyText:"粘贴的数据仅在此浏览器标签页中处理。本工具不会上传、存储或获取数据。请使用公开或合成数据，并勿粘贴直接身份标识。",
+      checkResources:"查看已有社区资源",readSuccess:"已读取列。选择分组比较和协变量后即可分析。",
+      changed:"输入已更改。请重新读取列后再分析。",needCsv:"请先粘贴 CSV 表格。",badQuotes:"CSV 中有未闭合的引号，或带引号字段后出现了无效字符。",
+      emptyHeader:"每列都需要非空列名。",duplicateHeader:"列名必须唯一。",rowWidth:"每个数据行的字段数必须与列名数一致。",
+      tooLarge:"此浏览器工具最多处理 10,000 行和 50 列。",readFirst:"更改表格后请重新读取列。",
+      needGroup:"请选择有效的分组列。",needGroups:"所选分组列至少需要两个非缺失取值。",
+      sameGroups:"请选择两个不同的组值。",noSelectedRows:"没有行匹配所选的两个组。",needCovariate:"请至少选择一个协变量。",
+      tooManyGroups:"所选分组列有超过 50 个不同值。请选择二元或类别较少的分组列。",
+      tooManyLevels:"协变量“{name}”有超过 30 个类别。请排除标识列或选择类别较少的协变量。",
+      emptyCovariate:"协变量“{name}”在所选组中没有观测值。",
+      missingId:"一个或多个比较行缺少独立单位 ID。",
+      duplicateId:"独立单位 ID 在比较行中重复。请每个独立单位保留一行，或先进行汇总。",
+      compared:"已比较 {reference}（n={nRef}）和 {comparison}（n={nComp}）。",
+      ignored:"已排除分组缺失或属于其他组标签的行：{n}。",
+      outputNote:"结果按样本级别描述。类别比例差使用该协变量的非缺失值作为分母。“未定义”表示现有数据无法提供非零标准化离散程度。",
+      smallN:"至少一组的独立单位少于两个；部分连续协变量的标准化差异无法定义，且所有估计都特别不稳定。",
+      headers:["协变量","取值或摘要","类型","非缺失数（参考组）","非缺失数（比较组）","参考组摘要","比较组摘要","差异（比较组 − 参考组）","标准化差异","缺失数（参考组）","缺失数（比较组）"],
+      continuous:"连续型",categorical:"分类型",mean:"均值",notDefined:"未定义",
+      missingFormat:"{count} / {total}（{percent}%）",meanFormat:"均值 {mean}；标准差 {sd}",proportionFormat:"{count} / {total}（{percent}%）",
+      noCovariates:"选择分组列和 ID 后没有可用的协变量列。",downloadName:"vec-sample-covariate-balance-zh.csv"
+    }
+  };
+  const language = $("language");
+  let loaded = null;
+  let lastResult = null;
+  let exportRows = [];
+  function t(key) { const c = copy[language.value] || copy.en; return c[key] === undefined ? copy.en[key] : c[key]; }
+  function message(key, values) {
+    let value = t(key);
+    for (const [name, replacement] of Object.entries(values || {})) value = value.split("{" + name + "}").join(String(replacement));
+    return value;
+  }
+  function applyLanguage() {
+    const lang = language.value;
+    document.documentElement.lang = lang === "zh-CN" ? "zh-Hans" : lang;
+    document.querySelectorAll("[data-i18n]").forEach((node) => { node.textContent = t(node.dataset.i18n); });
+    language.setAttribute("aria-label", t("languageLabel"));
+    const noIdOption = $("id-column").querySelector('option[value=""]');
+    if (noIdOption) noIdOption.textContent = t("noId");
+    const url = new URL(location.href);
+    if (lang === "en") url.searchParams.delete("lang"); else url.searchParams.set("lang", lang);
+    try { history.replaceState(null, "", url); } catch (_) {}
+    if (lastResult) analyze();
+  }
+  function missing(value) {
+    const normalized = String(value == null ? "" : value).trim().toLowerCase();
+    return normalized === "" || normalized === "na" || normalized === "n/a" || normalized === "nan" || normalized === "null";
+  }
+  function parseCsv(text) {
+    if (!String(text).trim()) throw new Error(t("needCsv"));
+    const rows = [], row = [];
+    let field = "", quoted = false, afterQuote = false;
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+      if (quoted) {
+        if (ch === '"') {
+          if (text[i + 1] === '"') { field += '"'; i++; }
+          else { quoted = false; afterQuote = true; }
+        } else field += ch;
+        continue;
+      }
+      if (afterQuote && ch !== "," && ch !== "\r" && ch !== "\n" && ch !== " " && ch !== "\t") throw new Error(t("badQuotes"));
+      if (ch === '"' && field.length === 0 && !afterQuote) { quoted = true; continue; }
+      if (ch === ",") { row.push(field.trim()); field = ""; afterQuote = false; continue; }
+      if (ch === "\r" || ch === "\n") {
+        if (ch === "\r" && text[i + 1] === "\n") i++;
+        row.push(field.trim()); field = ""; afterQuote = false;
+        if (row.some((cell) => cell !== "")) rows.push(row.slice());
+        row.length = 0;
+        continue;
+      }
+      field += ch;
+    }
+    if (quoted) throw new Error(t("badQuotes"));
+    row.push(field.trim());
+    if (row.some((cell) => cell !== "")) rows.push(row.slice());
+    if (!rows.length) throw new Error(t("needCsv"));
+    if (rows[0][0]) rows[0][0] = rows[0][0].replace(/^\uFEFF/, "");
+    const headers = rows[0];
+    if (headers.some((header) => !header)) throw new Error(t("emptyHeader"));
+    if (new Set(headers).size !== headers.length) throw new Error(t("duplicateHeader"));
+    if (rows.length - 1 > 10000 || headers.length > 50) throw new Error(t("tooLarge"));
+    const records = rows.slice(1);
+    if (records.some((entry) => entry.length !== headers.length)) throw new Error(t("rowWidth"));
+    return { headers, records: records.map((cells) => Object.fromEntries(headers.map((header, i) => [header, cells[i]]))) };
+  }
+  function setOptions(select, values, selected, emptyLabel) {
+    select.replaceChildren();
+    if (emptyLabel) {
+      const empty = document.createElement("option");
+      empty.value = "";
+      empty.textContent = emptyLabel;
+      select.append(empty);
+    }
+    values.forEach((value) => {
+      const option = document.createElement("option");
+      option.value = value;
+      option.textContent = value;
+      select.append(option);
+    });
+    if (values.includes(selected)) select.value = selected;
+    else if (values.length) select.value = values[0];
+  }
+  function chosenGroups() {
+    const col = $("group-column").value;
+    if (!loaded || !loaded.headers.includes(col)) throw new Error(t("needGroup"));
+    return Array.from(new Set(loaded.records.map((r) => r[col]).filter((v) => !missing(v)))).sort((a, b) => a.localeCompare(b));
+  }
+  function updateGroupValues() {
+    const oldRef = $("reference-group").value;
+    const oldComp = $("comparison-group").value;
+    const levels = chosenGroups();
+    if (levels.length < 2) throw new Error(t("needGroups"));
+    if (levels.length > 50) throw new Error(t("tooManyGroups"));
+    const refDefault = levels.find((v) => v.toLowerCase() === "control") || levels[0];
+    const compDefault = levels.find((v) => v.toLowerCase() === "treated" && v !== refDefault) || levels.find((v) => v !== refDefault);
+    setOptions($("reference-group"), levels, oldRef || refDefault);
+    setOptions($("comparison-group"), levels, oldComp || compDefault);
+    if ($("comparison-group").value === $("reference-group").value) {
+      $("comparison-group").value = levels.find((v) => v !== $("reference-group").value) || "";
+    }
+  }
+  function renderCovariates(keepChecked) {
+    const box = $("covariates");
+    const previous = new Set(keepChecked ? Array.from(box.querySelectorAll("input:checked")).map((input) => input.value) : []);
+    const excluded = new Set([$("group-column").value, $("id-column").value].filter(Boolean));
+    box.replaceChildren();
+    const candidates = loaded.headers.filter((header) => !excluded.has(header));
+    candidates.forEach((header) => {
+      const label = document.createElement("label");
+      const input = document.createElement("input");
+      input.type = "checkbox";
+      input.value = header;
+      input.checked = !keepChecked || previous.has(header);
+      input.addEventListener("change", invalidate);
+      const text = document.createElement("span");
+      text.textContent = header;
+      label.append(input, text);
+      box.append(label);
+    });
+    if (!candidates.length) $("analyze").disabled = true;
+  }
+  function invalidate() {
+    lastResult = null;
+    exportRows = [];
+    $("download").disabled = true;
+    $("result").textContent = t("changed");
+  }
+  function readColumns() {
+    try {
+      loaded = parseCsv($("csv").value);
+      const headers = loaded.headers;
+      const previousGroup = $("group-column").value;
+      const previousId = $("id-column").value;
+      const idDefault = headers.find((h) => ["sample_id", "sample", "replicate_id", "unit_id"].includes(h.toLowerCase())) || "";
+      const groupDefault = headers.find((h) => ["group", "condition", "treatment"].includes(h.toLowerCase())) || headers.find((h) => h !== idDefault) || headers[0];
+      setOptions($("group-column"), headers, headers.includes(previousGroup) ? previousGroup : groupDefault);
+      setOptions($("id-column"), headers, headers.includes(previousId) ? previousId : idDefault, t("noId"));
+      $("id-column").value = headers.includes(previousId) ? previousId : idDefault;
+      updateGroupValues();
+      renderCovariates(false);
+      $("settings").hidden = false;
+      $("analyze").disabled = false;
+      lastResult = null;
+      exportRows = [];
+      $("download").disabled = true;
+      $("result").textContent = t("readSuccess");
+    } catch (error) {
+      loaded = null;
+      $("settings").hidden = true;
+      $("analyze").disabled = true;
+      $("download").disabled = true;
+      $("result").textContent = error.message;
+    }
+  }
+  function mean(values) { return values.reduce((sum, value) => sum + value, 0) / values.length; }
+  function sampleSd(values) {
+    if (values.length < 2) return null;
+    const avg = mean(values);
+    return Math.sqrt(values.reduce((sum, value) => sum + (value - avg) ** 2, 0) / (values.length - 1));
+  }
+  function standardized(diff, denominator) {
+    if (denominator === 0) return diff === 0 ? 0 : null;
+    if (!Number.isFinite(denominator) || denominator == null) return null;
+    return diff / denominator;
+  }
+  function fmt(value) {
+    if (value == null || !Number.isFinite(value)) return t("notDefined");
+    return Number(value).toFixed(4).replace(/\.?0+$/, "");
+  }
+  function rate(count, total) { return total ? 100 * count / total : null; }
+  function csvCell(value) {
+    if (value == null) return "";
+    const raw = String(value);
+    const safe = typeof value === "string" && /^[=+\-@]/.test(raw) ? "'" + raw : raw;
+    return '"' + safe.replace(/"/g, '""') + '"';
+  }
+  function analyze() {
+    try {
+      if (!loaded) throw new Error(t("readFirst"));
+      const fresh = parseCsv($("csv").value);
+      if (fresh.headers.join("\u001f") !== loaded.headers.join("\u001f")) throw new Error(t("readFirst"));
+      loaded = fresh;
+      const groupCol = $("group-column").value;
+      if (!loaded.headers.includes(groupCol)) throw new Error(t("needGroup"));
+      updateGroupValues();
+      const reference = $("reference-group").value;
+      const comparison = $("comparison-group").value;
+      if (!reference || !comparison || reference === comparison) throw new Error(t("sameGroups"));
+      const selected = Array.from($("covariates").querySelectorAll("input:checked")).map((input) => input.value);
+      if (!selected.length) throw new Error(t("needCovariate"));
+      const inGroups = loaded.records.filter((row) => row[groupCol] === reference || row[groupCol] === comparison);
+      const refRows = inGroups.filter((row) => row[groupCol] === reference);
+      const compRows = inGroups.filter((row) => row[groupCol] === comparison);
+      if (!refRows.length || !compRows.length) throw new Error(t("noSelectedRows"));
+      const idCol = $("id-column").value;
+      if (idCol) {
+        const seen = new Set();
+        for (const row of inGroups) {
+          const id = String(row[idCol] || "").trim();
+          if (!id) throw new Error(t("missingId"));
+          if (seen.has(id)) throw new Error(t("duplicateId"));
+          seen.add(id);
+        }
+      }
+      const results = [];
+      for (const covariate of selected) {
+        const refValues = refRows.map((row) => row[covariate]).filter((value) => !missing(value));
+        const compValues = compRows.map((row) => row[covariate]).filter((value) => !missing(value));
+        const observed = refValues.concat(compValues);
+        if (!observed.length) throw new Error(message("emptyCovariate", { name: covariate }));
+        const numeric = observed.every((value) => Number.isFinite(Number(value)));
+        const missingRef = refRows.length - refValues.length;
+        const missingComp = compRows.length - compValues.length;
+        const common = {
+          covariate,
+          nRef: refValues.length,
+          nComp: compValues.length,
+          missingRef,
+          missingComp,
+          missingRefPct: rate(missingRef, refRows.length),
+          missingCompPct: rate(missingComp, compRows.length),
+          totalRef: refRows.length,
+          totalComp: compRows.length
+        };
+        if (numeric) {
+          const r = refValues.map(Number), c = compValues.map(Number);
+          const meanRef = r.length ? mean(r) : null, meanComp = c.length ? mean(c) : null;
+          const sdRef = sampleSd(r), sdComp = sampleSd(c);
+          const diff = meanRef == null || meanComp == null ? null : meanComp - meanRef;
+          const spread = sdRef == null || sdComp == null ? null : Math.sqrt((sdRef * sdRef + sdComp * sdComp) / 2);
+          results.push({ ...common, type: t("continuous"), value: t("mean"),
+            refDisplay: meanRef == null ? t("notDefined") : message("meanFormat", { mean: fmt(meanRef), sd: fmt(sdRef) }),
+            compDisplay: meanComp == null ? t("notDefined") : message("meanFormat", { mean: fmt(meanComp), sd: fmt(sdComp) }),
+            refValue: meanRef, compValue: meanComp, difference: diff, smd: standardized(diff, spread) });
+        } else {
+          const levels = Array.from(new Set(observed)).sort((a, b) => a.localeCompare(b));
+          if (levels.length > 30) throw new Error(message("tooManyLevels", { name: covariate }));
+          const refCounts = new Map(refValues.map((v) => [v, 0]));
+          const compCounts = new Map(compValues.map((v) => [v, 0]));
+          for (const value of refValues) refCounts.set(value, (refCounts.get(value) || 0) + 1);
+          for (const value of compValues) compCounts.set(value, (compCounts.get(value) || 0) + 1);
+          for (const level of levels) {
+            const nR = refCounts.get(level) || 0, nC = compCounts.get(level) || 0;
+            const pR = refValues.length ? nR / refValues.length : null;
+            const pC = compValues.length ? nC / compValues.length : null;
+            const diff = pR == null || pC == null ? null : pC - pR;
+            const spread = pR == null || pC == null ? null : Math.sqrt((pR * (1 - pR) + pC * (1 - pC)) / 2);
+            results.push({ ...common, type: t("categorical"), value: level,
+              refDisplay: pR == null ? t("notDefined") : message("proportionFormat", { count: nR, total: refValues.length, percent: fmt(100 * pR) }),
+              compDisplay: pC == null ? t("notDefined") : message("proportionFormat", { count: nC, total: compValues.length, percent: fmt(100 * pC) }),
+              refValue: pR, compValue: pC, difference: diff, smd: standardized(diff, spread) });
+          }
+        }
+      }
+      const summary = {
+        reference, comparison, nRef: refRows.length, nComp: compRows.length,
+        ignored: loaded.records.length - inGroups.length, rows: results
+      };
+      lastResult = summary;
+      renderResult(summary);
+    } catch (error) {
+      lastResult = null;
+      exportRows = [];
+      $("download").disabled = true;
+      $("result").textContent = error.message;
+    }
+  }
+  function renderResult(summary) {
+    const box = $("result");
+    box.replaceChildren();
+    const p = document.createElement("p");
+    p.textContent = message("compared", { reference: summary.reference, comparison: summary.comparison, nRef: summary.nRef, nComp: summary.nComp });
+    box.append(p);
+    const ignored = document.createElement("p");
+    ignored.className = "small-note";
+    ignored.textContent = message("ignored", { n: summary.ignored });
+    box.append(ignored);
+    if (summary.nRef < 2 || summary.nComp < 2) {
+      const warning = document.createElement("p");
+      warning.className = "hint";
+      warning.textContent = t("smallN");
+      box.append(warning);
+    }
+    const wrap = document.createElement("div");
+    wrap.className = "table-wrap";
+    const table = document.createElement("table");
+    const thead = document.createElement("thead");
+    const headRow = document.createElement("tr");
+    t("headers").forEach((header) => { const th = document.createElement("th"); th.textContent = header; headRow.append(th); });
+    thead.append(headRow);
+    const tbody = document.createElement("tbody");
+    exportRows = summary.rows.map((item) => [
+      item.covariate, item.value, item.type, item.nRef, item.nComp, item.refDisplay, item.compDisplay,
+      item.difference, item.smd, message("missingFormat", { count: item.missingRef, total: item.totalRef, percent: fmt(item.missingRefPct) }),
+      message("missingFormat", { count: item.missingComp, total: item.totalComp, percent: fmt(item.missingCompPct) })
+    ]);
+    summary.rows.forEach((item) => {
+      const tr = document.createElement("tr");
+      const cells = [
+        item.covariate, item.value, item.type, item.nRef, item.nComp, item.refDisplay, item.compDisplay,
+        fmt(item.difference), fmt(item.smd),
+        message("missingFormat", { count: item.missingRef, total: item.totalRef, percent: fmt(item.missingRefPct) }),
+        message("missingFormat", { count: item.missingComp, total: item.totalComp, percent: fmt(item.missingCompPct) })
+      ];
+      cells.forEach((value) => { const td = document.createElement("td"); td.textContent = String(value == null ? "" : value); tr.append(td); });
+      tbody.append(tr);
+    });
+    table.append(thead, tbody);
+    wrap.append(table);
+    box.append(wrap);
+    const note = document.createElement("p");
+    note.className = "hint";
+    note.textContent = t("outputNote");
+    box.append(note);
+    $("download").disabled = false;
+  }
+  $("read-columns").addEventListener("click", readColumns);
+  $("group-column").addEventListener("change", () => {
+    if (!loaded) return;
+    try { updateGroupValues(); renderCovariates(false); invalidate(); }
+    catch (error) { $("result").textContent = error.message; }
+  });
+  $("id-column").addEventListener("change", () => { if (loaded) { renderCovariates(true); invalidate(); } });
+  $("reference-group").addEventListener("change", invalidate);
+  $("comparison-group").addEventListener("change", invalidate);
+  $("csv").addEventListener("input", () => {
+    loaded = null;
+    lastResult = null;
+    $("settings").hidden = true;
+    $("analyze").disabled = true;
+    $("download").disabled = true;
+    $("result").textContent = t("changed");
+  });
+  $("load-example").addEventListener("click", () => {
+    $("csv").value = "sample_id,group,batch,stage,age_days\nembryo-01,control,A,E8.5,8.5\nembryo-02,control,B,E8.5,8.6\nembryo-03,treated,A,E8.5,8.4\nembryo-04,treated,B,E8.5,8.7\nembryo-05,control,A,E9.5,9.5\nembryo-06,control,B,E9.5,9.4\nembryo-07,treated,A,E9.5,9.6\nembryo-08,treated,B,E9.5,9.5";
+    readColumns();
+  });
+  $("analyze").addEventListener("click", analyze);
+  $("download").addEventListener("click", () => {
+    if (!lastResult || !exportRows.length) return;
+    const csv = [t("headers"), ...exportRows].map((row) => row.map(csvCell).join(",")).join("\r\n") + "\r\n";
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    link.href = url;
+    link.download = t("downloadName");
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+  language.value = new URLSearchParams(location.search).get("lang") || "en";
+  if (!["en", "es", "zh-CN"].includes(language.value)) language.value = "en";
+  language.addEventListener("change", applyLanguage);
+  applyLanguage();
+  readColumns();
+})();
+</script>
+</body>
+</html>

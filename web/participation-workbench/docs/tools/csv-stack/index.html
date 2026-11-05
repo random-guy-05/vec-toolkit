@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Append two CSV tables with the same named columns, aligning by header and optionally keeping a source label.">
+  <title>CSV Row Stack &amp; Provenance Builder · VEC</title>
+  <link rel="stylesheet" href="../../assets/style.css">
+  <style>
+    .language,.actions{display:flex;gap:.5rem;flex-wrap:wrap;margin:1rem 0}
+    .language button[aria-pressed="true"]{outline:2px solid currentColor;outline-offset:2px}
+    .tables{display:grid;grid-template-columns:repeat(auto-fit,minmax(18rem,1fr));gap:1rem}
+    .tables textarea{width:100%}
+    .controls{display:flex;gap:1rem;flex-wrap:wrap}
+  </style>
+</head>
+<body><main class="wrap">
+  <header class="tool-head">
+    <nav><a href="../../" data-i="home">← Participation Workbench</a></nav>
+    <p class="eyebrow" data-i="eyebrow">DATA INTEGRATION · BROWSER-LOCAL</p>
+    <h1 data-i="title">CSV Row Stack &amp; Provenance Builder</h1>
+    <p class="lede" data-i="lede">Append two tables that have the same columns, even when their column order differs. Optionally add a source label to each output row.</p>
+    <p class="hint" data-i="privacy">Everything runs in this tab. Rows are not uploaded or saved; the combined file is created only when you download it.</p>
+    <div class="language" role="group" aria-label="Language">
+      <button type="button" data-lang="en" aria-pressed="true">English</button>
+      <button type="button" data-lang="es" aria-pressed="false">Español</button>
+      <button type="button" data-lang="zh" aria-pressed="false">简体中文</button>
+    </div>
+  </header>
+  <section class="panel">
+    <h2 data-i="inputs">Paste the tables to stack</h2>
+    <p data-i="hint">Each CSV may have up to 20,000 rows and 2 MB. Both tables need the same distinct column names; columns align by exact header name, not position.</p>
+    <div class="tables">
+      <div><label for="left" data-i="tableOne">Table 1 CSV</label>
+        <textarea id="left" rows="9" spellcheck="false">sample_id,stage,condition
+S01,Stage A,control
+S02,Stage B,treated</textarea>
+        <label for="labelOne" data-i="labelOne">Source label 1</label><input id="labelOne" value="part_1">
+      </div>
+      <div><label for="right" data-i="tableTwo">Table 2 CSV</label>
+        <textarea id="right" rows="9" spellcheck="false">condition,sample_id,stage
+control,S03,Stage A
+treated,S04,Stage B</textarea>
+        <label for="labelTwo" data-i="labelTwo">Source label 2</label><input id="labelTwo" value="part_2">
+      </div>
+    </div>
+    <div class="controls">
+      <label><input id="addSource" type="checkbox" checked> <span data-i="addSource">Add a source column</span></label>
+      <div><label for="sourceCol" data-i="sourceColumn">Source column name</label><input id="sourceCol" value="source_file"></div>
+    </div>
+    <div class="actions">
+      <button id="stack" type="button" data-i="stack">Stack rows</button>
+      <button id="example" class="secondary" type="button" data-i="example">Load example</button>
+      <button id="clear" class="secondary" type="button" data-i="clear">Clear</button>
+      <button id="download" class="secondary" type="button" disabled data-i="download">Download combined CSV</button>
+    </div>
+    <p id="status" class="hint" role="status" aria-live="polite" data-i="initial">Stack the example or paste your own two tables.</p>
+    <div id="results" class="output" aria-live="polite"></div>
+  </section>
+  <section class="panel">
+    <h2 data-i="limits">Scope and review</h2>
+    <ul>
+      <li data-i="limit1">This app appends rows; it does not join records by key or remove duplicates.</li>
+      <li data-i="limit2">Headers must match exactly after surrounding spaces are trimmed. It does not infer aliases, rename fields, or fill missing columns.</li>
+      <li data-i="limit3">Choose source labels that do not reveal private paths or people. If opened in a spreadsheet, review values that begin with formula characters.</li>
+      <li data-i="limit4">The preview shows at most 20 output rows. Review the full downloaded CSV and retain a backup of the inputs.</li>
+    </ul>
+  </section>
+</main>
+<script>
+(() => {
+  const $=id=>document.getElementById(id);
+  const EX1="sample_id,stage,condition\nS01,Stage A,control\nS02,Stage B,treated";
+  const EX2="condition,sample_id,stage\ncontrol,S03,Stage A\ntreated,S04,Stage B";
+  const L={
+    en:{home:"← Participation Workbench",eyebrow:"DATA INTEGRATION · BROWSER-LOCAL",title:"CSV Row Stack & Provenance Builder",lede:"Append two tables that have the same columns, even when their column order differs. Optionally add a source label to each output row.",privacy:"Everything runs in this tab. Rows are not uploaded or saved; the combined file is created only when you download it.",inputs:"Paste the tables to stack",hint:"Each CSV may have up to 20,000 rows and 2 MB. Both tables need the same distinct column names; columns align by exact header name, not position.",tableOne:"Table 1 CSV",tableTwo:"Table 2 CSV",labelOne:"Source label 1",labelTwo:"Source label 2",addSource:"Add a source column",sourceColumn:"Source column name",stack:"Stack rows",example:"Load example",clear:"Clear",download:"Download combined CSV",initial:"Stack the example or paste your own two tables.",limits:"Scope and review",limit1:"This app appends rows; it does not join records by key or remove duplicates.",limit2:"Headers must match exactly after surrounding spaces are trimmed. It does not infer aliases, rename fields, or fill missing columns.",limit3:"Choose source labels that do not reveal private paths or people. If opened in a spreadsheet, review values that begin with formula characters.",limit4:"The preview shows at most 20 output rows. Review the full downloaded CSV and retain a backup of the inputs.",lang:"Language",tooLarge:"Each table must be at most 2 MB and 20,000 data rows.",empty:"Each table needs a header and at least one data row.",headers:"The two tables need the same unique column names (case-sensitive).",badRow:"Record ",badShape:" has a different number of values from its header.",badSource:"Enter two non-empty source labels when adding a source column.",badSourceColumn:"Enter a non-empty source column name.",sourceCollision:"The source column name already exists in the table headers.",done:(a,b,n)=>a+" rows from Table 1 and "+b+" rows from Table 2 aligned by header; "+n+" output rows ready. Showing up to 20.",downloadFail:"Could not create the combined CSV.",cleared:"Cleared. Paste two tables to continue."},
+    es:{home:"← Banco de herramientas de participación",eyebrow:"INTEGRACIÓN DE DATOS · LOCAL EN EL NAVEGADOR",title:"Generador de apilado CSV y procedencia",lede:"Añade filas de dos tablas con las mismas columnas aunque estén en distinto orden. Puedes añadir una etiqueta de fuente a cada fila.",privacy:"Todo se ejecuta en esta pestaña. Las filas no se cargan ni guardan; el archivo combinado se crea solo al descargarlo.",inputs:"Pega las tablas que quieres apilar",hint:"Cada CSV admite hasta 20 000 filas y 2 MB. Ambas tablas necesitan los mismos nombres de columna únicos; se alinean por nombre exacto, no por posición.",tableOne:"CSV de la tabla 1",tableTwo:"CSV de la tabla 2",labelOne:"Etiqueta de fuente 1",labelTwo:"Etiqueta de fuente 2",addSource:"Añadir una columna de fuente",sourceColumn:"Nombre de la columna de fuente",stack:"Apilar filas",example:"Cargar ejemplo",clear:"Borrar",download:"Descargar CSV combinado",initial:"Apila el ejemplo o pega tus propias dos tablas.",limits:"Alcance y revisión",limit1:"La herramienta añade filas; no une registros por clave ni elimina duplicados.",limit2:"Los encabezados deben coincidir exactamente tras recortar espacios externos. No infiere alias, renombra campos ni completa columnas ausentes.",limit3:"Elige etiquetas de fuente que no revelen rutas privadas ni personas. Si abres el CSV en una hoja de cálculo, revisa los valores que empiezan con caracteres de fórmula.",limit4:"La vista previa muestra hasta 20 filas. Revisa el CSV completo y conserva una copia de las entradas.",lang:"Idioma",tooLarge:"Cada tabla debe tener como máximo 2 MB y 20 000 filas de datos.",empty:"Cada tabla necesita encabezado y al menos una fila de datos.",headers:"Las tablas deben tener los mismos nombres de columna únicos (distinguen mayúsculas).",badRow:"El registro ",badShape:" tiene distinto número de valores que el encabezado.",badSource:"Introduce dos etiquetas de fuente no vacías al añadir esa columna.",badSourceColumn:"Introduce un nombre no vacío para la columna de fuente.",sourceCollision:"El nombre de la columna de fuente ya existe en los encabezados.",done:(a,b,n)=>a+" filas de la tabla 1 y "+b+" de la tabla 2 alineadas por encabezado; "+n+" filas listas. Se muestran hasta 20.",downloadFail:"No se pudo crear el CSV combinado.",cleared:"Borrado. Pega dos tablas para continuar."},
+    zh:{home:"← 参与工作台",eyebrow:"数据整合 · 浏览器本地处理",title:"CSV 行堆叠与来源记录生成器",lede:"纵向追加具有相同列的两张表，即使列顺序不同也可按标题对齐。还可为每行添加来源标签，保留数据来源。",privacy:"所有操作均在此标签页完成。数据不会上传或保存；只有下载时才会生成合并文件。",inputs:"粘贴要堆叠的表格",hint:"每份 CSV 最多 20,000 行、2 MB。两张表必须具有相同且唯一的列名；按精确标题对齐，不按列位置对齐。",tableOne:"表格 1 CSV",tableTwo:"表格 2 CSV",labelOne:"来源标签 1",labelTwo:"来源标签 2",addSource:"添加来源列",sourceColumn:"来源列名称",stack:"堆叠行",example:"载入示例",clear:"清空",download:"下载合并 CSV",initial:"堆叠示例或粘贴自己的两张表。",limits:"范围与检查",limit1:"此工具纵向追加数据行；不会按键值连接记录，也不会删除重复行。",limit2:"去除标题首尾空格后，列名必须完全一致。本工具不会推测别名、重命名字段或补充缺列。",limit3:"来源标签请勿包含私有路径或人员身份。在电子表格中打开时，请检查以公式字符开头的值。",limit4:"预览最多显示 20 行。请检查完整下载文件并保留输入备份。",lang:"语言",tooLarge:"每张表最多 2 MB 和 20,000 行数据。",empty:"每张表都需要标题行和至少一行数据。",headers:"两张表的唯一列名必须完全一致（区分大小写）。",badRow:"记录 ",badShape:" 的值数量与标题列数不同。",badSource:"添加来源列时，请填写两个非空来源标签。",badSourceColumn:"请填写非空的来源列名称。",sourceCollision:"来源列名称已存在于表格标题中。",done:(a,b,n)=>"表 1 的 "+a+" 行与表 2 的 "+b+" 行已按标题对齐，共 "+n+" 行。最多显示 20 行。",downloadFail:"无法创建合并 CSV。",cleared:"已清空。请粘贴两张表以继续。"}
+  };
+  const params=new URLSearchParams(location.search);
+  let lang=params.get("lang")==="es"?"es":params.get("lang")==="zh"?"zh":"en",outputRows=null;
+  function apply(){const d=L[lang];document.documentElement.lang=lang==="zh"?"zh-CN":lang;document.querySelectorAll("[data-i]").forEach(e=>{if(d[e.dataset.i])e.textContent=d[e.dataset.i];});document.querySelector(".language").setAttribute("aria-label",d.lang);document.querySelectorAll("[data-lang]").forEach(e=>e.setAttribute("aria-pressed",String(e.dataset.lang===lang)));if(outputRows)stack();else $("status").textContent=d.initial;}
+  document.querySelectorAll("[data-lang]").forEach(e=>e.addEventListener("click",()=>{lang=e.dataset.lang;params.set("lang",lang);history.replaceState(null,"",location.pathname+"?"+params.toString());apply();}));
+  function parse(text){
+    if(new Blob([text]).size>2*1024*1024||text.split(/\r?\n/).length>20001)throw new Error(L[lang].tooLarge);
+    const rows=[];let row=[],field="",quoted=false,after=false;
+    for(let i=0;i<text.length;i++){const c=text[i];if(quoted){if(c==='"'&&text[i+1]==='"'){field+='"';i++;}else if(c==='"'){quoted=false;after=true;}else field+=c;}else if(after){if(c===","){row.push(field);field="";after=false;}else if(c==="\n"){row.push(field);if(row.some(v=>v.trim()))rows.push(row);row=[];field="";after=false;}else if(c==="\r"||c===" "||c==="\t"){}else throw new Error(L[lang].headers);}else if(c==='"'&&field.trim()===""){field="";quoted=true;}else if(c===","){row.push(field);field="";}else if(c==="\n"){row.push(field.replace(/\r$/,""));if(row.some(v=>v.trim()))rows.push(row);row=[];field="";}else field+=c;}
+    if(quoted)throw new Error(L[lang].headers);row.push(field.replace(/\r$/,""));if(row.some(v=>v.trim()))rows.push(row);
+    if(rows.length<2)throw new Error(L[lang].empty);if(rows.length>20001)throw new Error(L[lang].tooLarge);
+    const headers=rows.shift().map(x=>x.trim()),seen=new Set();
+    for(const h of headers){const k=h.toLowerCase();if(!h||seen.has(k))throw new Error(L[lang].headers);seen.add(k);}
+    rows.forEach((r,i)=>{if(r.length!==headers.length)throw new Error(L[lang].badRow+(i+2)+L[lang].badShape);});
+    return {headers,rows};
+  }
+  function stack(){
+    const d=L[lang];
+    try{
+      const a=parse($("left").value),b=parse($("right").value);
+      if(a.headers.length!==b.headers.length||a.headers.some(h=>!b.headers.includes(h)))throw new Error(d.headers);
+      const include=$("addSource").checked,col=$("sourceCol").value.trim(),labels=[$("labelOne").value.trim(),$("labelTwo").value.trim()];
+      if(include&&(!labels[0]||!labels[1]))throw new Error(d.badSource);
+      if(include&&!col)throw new Error(d.badSourceColumn);
+      if(include&&a.headers.some(h=>h.toLowerCase()===col.toLowerCase()))throw new Error(d.sourceCollision);
+      const order=b.headers.map(h=>b.headers.indexOf(h)),header=include?[...a.headers,col]:a.headers;
+      outputRows=[header,...a.rows.map(r=>include?[...r,labels[0]]:r),...b.rows.map(r=>{const aligned=order.map(i=>r[i]);return include?[...aligned,labels[1]]:aligned;})];
+      const total=a.rows.length+b.rows.length;
+      $("status").textContent=d.done(a.rows.length,b.rows.length,total);$("download").disabled=false;render();
+    }catch(e){outputRows=null;$("results").replaceChildren();$("download").disabled=true;$("status").textContent=e instanceof Error?e.message:String(e);}
+  }
+  function render(){
+    const root=$("results");root.replaceChildren();if(!outputRows)return;
+    const table=document.createElement("table"),head=document.createElement("thead"),tr=document.createElement("tr");
+    outputRows[0].forEach(v=>{const th=document.createElement("th");th.scope="col";th.textContent=v;tr.appendChild(th);});head.appendChild(tr);table.appendChild(head);
+    const body=document.createElement("tbody");outputRows.slice(1,21).forEach(row=>{const tr=document.createElement("tr");row.forEach(v=>{const td=document.createElement("td");td.textContent=v;tr.appendChild(td);});body.appendChild(tr);});table.appendChild(body);root.appendChild(table);
+  }
+  function download(){if(!outputRows)return;const d=L[lang],csv=outputRows.map(row=>row.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(",")).join("\r\n")+"\r\n";try{const url=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"})),a=document.createElement("a");a.href=url;a.download="vec-stacked-table.csv";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}catch(e){$("status").textContent=d.downloadFail;}}
+  $("stack").addEventListener("click",stack);$("download").addEventListener("click",download);
+  $("example").addEventListener("click",()=>{$("left").value=EX1;$("right").value=EX2;$("labelOne").value="part_1";$("labelTwo").value="part_2";$("sourceCol").value="source_file";$("addSource").checked=true;stack();});
+  $("clear").addEventListener("click",()=>{$("left").value="";$("right").value="";outputRows=null;$("results").replaceChildren();$("download").disabled=true;$("status").textContent=L[lang].cleared;});
+  for(const id of ["left","right","labelOne","labelTwo","sourceCol","addSource"])$(id).addEventListener("input",()=>{outputRows=null;$("results").replaceChildren();$("download").disabled=true;$("status").textContent=L[lang].initial;});
+  apply();
+})();
+</script>
+</main></body>
+</html>

@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Compare Poisson and negative-binomial count distributions with the same mean but different variance and zero frequency.">
+  <title>Count Dispersion Explorer · VEC</title>
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<main class="wrap">
+  <header class="tool-head">
+    <nav><a href="../../">← Participation Workbench</a> · <a href="https://virtualembryo.ai/challenge/data">Official data page</a> · <a href="https://virtualembryo.ai/challenge/resources">Community resources</a></nav>
+    <p class="eyebrow">Single-cell counts · synthetic demonstration</p>
+    <h1>Count Dispersion Explorer</h1>
+    <p class="lede">Compare Poisson and negative-binomial counts with the same expected mean. See how a dispersion parameter changes the variance and the fraction of zeros in sparse data.</p>
+  </header>
+  <section class="panel">
+    <h2>Set the synthetic distribution</h2>
+    <div class="cols">
+      <div><label for="mean">Expected count mean (2–100)</label><input id="mean" type="number" min="2" max="100" step="1" value="20"></div>
+      <div><label for="size">Negative-binomial size / shape (1–100)</label><input id="size" type="number" min="1" max="100" step="any" value="4"></div>
+      <div><label for="n">Draws per distribution (500–5,000)</label><input id="n" type="number" min="500" max="5000" step="100" value="2000"></div>
+      <div><label for="seed">Seed</label><input id="seed" type="number" min="0" max="4294967295" value="19"></div>
+    </div>
+    <div class="inline"><button id="simulate" type="button">Simulate counts</button><button id="download" class="secondary" type="button" disabled>Download synthetic draws</button></div>
+    <div id="summary" class="output" aria-live="polite">Run the simulation to compare the expected and observed mean, variance, and zero fraction.</div>
+    <div class="table-wrap"><canvas id="chart" width="900" height="380" role="img" aria-label="Relative frequency histogram comparing synthetic Poisson and negative-binomial counts"></canvas></div>
+  </section>
+  <section class="panel">
+    <h2>Modeling notes</h2>
+    <p>For the Poisson distribution, variance equals the mean. This negative-binomial parameterization has variance <code>mean + mean² / size</code>; smaller size produces greater overdispersion. Both simulated distributions use the same mean.</p>
+    <p>This illustrates a distributional choice, not a fitting procedure or evidence that one model suits a dataset. Use raw integer counts for count-model assumptions; transformations, normalization, and sampling design change the interpretation.</p>
+    <p class="hint">The draws are synthetic and stay in this browser. They are not VEC data, predictions, or scoring inputs. Follow the official data schema for the expression scale in any Challenge task.</p>
+  </section>
+  <footer class="foot"><a href="../../simulations/log-compression/">Log-Transform Compression Explorer</a> · <a href="../../tools/cell-qc/">Single-Cell QC Threshold Explorer</a> · <a href="https://virtualembryo.ai/challenge/data">Current data schema</a></footer>
+</main>
+<script>
+(() => {
+  const $=id=>document.getElementById(id);let draws=[];
+  function prng(seed){let t=seed>>>0;return()=>{t+=0x6D2B79F5;let x=t;x=Math.imul(x^(x>>>15),x|1);x^=x+Math.imul(x^(x>>>7),x|61);return((x^(x>>>14))>>>0)/4294967296;};}
+  function poisson(mu,r){const limit=Math.exp(-mu),u=r();let p=limit,c=p,k=0;while(u>c&&k<10000){k++;p*=mu/k;c+=p;}return k;}
+  function negativeBinomial(mu,size,r){const p=size/(size+mu),u=r();let prob=Math.pow(p,size),c=prob,k=0;while(u>c&&k<10000){k++;prob*=((k-1+size)/k)*(1-p);c+=prob;}return k;}
+  function stats(x){const mean=x.reduce((s,v)=>s+v,0)/x.length,variance=x.reduce((s,v)=>s+(v-mean)**2,0)/x.length,zeros=x.filter(v=>v===0).length/x.length;return{mean,variance,zeros};}
+  function chart(a,b){const canvas=$("chart"),ctx=canvas.getContext("2d"),w=canvas.width,h=canvas.height;ctx.clearRect(0,0,w,h);const max=Math.max(...a,...b),bins=32,step=Math.max(max/bins,1),hist=x=>{const v=Array(bins).fill(0);for(const n of x)v[Math.min(bins-1,Math.floor(n/step))]++;return v.map(k=>k/x.length);},ha=hist(a),hb=hist(b),top=Math.max(...ha,...hb)*1.12;ctx.strokeStyle="#8994a0";ctx.beginPath();ctx.moveTo(55,24);ctx.lineTo(55,h-45);ctx.lineTo(w-25,h-45);ctx.stroke();ctx.fillStyle="#202833";ctx.font="16px system-ui";ctx.fillText("Relative frequency",12,18);ctx.fillText("Count (bins of approximately "+Math.ceil(step)+")",w/2-100,h-10);ctx.font="12px system-ui";for(let i=0;i<bins;i++){const x=55+i*(w-85)/bins,bw=(w-85)/bins*.38;ctx.fillStyle="#227a74";ctx.fillRect(x,h-45-ha[i]/top*(h-90),bw,ha[i]/top*(h-90));ctx.fillStyle="#b14c74";ctx.fillRect(x+bw+2,h-45-hb[i]/top*(h-90),bw,hb[i]/top*(h-90));}ctx.fillStyle="#227a74";ctx.fillRect(w-225,22,12,12);ctx.fillStyle="#202833";ctx.fillText("Poisson",w-205,33);ctx.fillStyle="#b14c74";ctx.fillRect(w-135,22,12,12);ctx.fillStyle="#202833";ctx.fillText("Negative binomial",w-117,33);}
+  function run(){const mu=Number($("mean").value),size=Number($("size").value),n=Number($("n").value),seed=Number($("seed").value),out=$("summary");if(!Number.isFinite(mu)||mu<2||mu>100||!Number.isFinite(size)||size<1||size>100||!Number.isInteger(n)||n<500||n>5000||!Number.isInteger(seed)||seed<0||seed>4294967295){out.textContent="Use mean 2–100, size 1–100, 500–5,000 draws, and a valid integer seed.";return;}const r=prng(seed),p=[],nb=[];for(let i=0;i<n;i++){p.push(poisson(mu,r));nb.push(negativeBinomial(mu,size,r));}draws=p.map((v,i)=>({draw:i+1,poisson:v,negative_binomial:nb[i]}));const s1=stats(p),s2=stats(nb),expected=mu+mu*mu/size;chart(p,nb);out.innerHTML=`<div class="table-wrap"><table><thead><tr><th>Distribution</th><th>Expected mean</th><th>Observed mean</th><th>Expected variance</th><th>Observed variance</th><th>Observed zero fraction</th></tr></thead><tbody><tr><td>Poisson</td><td>${mu.toFixed(2)}</td><td>${s1.mean.toFixed(2)}</td><td>${mu.toFixed(2)}</td><td>${s1.variance.toFixed(2)}</td><td>${(100*s1.zeros).toFixed(1)}%</td></tr><tr><td>Negative binomial</td><td>${mu.toFixed(2)}</td><td>${s2.mean.toFixed(2)}</td><td>${expected.toFixed(2)}</td><td>${s2.variance.toFixed(2)}</td><td>${(100*s2.zeros).toFixed(1)}%</td></tr></tbody></table></div><p class="hint">${n.toLocaleString()} independent draws per distribution · seed ${seed}. Finite simulations fluctuate around theoretical moments.</p>`;$("download").disabled=false;}
+  $("simulate").addEventListener("click",run);$("download").addEventListener("click",()=>{const content=[["draw","poisson_count","negative_binomial_count"],...draws.map(x=>[x.draw,x.poisson,x.negative_binomial])].map(r=>r.join(",")).join("\r\n"),url=URL.createObjectURL(new Blob([content],{type:"text/csv;charset=utf-8"})),a=document.createElement("a");a.href=url;a.download="vec-count-dispersion-synthetic-draws.csv";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});run();
+})();
+</script>
+</body>
+</html>

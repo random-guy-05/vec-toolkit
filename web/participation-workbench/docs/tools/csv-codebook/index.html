@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Create a browser-local data dictionary from a pasted CSV sample without including raw cell values in the export.">
+  <title>CSV Codebook Builder · VEC</title>
+  <link rel="stylesheet" href="../../assets/style.css">
+  <style>
+    .language { display:flex; gap:.5rem; flex-wrap:wrap; margin:1rem 0; }
+    .language button[aria-pressed="true"] { outline:2px solid currentColor; outline-offset:2px; }
+    .wide { width:100%; min-width:14rem; }
+    .numeric { font-variant-numeric:tabular-nums; }
+    .actions { display:flex; gap:.5rem; flex-wrap:wrap; margin:1rem 0; }
+    .results table input { max-width:32rem; min-width:12rem; }
+    .notice { border-left:4px solid #64748b; padding:.5rem 1rem; }
+  </style>
+</head>
+<body>
+<main class="wrap">
+  <header class="tool-head">
+    <nav><a href="../../" data-i="home">← Participation Workbench</a> · <a href="https://virtualembryo.ai/challenge/data" data-i="official">Official data notes</a></nav>
+    <p class="eyebrow" data-i="eyebrow">DATA DOCUMENTATION · BROWSER-LOCAL</p>
+    <h1 data-i="title">CSV Codebook Builder</h1>
+    <p class="lede" data-i="lede">Turn a small CSV sample into a shareable data dictionary: column names, likely value types, missingness, distinct counts, and your own descriptions.</p>
+    <p class="hint" data-i="privacy">Analysis happens in this page. Raw values are never included in the exported dictionary. Nothing is uploaded or saved by this tool.</p>
+    <div class="language" role="group" aria-label="Language">
+      <button type="button" data-lang="en" aria-pressed="true">English</button>
+      <button type="button" data-lang="es" aria-pressed="false">Español</button>
+      <button type="button" data-lang="zh" aria-pressed="false">简体中文</button>
+    </div>
+  </header>
+
+  <section class="panel">
+    <h2 data-i="pasteTitle">Paste a CSV sample</h2>
+    <p data-i="pasteHint">Include a header row and up to 50,000 data rows. Use a representative, non-sensitive sample; summary counts describe only the rows pasted here.</p>
+    <label for="csv" data-i="csvLabel">CSV text</label>
+    <textarea class="wide" id="csv" rows="12" spellcheck="false" autocapitalize="off" autocomplete="off">sample_id,stage,condition,cell_count,review_note
+S01,E8.5,control,142,example only
+S02,E8.5,treated,118,example only
+S03,E9.5,control,203,example only
+S04,E9.5,treated,,example only</textarea>
+    <div class="actions">
+      <button id="analyze" type="button" data-i="analyze">Build codebook</button>
+      <button id="example" type="button" class="secondary" data-i="example">Load example</button>
+      <button id="clear" type="button" class="secondary" data-i="clear">Clear</button>
+      <button id="md" type="button" class="secondary" disabled data-i="downloadMd">Download Markdown</button>
+      <button id="csvOut" type="button" class="secondary" disabled data-i="downloadCsv">Download dictionary CSV</button>
+    </div>
+    <p id="status" class="hint" role="status" aria-live="polite" data-i="initial">Paste a CSV sample or load the example to begin.</p>
+    <div id="results" class="results output" aria-live="polite"></div>
+  </section>
+
+  <section class="panel">
+    <h2 data-i="limitsTitle">How to use the result</h2>
+    <ul>
+      <li data-i="limit1">Detected types are simple heuristics over non-empty values. They do not validate scientific meaning, units, or an official submission schema.</li>
+      <li data-i="limit2">Distinct counts and missingness describe the pasted rows only; they may differ from the full dataset.</li>
+      <li data-i="limit3">No example values are exported, which reduces accidental disclosure but also means this codebook cannot demonstrate value conventions.</li>
+      <li data-i="limit4">Review column descriptions and remove identifiers or confidential notes before sharing an exported dictionary.</li>
+    </ul>
+    <p class="notice" data-i="scope">This is a lightweight documentation aid, not a data-quality certification or Challenge validator. Check current official data and task guidance before relying on a schema.</p>
+  </section>
+  <footer class="foot"><a href="https://virtualembryo.ai/challenge/data" data-i="official2">Official data page</a> · <a href="https://virtualembryo.ai/challenge/resources" data-i="resources">Community resources</a></footer>
+</main>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const EXAMPLE = "sample_id,stage,condition,cell_count,review_note\nS01,E8.5,control,142,example only\nS02,E8.5,treated,118,example only\nS03,E9.5,control,203,example only\nS04,E9.5,treated,,example only";
+  const L = {
+    en: {
+      home:"← Participation Workbench",official:"Official data notes",eyebrow:"DATA DOCUMENTATION · BROWSER-LOCAL",title:"CSV Codebook Builder",lede:"Turn a small CSV sample into a shareable data dictionary: column names, likely value types, missingness, distinct counts, and your own descriptions.",privacy:"Analysis happens in this page. Raw values are never included in the exported dictionary. Nothing is uploaded or saved by this tool.",pasteTitle:"Paste a CSV sample",pasteHint:"Include a header row and up to 50,000 data rows. Use a representative, non-sensitive sample; summary counts describe only the rows pasted here.",csvLabel:"CSV text",analyze:"Build codebook",example:"Load example",clear:"Clear",downloadMd:"Download Markdown",downloadCsv:"Download dictionary CSV",initial:"Paste a CSV sample or load the example to begin.",limitsTitle:"How to use the result",limit1:"Detected types are simple heuristics over non-empty values. They do not validate scientific meaning, units, or an official submission schema.",limit2:"Distinct counts and missingness describe the pasted rows only; they may differ from the full dataset.",limit3:"No example values are exported, which reduces accidental disclosure but also means this codebook cannot demonstrate value conventions.",limit4:"Review column descriptions and remove identifiers or confidential notes before sharing an exported dictionary.",scope:"This is a lightweight documentation aid, not a data-quality certification or Challenge validator. Check current official data and task guidance before relying on a schema.",official2:"Official data page",resources:"Community resources",cols:["Column","Likely type","Rows","Non-empty","Missing","Missing %","Distinct","Description (you write)"],summary:(r,c)=>`${r.toLocaleString()} pasted data rows · ${c} columns. Raw cell values are excluded from the exports.`,type:{integer:"integer",number:"number",boolean:"boolean-like",date:"date-like",text:"text / mixed",empty:"all empty"},err:{empty:"Paste a CSV header and at least one data row.",quote:"CSV has an unclosed quoted field.",trailing:"Unexpected character after a closing quote near record ",size:"The paste is over the 5 MB limit.",rows:"The paste has more than 50,000 data rows.",cols:"The CSV has more than 500 columns.",header:"Column names must be non-empty.",duplicate:"Duplicate column name (case-insensitive): ",width:"Record ",width2:" has a different number of fields from the header.",parse:"Could not parse this CSV: "},done:"Codebook ready. Add descriptions if useful, then download and review the dictionary before sharing.",cleared:"Cleared. Paste a CSV sample or load the example to begin.",mdTitle:"CSV data dictionary",rowsLabel:"Pasted data rows",note:"Scope: describes only the pasted sample. Types are heuristic; no values or source rows are included.",downloadName:"vec-csv-codebook",describe:"Optional description",langLabel:"Language",saveFail:"The download could not be created in this browser."
+    },
+    es: {
+      home:"← Banco de herramientas de participación",official:"Notas oficiales de datos",eyebrow:"DOCUMENTACIÓN DE DATOS · LOCAL EN EL NAVEGADOR",title:"Generador de diccionario CSV",lede:"Convierte una pequeña muestra CSV en un diccionario de datos para compartir: nombres de columnas, tipos probables, valores ausentes, recuentos distintos y descripciones propias.",privacy:"El análisis ocurre en esta página. Los valores originales no se incluyen en el diccionario exportado. Esta herramienta no carga ni guarda datos.",pasteTitle:"Pega una muestra CSV",pasteHint:"Incluye una fila de encabezados y hasta 50 000 filas de datos. Usa una muestra representativa y no sensible; los recuentos describen solo las filas pegadas aquí.",csvLabel:"Texto CSV",analyze:"Crear diccionario",example:"Cargar ejemplo",clear:"Borrar",downloadMd:"Descargar Markdown",downloadCsv:"Descargar CSV del diccionario",initial:"Pega una muestra CSV o carga el ejemplo para empezar.",limitsTitle:"Cómo usar el resultado",limit1:"Los tipos detectados son heurísticas sencillas sobre los valores no vacíos. No validan el significado científico, las unidades ni un esquema oficial de envío.",limit2:"Los recuentos distintos y de valores ausentes describen solo las filas pegadas; pueden diferir del conjunto completo.",limit3:"No se exportan valores de ejemplo. Esto reduce divulgaciones accidentales, pero el diccionario tampoco muestra las convenciones de valores.",limit4:"Revisa las descripciones y elimina identificadores o notas confidenciales antes de compartir el diccionario exportado.",scope:"Es una ayuda ligera de documentación, no una certificación de calidad de datos ni un validador del Challenge. Consulta las instrucciones oficiales actuales antes de depender de un esquema.",official2:"Página oficial de datos",resources:"Recursos de la comunidad",cols:["Columna","Tipo probable","Filas","No vacías","Ausentes","% ausentes","Distintos","Descripción (escrita por ti)"],summary:(r,c)=>`${r.toLocaleString()} filas de datos pegadas · ${c} columnas. Los valores originales se excluyen de las exportaciones.`,type:{integer:"entero",number:"número",boolean:"tipo booleano",date:"tipo fecha",text:"texto / mixto",empty:"todo vacío"},err:{empty:"Pega un encabezado CSV y al menos una fila de datos.",quote:"El CSV tiene un campo entre comillas sin cerrar.",trailing:"Carácter inesperado tras una comilla de cierre, cerca del registro ",size:"El texto pegado supera el límite de 5 MB.",rows:"El CSV tiene más de 50 000 filas de datos.",cols:"El CSV tiene más de 500 columnas.",header:"Los nombres de columnas no pueden estar vacíos.",duplicate:"Nombre de columna duplicado (sin distinguir mayúsculas): ",width:"El registro ",width2:" tiene distinto número de campos que el encabezado.",parse:"No se pudo analizar este CSV: "},done:"Diccionario listo. Añade descripciones si sirven; luego descárgalo y revísalo antes de compartir.",cleared:"Borrado. Pega una muestra CSV o carga el ejemplo para empezar.",mdTitle:"Diccionario de datos CSV",rowsLabel:"Filas de datos pegadas",note:"Alcance: describe solo la muestra pegada. Los tipos son heurísticos; no se incluyen valores ni filas de origen.",downloadName:"vec-diccionario-csv",describe:"Descripción opcional",langLabel:"Idioma",saveFail:"No se pudo crear la descarga en este navegador."
+    },
+    zh: {
+      home:"← 参与工作台",official:"官方数据说明",eyebrow:"数据文档 · 浏览器本地处理",title:"CSV 数据字典生成器",lede:"将小段 CSV 样本整理成可分享的数据字典：列名、推测类型、缺失情况、不同值数量，以及你撰写的说明。",privacy:"分析在此页面内完成。导出的字典不包含原始单元格值。本工具不会上传或保存数据。",pasteTitle:"粘贴 CSV 样本",pasteHint:"请包含标题行，最多 50,000 行数据。使用有代表性且不敏感的样本；汇总只描述此处粘贴的行。",csvLabel:"CSV 文本",analyze:"生成字典",example:"载入示例",clear:"清空",downloadMd:"下载 Markdown",downloadCsv:"下载字典 CSV",initial:"粘贴 CSV 样本或载入示例以开始。",limitsTitle:"如何使用结果",limit1:"类型检测是针对非空值的简单启发式判断；不验证科学含义、单位或官方提交格式。",limit2:"不同值数量和缺失情况只描述粘贴的行，可能与完整数据集不同。",limit3:"导出中不含示例值，可减少意外披露，但字典也无法展示值的具体约定。",limit4:"分享导出的字典前，请检查列说明，并移除标识符或机密备注。",scope:"这是轻量级文档工具，不是数据质量认证或 Challenge 验证器。依赖数据格式前，请查看最新官方数据和任务说明。",official2:"官方数据页面",resources:"社区资源",cols:["列","推测类型","行数","非空","缺失","缺失 %","不同值","说明（由你撰写）"],summary:(r,c)=>`${r.toLocaleString()} 行粘贴数据 · ${c} 列。导出内容不包含原始单元格值。`,type:{integer:"整数",number:"数值",boolean:"布尔型",date:"日期型",text:"文本 / 混合",empty:"全部为空"},err:{empty:"请粘贴 CSV 标题行和至少一行数据。",quote:"CSV 中有未闭合的引号字段。",trailing:"闭合引号后出现意外字符，记录位置：",size:"粘贴内容超过 5 MB 限制。",rows:"CSV 超过 50,000 行数据。",cols:"CSV 超过 500 列。",header:"列名不能为空。",duplicate:"列名重复（不区分大小写）：",width:"记录 ",width2:" 的字段数量与标题行不同。",parse:"无法解析此 CSV："},done:"字典已生成。可补充说明；下载后请先检查，再分享。",cleared:"已清空。请粘贴 CSV 样本或载入示例。",mdTitle:"CSV 数据字典",rowsLabel:"粘贴的数据行",note:"范围：仅描述粘贴的样本。类型为启发式判断；不包含原始值或源数据行。",downloadName:"vec-csv-codebook",describe:"可选说明",langLabel:"语言",saveFail:"此浏览器无法创建下载文件。"
+    }
+  };
+  const params=new URLSearchParams(location.search);
+  let lang=params.get("lang")==="es"?"es":params.get("lang")==="zh"?"zh":"en";
+  let report=null;
+  function text(id,value){const el=$(id);if(el)el.textContent=value;}
+  function applyLanguage(){
+    const d=L[lang];document.documentElement.lang=lang==="zh"?"zh-CN":lang;
+    document.querySelectorAll("[data-i]").forEach(el=>{const key=el.dataset.i;if(d[key])el.textContent=d[key];});
+    document.querySelectorAll("[data-lang]").forEach(el=>el.setAttribute("aria-pressed",String(el.dataset.lang===lang)));
+    const group=document.querySelector(".language");if(group)group.setAttribute("aria-label",d.langLabel);
+    if(report)renderReport();
+  }
+  document.querySelectorAll("[data-lang]").forEach(el=>el.addEventListener("click",()=>{
+    lang=el.dataset.lang;params.set("lang",lang);history.replaceState(null,"",location.pathname+"?"+params.toString());applyLanguage();
+  }));
+  function parseCSV(source){
+    if(new Blob([source]).size>5*1024*1024)throw new Error(L[lang].err.size);
+    const rows=[];let row=[],field="",quoted=false,afterQuote=false;
+    for(let i=0;i<source.length;i++){
+      const ch=source[i];
+      if(quoted){
+        if(ch==='"'&&source[i+1]==='"'){field+='"';i++;}
+        else if(ch==='"'){quoted=false;afterQuote=true;}
+        else field+=ch;
+      } else if(afterQuote){
+        if(ch===","){row.push(field);field="";afterQuote=false;}
+        else if(ch==="\n"){row.push(field);if(row.some(v=>v.trim()))rows.push(row);row=[];field="";afterQuote=false;}
+        else if(ch==="\r"){}
+        else if(ch===" "||ch==="\t"){}
+        else throw new Error(L[lang].err.trailing+(rows.length+1)+".");
+      } else if(ch==='"'&&field.trim()===""){field="";quoted=true;}
+      else if(ch===","){row.push(field);field="";}
+      else if(ch==="\n"){row.push(field.replace(/\r$/,""));if(row.some(v=>v.trim()))rows.push(row);row=[];field="";}
+      else field+=ch;
+      if(rows.length>50001)throw new Error(L[lang].err.rows);
+    }
+    if(quoted)throw new Error(L[lang].err.quote);
+    row.push(field.replace(/\r$/,""));if(row.some(v=>v.trim()))rows.push(row);
+    if(rows.length<2)throw new Error(L[lang].err.empty);
+    if(rows.length-1>50000)throw new Error(L[lang].err.rows);
+    const headers=rows.shift().map(v=>v.trim());
+    if(headers.length>500)throw new Error(L[lang].err.cols);
+    if(headers.some(v=>!v))throw new Error(L[lang].err.header);
+    const seen=new Set();for(const h of headers){const k=h.toLocaleLowerCase();if(seen.has(k))throw new Error(L[lang].err.duplicate+h);seen.add(k);}
+    rows.forEach((values,i)=>{if(values.length!==headers.length)throw new Error(L[lang].err.width+(i+2)+L[lang].err.width2);});
+    return {headers,rows};
+  }
+  function guess(values){
+    const v=values.filter(x=>x.trim()!=="");if(!v.length)return "empty";
+    if(v.every(x=>/^(true|false|yes|no)$/i.test(x.trim())))return "boolean";
+    if(v.every(x=>/^\d{4}-\d{2}-\d{2}(?:[T ]\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:?\d{2})?)?$/.test(x.trim())))return "date";
+    if(v.every(x=>/^[+-]?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?$/i.test(x.trim())))return v.every(x=>/^[+-]?\d+$/.test(x.trim()))?"integer":"number";
+    return "text";
+  }
+  function analyze(){
+    try{
+      const {headers,rows}=parseCSV($("csv").value);
+      report={headers,details:headers.map((name,i)=>{
+        const values=rows.map(r=>r[i]),present=values.filter(v=>v.trim()!==""),unique=new Set(present).size;
+        return {name,type:guess(values),rows:rows.length,present:present.length,missing:rows.length-present.length,missingPct:rows.length?100*(rows.length-present.length)/rows.length:0,unique,description:""};
+      })};
+      renderReport();
+      $("status").textContent=L[lang].done;
+      $("md").disabled=false;$("csvOut").disabled=false;
+    }catch(e){report=null;$("results").replaceChildren();$("status").textContent=(e instanceof Error?e.message:L[lang].err.parse+String(e));$("md").disabled=true;$("csvOut").disabled=true;}
+  }
+  function renderReport(){
+    if(!report)return;
+    const d=L[lang],out=$("results");out.replaceChildren();
+    const summary=document.createElement("p");summary.textContent=d.summary(report.details[0].rows,report.details.length);out.appendChild(summary);
+    const table=document.createElement("table"),thead=document.createElement("thead"),tr=document.createElement("tr");
+    d.cols.forEach(h=>{const th=document.createElement("th");th.scope="col";th.textContent=h;tr.appendChild(th);});thead.appendChild(tr);table.appendChild(thead);
+    const tbody=document.createElement("tbody");
+    report.details.forEach((item,index)=>{
+      const row=document.createElement("tr");
+      [item.name,d.type[item.type],item.rows.toLocaleString(),item.present.toLocaleString(),item.missing.toLocaleString(),item.missingPct.toFixed(1)+"%",item.unique.toLocaleString()].forEach(value=>{const td=document.createElement("td");td.textContent=value;row.appendChild(td);});
+      const td=document.createElement("td"),input=document.createElement("input");input.type="text";input.maxLength=300;input.placeholder=d.describe;input.value=item.description;input.setAttribute("aria-label",`${item.name}: ${d.describe}`);input.addEventListener("input",()=>{item.description=input.value;});td.appendChild(input);row.appendChild(td);tbody.appendChild(row);
+    });
+    table.appendChild(tbody);out.appendChild(table);
+    const note=document.createElement("p");note.className="hint";note.textContent=d.note;out.appendChild(note);
+  }
+  function quoteCSV(s){return '"'+String(s).replace(/"/g,'""')+'"';}
+  function save(name,content,mime){
+    try{const url=URL.createObjectURL(new Blob([content],{type:mime})),a=document.createElement("a");a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+    catch(e){$("status").textContent=L[lang].saveFail;}
+  }
+  function exportCSV(){
+    if(!report)return;
+    const d=L[lang],head=d.cols.slice(0,7).concat(d.cols[7]);
+    const rows=report.details.map(x=>[x.name,d.type[x.type],x.rows,x.present,x.missing,x.missingPct.toFixed(1)+"%",x.unique,x.description]);
+    save(d.downloadName+".csv",[head,...rows].map(r=>r.map(quoteCSV).join(",")).join("\r\n")+"\r\n","text/csv;charset=utf-8");
+  }
+  function mdEscape(s){return String(s).replace(/\|/g,"\\|").replace(/[\r\n]+/g," ");}
+  function exportMarkdown(){
+    if(!report)return;
+    const d=L[lang],head=d.cols;
+    const lines=["# "+d.mdTitle,"",d.rowsLabel+": "+report.details[0].rows.toLocaleString(),"",d.note,"","| "+head.map(mdEscape).join(" | ")+" |","| "+head.map(()=>"---").join(" | ")+" |"];
+    report.details.forEach(x=>lines.push("| "+[x.name,d.type[x.type],x.rows,x.present,x.missing,x.missingPct.toFixed(1)+"%",x.unique,x.description].map(mdEscape).join(" | ")+" |"));
+    save(d.downloadName+".md",lines.join("\n")+"\n","text/markdown;charset=utf-8");
+  }
+  $("analyze").addEventListener("click",analyze);
+  $("example").addEventListener("click",()=>{$("csv").value=EXAMPLE;analyze();});
+  $("clear").addEventListener("click",()=>{$("csv").value="";report=null;$("results").replaceChildren();$("status").textContent=L[lang].cleared;$("md").disabled=true;$("csvOut").disabled=true;});
+  $("md").addEventListener("click",exportMarkdown);$("csvOut").addEventListener("click",exportCSV);
+  applyLanguage();
+})();
+</script>
+</body>
+</html>

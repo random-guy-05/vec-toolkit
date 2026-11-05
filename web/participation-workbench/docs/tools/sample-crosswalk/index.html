@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Audit sample identifiers and cell-to-sample assignments before joining single-cell data with sample metadata.">
+  <title>Sample-to-Cell Crosswalk Auditor · VEC</title>
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<main class="wrap">
+  <header class="tool-head">
+    <nav><a href="../../">← Participation Workbench</a> · <a href="https://virtualembryo.ai/challenge/data">Official data page</a> · <a href="https://virtualembryo.ai/challenge/rules">Current rules</a></nav>
+    <p class="eyebrow">Data integration · browser-local</p>
+    <h1>Sample-to-Cell Crosswalk Auditor</h1>
+    <p class="lede">Check whether a sample manifest and a cell assignment table can be joined cleanly before aggregating expression or comparing groups.</p>
+  </header>
+  <section class="panel">
+    <h2>1. Paste the sample manifest</h2>
+    <p>Use one row per sample, with a stable sample identifier and any metadata columns you want to carry into the output.</p>
+    <label for="manifest">Sample manifest CSV</label>
+    <textarea id="manifest" rows="7" spellcheck="false" placeholder="sample_id,stage,condition&#10;sample_A,E8.5,control&#10;sample_B,E8.5,treated"></textarea>
+    <div class="inline"><button id="manifest-headers" type="button" class="secondary">Read manifest headers</button></div>
+    <div id="manifest-controls" class="cols"></div>
+    <h2>2. Paste the cell assignment table</h2>
+    <p>Use one row per cell and its assigned sample. The cell table may have other columns; select the two identifiers used in the join.</p>
+    <label for="cells">Cell assignment CSV</label>
+    <textarea id="cells" rows="7" spellcheck="false" placeholder="sample_id,cell_id&#10;sample_A,cell_001&#10;sample_A,cell_002&#10;sample_B,cell_003"></textarea>
+    <div class="inline"><button id="cell-headers" type="button" class="secondary">Read cell-table headers</button></div>
+    <div id="cell-controls" class="cols"></div>
+    <label class="inline"><input id="global-cell-ids" type="checkbox"> Cell IDs should be globally unique across samples; report cross-sample repeats.</label>
+    <p class="hint">Some datasets reuse local cell IDs within each sample. Leave this unchecked unless the source defines cell IDs globally.</p>
+    <div class="inline"><button id="audit" type="button" disabled>Audit sample-to-cell join</button><button id="example" type="button" class="secondary">Load synthetic example</button><button id="clear" type="button" class="secondary">Clear</button><button id="download" type="button" class="secondary" disabled>Download annotated manifest</button></div>
+    <div id="result" class="output" aria-live="polite">Read both headers, select the join columns, then audit.</div>
+  </section>
+  <section class="panel">
+    <h2>Interpretation limits</h2>
+    <p>An exact sample-ID match establishes only that the strings join. It does not prove that samples are independent, biological replicates, correctly staged, or scientifically comparable. Review unmatched IDs and source metadata with the data provider before analysis.</p>
+    <p class="hint">Each input is limited to 10 MB and 500,000 data rows. The page processes data locally in this browser tab and does not upload or store it. Use public or synthetic data.</p>
+  </section>
+  <footer class="foot"><a href="../../tools/manifest-integrity/">Sample Manifest Integrity Auditor</a> · <a href="../../tools/pseudobulk-builder/">Sample-Level Pseudobulk Matrix Builder</a> · <a href="https://virtualembryo.ai/challenge/data">Current data documentation</a></footer>
+</main>
+<script>
+(() => {
+  "use strict";
+  const $ = id => document.getElementById(id), MAX_CHARS = 10_000_000, MAX_ROWS = 500_000;
+  let manifestHeaders = [], cellHeaders = [], outputRows = null;
+  function parseCsv(text, firstOnly = false) {
+    text = text.replace(/^\uFEFF/, "");
+    const rows = []; let row = [], field = "", quoted = false, closed = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (quoted) {
+        if (c === '"' && text[i + 1] === '"') { field += '"'; i++; }
+        else if (c === '"') { quoted = false; closed = true; }
+        else field += c;
+      } else if (closed) {
+        if (c === ",") { row.push(field); field = ""; closed = false; }
+        else if (c === "\n" || c === "\r") {
+          if (c === "\r" && text[i + 1] === "\n") i++;
+          row.push(field); rows.push(row); if (firstOnly) return rows;
+          row = []; field = ""; closed = false;
+        } else if (c !== " " && c !== "\t") throw Error("A quoted CSV value must be followed by a comma or a new line.");
+      } else if (c === '"') {
+        if (field !== "") throw Error("A quote may only start an empty CSV field.");
+        quoted = true;
+      } else if (c === ",") { row.push(field); field = ""; }
+      else if (c === "\n" || c === "\r") {
+        if (c === "\r" && text[i + 1] === "\n") i++;
+        row.push(field); rows.push(row); if (firstOnly) return rows;
+        row = []; field = "";
+      } else field += c;
+    }
+    if (quoted) throw Error("The CSV has an unclosed quoted value.");
+    if (field !== "" || row.length || closed) { row.push(field); rows.push(row); }
+    return rows;
+  }
+  const esc = value => String(value).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  function loadHeader(source) {
+    const isManifest = source === "manifest", text = $(isManifest ? "manifest" : "cells").value;
+    const box = $(isManifest ? "manifest-controls" : "cell-controls"), button = $("audit");
+    if (isManifest) manifestHeaders = []; else cellHeaders = [];
+    box.replaceChildren();
+    outputRows = null; $("download").disabled = true; button.disabled = true;
+    try {
+      if (text.length > MAX_CHARS) throw Error("Input exceeds the 10 MB text limit.");
+      const rows = parseCsv(text, true);
+      if (!rows.length) throw Error("Paste a CSV header row first.");
+      const names = rows[0].map(x => x.trim());
+      if (names.some(x => !x) || new Set(names).size !== names.length) throw Error("Column names must be non-empty and unique.");
+      if (isManifest) manifestHeaders = names; else cellHeaders = names;
+      box.replaceChildren();
+      const fields = isManifest ? [["manifest-sample", "Manifest sample ID", "sample_id"]] : [["cell-sample", "Cell-table sample ID", "sample_id"], ["cell-id", "Cell ID", "cell_id"]];
+      fields.forEach(([id,label,guess]) => {
+        const wrap = document.createElement("div"), lab = document.createElement("label"), select = document.createElement("select");
+        select.id = id; lab.htmlFor = id; lab.textContent = label;
+        const hasGuess = names.some(name => name.toLowerCase() === guess);
+        if (!hasGuess) { const placeholder = document.createElement("option"); placeholder.value = ""; placeholder.textContent = "Choose a column"; placeholder.selected = true; select.append(placeholder); }
+        names.forEach(name => { const option = document.createElement("option"); option.value = name; option.textContent = name; if (name.toLowerCase() === guess) option.selected = true; select.append(option); });
+        wrap.append(lab,select); box.append(wrap);
+      });
+      button.disabled = !(manifestHeaders.length && cellHeaders.length);
+      $("result").textContent = button.disabled ? "Read the other table's headers too, then audit." : "Choose the identifier columns, then audit the join.";
+    } catch (error) { box.textContent = error.message; $("result").textContent = error.message; }
+  }
+  function csvCell(value) { return '"' + String(value).replace(/"/g, '""') + '"'; }
+  function download(rows) {
+    const text = rows.map(row => row.map(csvCell).join(",")).join("\r\n") + "\r\n";
+    const url = URL.createObjectURL(new Blob([text], {type:"text/csv;charset=utf-8"}));
+    const a = document.createElement("a"); a.href = url; a.download = "vec-sample-cell-crosswalk-audit.csv"; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+  function audit() {
+    outputRows = null; $("download").disabled = true; const out = $("result");
+    try {
+      const mt = $("manifest").value, ct = $("cells").value;
+      if (mt.length > MAX_CHARS || ct.length > MAX_CHARS) throw Error("Each input is limited to 10 MB of text.");
+      const mrows = parseCsv(mt), crows = parseCsv(ct);
+      if (mrows.length < 2 || crows.length < 2) throw Error("Each table needs a header row and at least one data row.");
+      const mh = mrows[0].map(x => x.trim()), ch = crows[0].map(x => x.trim());
+      if (mh.join("\u0000") !== manifestHeaders.join("\u0000") || ch.join("\u0000") !== cellHeaders.join("\u0000")) throw Error("A header changed. Read both tables' headers again.");
+      const mi = mh.indexOf($("manifest-sample").value), cs = ch.indexOf($("cell-sample").value), ci = ch.indexOf($("cell-id").value);
+      if (mi < 0 || cs < 0 || ci < 0 || cs === ci) throw Error("Choose valid, distinct sample and cell columns.");
+      const manifest = new Map(); let mr = 0, cr = 0;
+      for (const row of mrows.slice(1)) {
+        if (row.every(x => x.trim() === "")) continue;
+        mr++; if (mr > MAX_ROWS) throw Error("Manifest exceeds the 500,000 data-row limit.");
+        if (row.length !== mh.length) throw Error(`Manifest record ${mr} has ${row.length} fields; expected ${mh.length}.`);
+        const id = row[mi].trim(); if (!id) throw Error(`Manifest record ${mr} has a blank sample ID.`);
+        if (manifest.has(id)) throw Error(`Sample ID “${id}” appears more than once in the manifest. Resolve duplicate or conflicting metadata before joining.`);
+        manifest.set(id, row.slice());
+      }
+      if (!mr) throw Error("The manifest has no sample rows.");
+      const cellsBySample = new Map(), seen = new Set(), cellOwners = new Map(), crossSample = new Set(), unknown = new Set();
+      for (const row of crows.slice(1)) {
+        if (row.every(x => x.trim() === "")) continue;
+        cr++; if (cr > MAX_ROWS) throw Error("Cell table exceeds the 500,000 data-row limit.");
+        if (row.length !== ch.length) throw Error(`Cell record ${cr} has ${row.length} fields; expected ${ch.length}.`);
+        const sample = row[cs].trim(), cell = row[ci].trim();
+        if (!sample || !cell) throw Error(`Cell record ${cr} has a blank sample or cell ID.`);
+        const key = JSON.stringify([sample,cell]);
+        if (seen.has(key)) throw Error(`Cell “${cell}” is assigned more than once within sample “${sample}”.`);
+        seen.add(key);
+        if (!manifest.has(sample)) unknown.add(sample);
+        if (!cellsBySample.has(sample)) cellsBySample.set(sample, new Set());
+        cellsBySample.get(sample).add(cell);
+        if ($("global-cell-ids").checked) {
+          const owner = cellOwners.get(cell);
+          if (owner && owner !== sample) crossSample.add(cell); else cellOwners.set(cell,sample);
+        }
+      }
+      if (!cr) throw Error("The cell table has no cell assignments.");
+      const counts = new Map([...cellsBySample].map(([sample,ids]) => [sample,ids.size]));
+      const annotatedHeader = [...mh, "observed_cell_count", "join_status"];
+      const rows = [annotatedHeader]; const display = [];
+      for (const [id,record] of manifest) {
+        const count = counts.get(id) || 0, status = count ? "matched" : "no cell rows";
+        rows.push([...record, count, status]); display.push({id,count,status});
+      }
+      outputRows = rows; $("download").disabled = false;
+      const missing = display.filter(x => x.count === 0), unmatched = [...unknown].sort((a,b) => a.localeCompare(b));
+      const body = display.slice(0,200).map(x => `<tr><td>${esc(x.id)}</td><td>${x.count}</td><td>${esc(x.status)}</td></tr>`).join("");
+      const truncation = display.length > 200 ? `<p class="hint">Showing 200 of ${display.length.toLocaleString()} manifest samples; the download includes all of them.</p>` : "";
+      const unknownHtml = unmatched.length ? `<p><strong>${unmatched.length}</strong> cell-table sample IDs are absent from the manifest: ${unmatched.slice(0,20).map(esc).join(", ")}${unmatched.length > 20 ? " …" : ""}</p>` : "<p>No cell-table sample IDs are absent from the manifest.</p>";
+      const collisionHtml = $("global-cell-ids").checked ? `<p><strong>${crossSample.size}</strong> cell IDs repeat across different samples under the selected global-ID assumption.</p>` : "";
+      out.innerHTML = `<p><strong>${manifest.size}</strong> manifest samples · <strong>${seen.size.toLocaleString()}</strong> unique sample–cell assignments · <strong>${missing.length}</strong> manifest samples with no assigned cells.</p>${unknownHtml}${collisionHtml}${truncation}<div class="table-wrap"><table><thead><tr><th>Sample ID</th><th>Distinct cell IDs</th><th>Join status</th></tr></thead><tbody>${body}</tbody></table></div><p class="hint">Counts are exact string joins after trimming surrounding whitespace. They are not evidence of biological independence or correct metadata.</p>`;
+    } catch (error) { out.textContent = error.message; }
+  }
+  $("manifest-headers").addEventListener("click", () => loadHeader("manifest"));
+  $("cell-headers").addEventListener("click", () => loadHeader("cells"));
+  $("audit").addEventListener("click", audit);
+  $("download").addEventListener("click", () => { if (outputRows) download(outputRows); });
+  $("example").addEventListener("click", () => {
+    $("manifest").value = "sample_id,stage,condition\nsample_A,E8.5,control\nsample_B,E8.5,treated\nsample_C,E9.0,control\n";
+    $("cells").value = "sample_id,cell_id\nsample_A,cell_001\nsample_A,cell_002\nsample_B,cell_003\nsample_orphan,cell_004\n";
+    loadHeader("manifest"); loadHeader("cells");
+  });
+  $("clear").addEventListener("click", () => {
+    $("manifest").value = ""; $("cells").value = ""; manifestHeaders = []; cellHeaders = []; outputRows = null;
+    $("manifest-controls").replaceChildren(); $("cell-controls").replaceChildren(); $("audit").disabled = true; $("download").disabled = true;
+    $("global-cell-ids").checked = false; $("result").textContent = "Read both headers, select the join columns, then audit.";
+  });
+})();
+</script>
+</body>
+</html>

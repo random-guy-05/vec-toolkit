@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Aggregate long-form single-cell values to sample-level pseudobulk sums in your browser.">
+  <title>Sample-Level Pseudobulk Matrix Builder · VEC</title>
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<main class="wrap">
+  <header class="tool-head">
+    <nav><a href="../../">← Participation Workbench</a> · <a href="https://virtualembryo.ai/challenge/data">Official data page</a> · <a href="https://virtualembryo.ai/challenge/tasks">Task definitions</a></nav>
+    <p class="eyebrow">Replicate-aware analysis · browser-local</p>
+    <h1>Sample-Level Pseudobulk Matrix Builder</h1>
+    <p class="lede">Convert long-form cell-by-gene values into sums for each independent sample. This makes the aggregation step explicit before downstream sample-level analysis.</p>
+  </header>
+  <section class="panel">
+    <h2>Paste a long-form CSV</h2>
+    <p>Use one row per sample, cell, and gene, for example <code>sample_id,cell_id,gene_id,count</code>. Values must be finite and nonnegative. The input is limited to 10 MB and 500,000 data rows.</p>
+    <label for="data">CSV table</label>
+    <textarea id="data" rows="10" spellcheck="false" placeholder="sample_id,cell_id,gene_id,count&#10;sample_A,cell_1,gene_X,3&#10;sample_A,cell_1,gene_Y,0&#10;sample_A,cell_2,gene_X,2&#10;sample_B,cell_3,gene_X,5"></textarea>
+    <div class="inline"><button id="read-columns" type="button" class="secondary">Read column headers</button><button id="example" type="button" class="secondary">Load synthetic example</button><button id="clear" type="button" class="secondary">Clear</button></div>
+    <div id="controls" class="cols" aria-live="polite"></div>
+    <div class="inline"><button id="build" type="button" disabled>Aggregate by sample</button><button id="download-long" type="button" class="secondary" disabled>Download long-form sums</button></div>
+    <label class="inline"><input id="zero-fill" type="checkbox" disabled> Also export a wide matrix, filling absent sample–gene pairs with zero only if absence means measured zero in this input.</label>
+    <div id="matrix-note" class="hint" aria-live="polite">The long-form export preserves observed sample–gene pairs and does not infer zeros for missing rows.</div>
+    <button id="download-wide" type="button" class="secondary" disabled>Download zero-filled wide matrix</button>
+    <div id="result" class="output" aria-live="polite">Paste data, read the headers, choose the four columns, and aggregate.</div>
+  </section>
+  <section class="panel">
+    <h2>What the aggregation means</h2>
+    <p>For each sample and gene, the tool sums the supplied cell-level values. It rejects duplicate sample–cell–gene rows so a repeated record cannot silently inflate a sum. Cell counts are distinct cell IDs within each sample; they do not establish that samples are independent biological replicates.</p>
+    <p>Use raw count values when a downstream count model expects counts. Fractional values are accepted but flagged; summing normalized or averaged values may not be appropriate. This page does not normalize, fit a differential-expression model, choose replicates, or perform inference.</p>
+    <p class="hint">Parsing and aggregation stay in this browser tab. Nothing is uploaded, stored, or fetched. Use public or synthetic data and follow the current Challenge data-use rules.</p>
+  </section>
+  <footer class="foot"><a href="../../tools/pseudoreplication/">Pseudoreplication Visualizer</a> · <a href="../../tools/hierarchical-bootstrap/">Hierarchical Replicate Bootstrap</a> · <a href="https://virtualembryo.ai/challenge/rules">Current rules</a></footer>
+</main>
+<script>
+(() => {
+  "use strict";
+  const $ = id => document.getElementById(id);
+  const MAX_CHARS = 10_000_000, MAX_ROWS = 500_000, MAX_MATRIX_CELLS = 1_000_000;
+  let headers = [], result = null;
+  function parseCsv(text, firstOnly = false) {
+    text = text.replace(/^\uFEFF/, "");
+    const rows = []; let row = [], field = "", quoted = false, closed = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (quoted) {
+        if (c === '"' && text[i + 1] === '"') { field += '"'; i++; }
+        else if (c === '"') { quoted = false; closed = true; }
+        else field += c;
+      } else if (closed) {
+        if (c === ",") { row.push(field); field = ""; closed = false; }
+        else if (c === "\n" || c === "\r") {
+          if (c === "\r" && text[i + 1] === "\n") i++;
+          row.push(field); rows.push(row);
+          if (firstOnly) return rows;
+          row = []; field = ""; closed = false;
+        } else if (c !== " " && c !== "\t") throw Error("A quoted CSV value must be followed by a comma or a new line.");
+      } else if (c === '"') {
+        if (field !== "") throw Error("A quote may only start an empty CSV field.");
+        quoted = true;
+      } else if (c === ",") { row.push(field); field = ""; }
+      else if (c === "\n" || c === "\r") {
+        if (c === "\r" && text[i + 1] === "\n") i++;
+        row.push(field); rows.push(row);
+        if (firstOnly) return rows;
+        row = []; field = "";
+      } else field += c;
+    }
+    if (quoted) throw Error("The CSV has an unclosed quoted value.");
+    if (field !== "" || row.length || closed) { row.push(field); rows.push(row); }
+    return rows;
+  }
+  const esc = value => String(value).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  function readHeaders() {
+    const box = $("controls"), button = $("build");
+    headers = []; button.disabled = true; result = null;
+    $("download-long").disabled = true; $("zero-fill").disabled = true; $("zero-fill").checked = false; $("download-wide").disabled = true;
+    try {
+      if ($("data").value.length > MAX_CHARS) throw Error("Input exceeds the 10 MB text limit.");
+      const rows = parseCsv($("data").value, true);
+      if (!rows.length) throw Error("Paste a CSV header row first.");
+      headers = rows[0].map(x => x.trim());
+      if (headers.some(x => !x) || new Set(headers).size !== headers.length) throw Error("Column names must be non-empty and unique.");
+      const guesses = ["sample_id", "cell_id", "gene_id", "count"];
+      const labels = ["Sample ID column", "Cell ID column", "Gene ID column", "Value column"];
+      box.replaceChildren();
+      labels.forEach((label, i) => {
+        const wrap = document.createElement("div"), lab = document.createElement("label"), select = document.createElement("select");
+        select.id = ["sample-col", "cell-col", "gene-col", "value-col"][i]; lab.htmlFor = select.id; lab.textContent = label;
+        const hasGuess = headers.some(name => name.toLowerCase() === guesses[i]);
+        if (!hasGuess) { const placeholder = document.createElement("option"); placeholder.value = ""; placeholder.textContent = "Choose a column"; placeholder.selected = true; select.append(placeholder); }
+        headers.forEach(name => { const opt = document.createElement("option"); opt.value = name; opt.textContent = name; if (name.toLowerCase() === guesses[i]) opt.selected = true; select.append(opt); });
+        wrap.append(lab, select); box.append(wrap);
+      });
+      button.disabled = false;
+      $("result").textContent = "Choose the sample, cell, gene, and numeric value columns, then aggregate.";
+    } catch (error) { box.textContent = error.message; $("result").textContent = error.message; }
+  }
+  function csvCell(value) { return '"' + String(value).replace(/"/g, '""') + '"'; }
+  function download(name, rows) {
+    const text = rows.map(row => row.map(csvCell).join(",")).join("\r\n") + "\r\n";
+    const url = URL.createObjectURL(new Blob([text], {type:"text/csv;charset=utf-8"}));
+    const a = document.createElement("a"); a.href = url; a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+  function build() {
+    result = null; $("download-long").disabled = true; $("zero-fill").disabled = true; $("zero-fill").checked = false; $("download-wide").disabled = true;
+    const out = $("result");
+    try {
+      const text = $("data").value;
+      if (text.length > MAX_CHARS) throw Error("Input exceeds the 10 MB text limit.");
+      const rows = parseCsv(text);
+      if (rows.length < 2) throw Error("Add at least one data row below the header.");
+      const h = rows[0].map(x => x.trim());
+      if (h.length !== headers.length || h.some((x, i) => x !== headers[i])) throw Error("The header changed. Read the column headers again.");
+      const ids = ["sample-col", "cell-col", "gene-col", "value-col"].map(id => h.indexOf($(id).value));
+      if (ids.some(i => i < 0) || new Set(ids).size !== 4) throw Error("Choose four different columns present in the header.");
+      const [si, ci, gi, vi] = ids, sums = new Map(), sampleCells = new Map(), sampleGenes = new Map(), seen = new Set(), genes = new Set();
+      let dataRows = 0, fractional = 0;
+      for (const row of rows.slice(1)) {
+        if (row.every(v => v.trim() === "")) continue;
+        dataRows++;
+        if (dataRows > MAX_ROWS) throw Error("Input exceeds the 500,000 data-row limit.");
+        if (row.length !== h.length) throw Error(`Data row ${dataRows + 1} has ${row.length} fields; expected ${h.length}.`);
+        const sample = row[si].trim(), cell = row[ci].trim(), gene = row[gi].trim(), raw = row[vi].trim(), value = Number(raw);
+        if (!sample || !cell || !gene || !raw) throw Error(`Data row ${dataRows + 1} has a blank sample, cell, gene, or value.`);
+        if (!Number.isFinite(value) || value < 0) throw Error(`Data row ${dataRows + 1} must have a finite, nonnegative value.`);
+        if (!Number.isInteger(value)) fractional++;
+        const recordKey = JSON.stringify([sample, cell, gene]);
+        if (seen.has(recordKey)) throw Error(`Duplicate sample–cell–gene row at data row ${dataRows + 1}; resolve duplicates before aggregation.`);
+        seen.add(recordKey);
+        const sampleKey = sample, pairKey = JSON.stringify([sample, gene]);
+        if (!sampleCells.has(sampleKey)) { sampleCells.set(sampleKey, new Set()); sampleGenes.set(sampleKey, new Set()); }
+        sampleCells.get(sampleKey).add(cell); sampleGenes.get(sampleKey).add(gene); genes.add(gene);
+        const item = sums.get(pairKey) || {sample, gene, sum:0, cellRecords:0};
+        item.sum += value; item.cellRecords++;
+        if (!Number.isFinite(item.sum)) throw Error(`Summed value overflowed for sample ${sample} and gene ${gene}.`);
+        sums.set(pairKey, item);
+      }
+      if (!dataRows) throw Error("No data rows were found.");
+      const samples = [...sampleCells.keys()].sort((a,b) => a.localeCompare(b)), geneList = [...genes].sort((a,b) => a.localeCompare(b));
+      const aggregates = [...sums.values()].sort((a,b) => a.sample.localeCompare(b.sample) || a.gene.localeCompare(b.gene));
+      result = {samples, genes:geneList, aggregates, sampleCells, sampleGenes, dataRows, fractional};
+      $("download-long").disabled = false; $("zero-fill").disabled = samples.length * geneList.length > MAX_MATRIX_CELLS;
+      $("matrix-note").textContent = samples.length * geneList.length > MAX_MATRIX_CELLS
+        ? `The wide matrix would contain more than ${MAX_MATRIX_CELLS.toLocaleString()} values; use the long-form export.`
+        : "The long-form export preserves observed sample–gene pairs and does not infer zeros for missing rows. The wide export is optional and requires an explicit zero-fill assumption.";
+      const summary = samples.slice(0, 200).map(sample => `<tr><td>${esc(sample)}</td><td>${sampleCells.get(sample).size}</td><td>${sampleGenes.get(sample).size}</td></tr>`).join("");
+      const displayNote = samples.length > 200 ? `<p class="hint">Showing the first 200 of ${samples.length.toLocaleString()} sorted samples to keep the page responsive; the download includes all samples.</p>` : "";
+      const warning = fractional ? `<p class="hint">${fractional.toLocaleString()} values are fractional. Pseudobulk count models often expect raw integer counts; this tool does not normalize or convert values.</p>` : "";
+      out.innerHTML = `<p><strong>${samples.length}</strong> samples · <strong>${geneList.length}</strong> genes · <strong>${dataRows.toLocaleString()}</strong> cell–gene rows aggregated into <strong>${aggregates.length.toLocaleString()}</strong> observed sample–gene sums.</p>${warning}${displayNote}<div class="table-wrap"><table><thead><tr><th>Sample</th><th>Distinct cell IDs</th><th>Genes with records</th></tr></thead><tbody>${summary}</tbody></table></div><p class="hint">A gene absent from one sample is not assumed to be zero in the long-form file. Only the optional wide export can fill absent pairs, after you affirm the zero interpretation.</p>`;
+      $("zero-fill").onchange = updateWideButton;
+    } catch (error) { out.textContent = error.message; }
+  }
+  function updateWideButton() { $("download-wide").disabled = !result || !$("zero-fill").checked || result.samples.length * result.genes.length > MAX_MATRIX_CELLS; }
+  $("build").addEventListener("click", build);
+  $("read-columns").addEventListener("click", readHeaders);
+  $("example").addEventListener("click", () => { $("data").value = "sample_id,cell_id,gene_id,count\nsample_A,cell_1,gene_X,3\nsample_A,cell_1,gene_Y,0\nsample_A,cell_2,gene_X,2\nsample_A,cell_2,gene_Y,1\nsample_B,cell_3,gene_X,5\n"; readHeaders(); });
+  $("clear").addEventListener("click", () => { $("data").value = ""; headers = []; result = null; $("controls").replaceChildren(); $("result").textContent = "Paste data, read the headers, choose the four columns, and aggregate."; $("download-long").disabled = true; $("zero-fill").disabled = true; $("zero-fill").checked = false; $("download-wide").disabled = true; $("matrix-note").textContent = "The long-form export preserves observed sample–gene pairs and does not infer zeros for missing rows."; });
+  $("download-long").addEventListener("click", () => { if (result) download("vec-pseudobulk-long.csv", [["sample_id","gene_id","pseudobulk_sum","cell_records"], ...result.aggregates.map(x => [x.sample,x.gene,x.sum,x.cellRecords])]); });
+  $("download-wide").addEventListener("click", () => { if (result && $("zero-fill").checked) { const map = new Map(result.aggregates.map(x => [JSON.stringify([x.sample,x.gene]),x.sum])); download("vec-pseudobulk-wide-zero-filled.csv", [["sample_id",...result.genes], ...result.samples.map(sample => [sample,...result.genes.map(gene => map.get(JSON.stringify([sample,gene])) ?? 0)])]); } });
+})();
+</script>
+</body>
+</html>

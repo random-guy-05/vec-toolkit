@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Summarize run-to-run score stability and compare model candidates across shared or unpaired random seeds.">
+  <title>Training Seed Stability Report · VEC</title>
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<main class="wrap">
+  <header class="tool-head">
+    <nav><a href="../../">← Participation Workbench</a> · <a href="https://virtualembryo.ai/challenge/evaluation?section=scoring">Scoring reference</a> · <a href="https://virtualembryo.ai/challenge/resources">Community resources</a></nav>
+    <p class="eyebrow">Reproducibility · browser-local</p>
+    <h1>Training Seed Stability Report</h1>
+    <p class="lede">Summarize repeated-run scores and compare two methods across common seeds. See whether an apparent improvement is consistent across training randomness instead of relying on one favorable run.</p>
+  </header>
+  <section class="panel">
+    <h2>Paste repeated-run scores</h2>
+    <label for="data">CSV with method, seed, score</label>
+    <textarea id="data" rows="12" spellcheck="false" placeholder="method,seed,score\nbaseline,1,0.42\nbaseline,2,0.39\ncandidate,1,0.44\ncandidate,2,0.40"></textarea>
+    <div class="cols">
+      <div><label for="baseline">Baseline method name</label><input id="baseline" value="baseline"></div>
+      <div><label for="candidate">Candidate method name</label><input id="candidate" value="candidate"></div>
+      <div><label for="direction">Better score direction</label><select id="direction"><option value="higher" selected>Higher is better</option><option value="lower">Lower is better</option></select></div>
+    </div>
+    <div class="inline"><button id="analyze" type="button">Analyze run stability</button><button id="example" type="button" class="secondary">Load synthetic example</button><button id="clear" type="button" class="secondary">Clear</button><button id="download" type="button" class="secondary" disabled>Download paired differences</button></div>
+    <div id="result" class="output" aria-live="polite">Use one row per method and seed. The page does not calculate a p-value or estimate biological-sample uncertainty.</div>
+  </section>
+  <section class="panel">
+    <h2>Interpretation limits</h2>
+    <ul>
+      <li>Paired differences are calculated only for seed values present in both methods. Seed matching is meaningful only if the same seed plays a comparable role in both runs.</li>
+      <li>Run-to-run variation reflects the training procedure and supplied score; it does not replace uncertainty across biological samples or held-out examples.</li>
+      <li>Compare the same task, data split, metric version, and evaluation inputs. This tool does not verify those conditions or determine official metric direction.</li>
+    </ul>
+    <p class="hint">All data stay in this browser tab. The output is a descriptive reproducibility summary, not a statistical significance test, official scorer, or leaderboard claim.</p>
+  </section>
+  <footer class="foot"><a href="../../tools/metric-invariance-audit/">Metric Invariance Audit Sheet</a> · <a href="../../tools/replicate-precision/">Independent Replicate Precision Planner</a> · <a href="https://virtualembryo.ai/challenge/evaluation">Official evaluation</a></footer>
+</main>
+<script>
+(() => {
+  const $=id=>document.getElementById(id);let pairs=[];
+  function csv(text){const rows=[];let row=[],field="",q=false;for(let i=0;i<text.length;i++){const c=text[i];if(q){if(c==='"'&&text[i+1]==='"'){field+='"';i++;}else if(c==='"')q=false;else field+=c;}else if(c==='"'&&field==="")q=true;else if(c===","){row.push(field);field="";}else if(c==="\n"||c==="\r"){if(c==="\r"&&text[i+1]==="\n")i++;row.push(field);rows.push(row);row=[];field="";}else field+=c;}if(q)throw Error("CSV contains an unclosed quoted field.");if(field!==""||row.length){row.push(field);rows.push(row);}return rows;}
+  const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  function stats(values){const sorted=[...values].sort((a,b)=>a-b),mean=values.reduce((s,x)=>s+x,0)/values.length,sd=values.length<2?0:Math.sqrt(values.reduce((s,x)=>s+(x-mean)**2,0)/(values.length-1));return{n:values.length,mean,sd,median:sorted[Math.floor((sorted.length-1)/2)],min:sorted[0],max:sorted.at(-1)};}
+  function analyze(){const out=$("result");pairs=[];$("download").disabled=true;try{const rows=csv($("data").value.trim());if(rows.length<2)throw Error("Add a header row and run records.");const h=rows[0].map(x=>x.trim().toLowerCase()),mi=h.indexOf("method"),si=h.indexOf("seed"),vi=h.indexOf("score");if(mi<0||si<0||vi<0)throw Error("CSV headers must include method, seed, and score.");const groups=new Map();for(const r of rows.slice(1)){if(r.every(x=>x.trim()===""))continue;const method=(r[mi]||"").trim(),seed=(r[si]||"").trim(),score=Number(r[vi]);if(!method||!seed||!Number.isFinite(score))throw Error("Every non-empty row needs a method, seed, and finite score.");if(!groups.has(method))groups.set(method,new Map());if(groups.get(method).has(seed))throw Error(`Duplicate method/seed row: ${method} / ${seed}`);groups.get(method).set(seed,score);}const base=$("baseline").value.trim(),cand=$("candidate").value.trim();if(!base||!cand||base===cand)throw Error("Enter two different method names.");if(!groups.has(base)||!groups.has(cand))throw Error("Both named methods need at least one run.");const directions=$("direction").value,summary=[base,cand].map(name=>{const x=stats([...groups.get(name).values()]);return{name,...x};});const common=[...groups.get(base).keys()].filter(seed=>groups.get(cand).has(seed)).sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));pairs=common.map(seed=>({seed,baseline:groups.get(base).get(seed),candidate:groups.get(cand).get(seed),difference:groups.get(cand).get(seed)-groups.get(base).get(seed)}));const favored=pairs.filter(p=>directions==="higher"?p.difference>0:p.difference<0).length,tied=pairs.filter(p=>p.difference===0).length,unfavored=pairs.length-favored-tied,meanDiff=pairs.length?pairs.reduce((s,p)=>s+p.difference,0)/pairs.length:NaN;const table=summary.map(x=>`<tr><td>${esc(x.name)}</td><td>${x.n}</td><td>${x.mean.toPrecision(5)}</td><td>${x.sd.toPrecision(5)}</td><td>${x.median.toPrecision(5)}</td><td>${x.min.toPrecision(5)}–${x.max.toPrecision(5)}</td></tr>`).join("");out.innerHTML=`<h3>Run distributions</h3><div class="table-wrap"><table><thead><tr><th>Method</th><th>Runs</th><th>Mean</th><th>SD</th><th>Median</th><th>Range</th></tr></thead><tbody>${table}</tbody></table></div>${pairs.length?`<h3>Matched-seed differences (${cand} − ${base})</h3><p><strong>Common seeds:</strong> ${pairs.length} · <strong>Mean paired difference:</strong> ${meanDiff.toPrecision(5)} · <strong>Favorable:</strong> ${favored} · <strong>Tied:</strong> ${tied} · <strong>Unfavorable:</strong> ${unfavored}.</p><p class="hint">Paired differences by seed are descriptive. Confirm that seeds align comparable randomness before interpreting pairing.</p>`:"<p>No common seed values were found, so no paired comparison is shown.</p>"}<p class="hint">Scores are assumed to be comparable across runs; this page does not verify task, split, metric version, or score direction.</p>`;$("download").disabled=!pairs.length;}catch(e){out.textContent=e.message;}}
+  $("analyze").addEventListener("click",analyze);$("example").addEventListener("click",()=>{$("data").value="method,seed,score\nbaseline,1,0.41\nbaseline,2,0.38\nbaseline,3,0.44\nbaseline,4,0.40\ncandidate,1,0.43\ncandidate,2,0.39\ncandidate,3,0.42\ncandidate,4,0.42\n";analyze();});$("clear").addEventListener("click",()=>{$("data").value="";pairs=[];$("download").disabled=true;$("result").textContent="Use one row per method and seed. The page does not calculate a p-value or estimate biological-sample uncertainty.";});$("download").addEventListener("click",()=>{const q=s=>'"'+String(s).replace(/"/g,'""')+'"',content=[["seed","baseline_score","candidate_score","candidate_minus_baseline"],...pairs.map(p=>[p.seed,p.baseline,p.candidate,p.difference])].map(r=>r.map(q).join(",")).join("\r\n"),url=URL.createObjectURL(new Blob([content],{type:"text/csv;charset=utf-8"})),a=document.createElement("a");a.href=url;a.download="vec-seed-stability-paired-differences.csv";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
+})();
+</script>
+</body>
+</html>

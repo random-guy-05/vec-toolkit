@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="A runnable synthetic scikit-learn walkthrough showing why cells from one biological sample should stay together when evaluating generalization to new samples.">
+  <title>Grouped Validation Walkthrough · VEC</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<main class="wrap">
+  <header class="tool-head">
+    <nav><a href="../">← Participation Workbench</a> · <a href="https://virtualembryo.ai/challenge/data">Official data page</a> · <a href="https://virtualembryo.ai/challenge/rules">Current rules</a></nav>
+    <p class="eyebrow">Reproducible evaluation · synthetic example</p>
+    <h1>Keep Samples Together When You Validate</h1>
+    <p class="lede">A short, runnable demonstration of how a random cell split can overstate generalization when the real question is performance on new biological samples.</p>
+    <p class="inline"><a class="button" href="grouped-validation.py" download>Download the Python walkthrough</a> <a class="button secondary" href="https://github.com/random-guy-05/vec-participation-workbench/blob/main/docs/tutorials/grouped-validation.py">View source</a></p>
+  </header>
+  <section class="panel">
+    <h2>The evaluation question comes first</h2>
+    <p>If the intended use is predicting cells from a new embryo, donor, or biological replicate, the validation split should hold out that independent unit. Randomly assigning individual cells can place highly similar cells from one sample in both training and test sets. A model can then recognize sample-specific structure that will not be available for a new sample.</p>
+    <p>The Challenge tasks have different train/test designs, so participants should follow the current task definitions and rules. This tutorial shows the general reasoning; it does not claim that one cross-validation scheme is correct for every VEC task.</p>
+  </section>
+  <section class="panel">
+    <h2>What the script demonstrates</h2>
+    <ol>
+      <li>Create a synthetic dataset where many cells share one sample-level label and nearby feature profiles.</li>
+      <li>Measure accuracy after a row-wise split that lets samples appear on both sides.</li>
+      <li>Measure accuracy with <code>GroupKFold</code>, keeping every sample in one fold.</li>
+      <li>Compare the results and decide which split answers the intended generalization question.</li>
+    </ol>
+    <p class="hint">The sample signature and labels are deliberately constructed for teaching. They are not Challenge data, biological observations, or a model result.</p>
+  </section>
+  <section class="panel">
+    <h2>Run it locally</h2>
+    <pre><code>python -m pip install numpy scikit-learn
+python grouped-validation.py</code></pre>
+    <p>The script prints the row-wise accuracy, each held-out-sample fold score, and the grouped mean. Your exact outputs may vary if you change the seed or synthetic data settings.</p>
+  </section>
+  <section class="panel">
+    <h2>When to adapt this pattern</h2>
+    <ul>
+      <li>Choose a grouping column that matches the independent unit relevant to deployment or scientific inference.</li>
+      <li>Keep all cells from a group on one side of each split when evaluating transfer to unseen groups.</li>
+      <li>For paired designs, time-series forecasting, or the Challenge's official splits, use a split strategy that matches that design rather than copying this toy setup.</li>
+      <li>Report the number of independent groups and fold-level results; many cells do not replace biological replication.</li>
+    </ul>
+    <p class="hint">Sources: <a href="https://virtualembryo.ai/challenge/data">Challenge data and split descriptions</a> and <a href="https://virtualembryo.ai/challenge/rules">current rules</a>. This tutorial does not access hidden data or make a leaderboard submission.</p>
+  </section>
+  <footer class="foot"><a href="../simulations/validation-leakage/">Validation Leakage Playground</a> · <a href="../tools/hierarchical-bootstrap/">Hierarchical Replicate Bootstrap</a> · <a href="https://virtualembryo.ai/challenge/resources">Community resources</a></footer>
+</main>
+</body>
+</html>
