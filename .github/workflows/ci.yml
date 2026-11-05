@@ -28,7 +28,7 @@ jobs:
           else
             changed=$(git diff --name-only "$BASE" HEAD | awk -F/ 'NF>2{print $1"/"$2}' | sort -u)
           fi
-          python=$(for d in $changed; do [ -f "$d/pyproject.toml" ] && echo "$d"; done)
+          python=$(for d in $changed; do if [ -f "$d/pyproject.toml" ]; then echo "$d"; fi; done)
           echo "changed=$(printf '%s\n' $changed | jq -Rcs 'split("\n")|map(select(length>0))')" >> "$GITHUB_OUTPUT"
           echo "python=$(printf '%s\n' $python | jq -Rcs 'split("\n")|map(select(length>0))')" >> "$GITHUB_OUTPUT"
 
