@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# Copy this file to gpu-model.sbatch and adapt the GPU request to local policy.
+# Some clusters use --gres=gpu:1; others require a partition or different syntax.
+#SBATCH --job-name=vec-model
+#SBATCH --time=08:00:00
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=8
+#SBATCH --mem=64G
+#SBATCH --gres=gpu:1
+#SBATCH --output=logs/%x-%j.out
+#SBATCH --error=logs/%x-%j.err
+
+set -euo pipefail
+
+# Replace with compatible modules from your cluster's documentation.
+module load YOUR_PYTHON_MODULE
+module load YOUR_CUDA_MODULE
+
+source .venv/bin/activate
+mkdir -p logs
+printf 'job=%s host=%s\n' "${SLURM_JOB_ID:-local}" "$(hostname)"
+python --version
+python -m pip freeze --local > "logs/packages-${SLURM_JOB_ID:-local}.txt"
+command -v nvidia-smi >/dev/null && nvidia-smi || true
+
+if [[ ! -f scripts/run-model.sh ]] || grep -q 'Replace this example with your VEC command' scripts/run-model.sh; then
+  echo 'Create and edit scripts/run-model.sh from scripts/run-model.example.sh first.' >&2
+  exit 2
+fi
+bash scripts/run-model.sh

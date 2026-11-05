@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# Copy this file to seeds.sbatch and change the range to match your seed plan.
+# Array concurrency (%2 here) limits how many tasks start at once; tune to local quota.
+#SBATCH --job-name=vec-seed
+#SBATCH --time=08:00:00
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=8
+#SBATCH --mem=32G
+#SBATCH --array=0-4%2
+#SBATCH --output=logs/%x-%A_%a.out
+#SBATCH --error=logs/%x-%A_%a.err
+
+set -euo pipefail
+module load YOUR_PYTHON_MODULE
+source .venv/bin/activate
+mkdir -p logs
+
+SEED="${SLURM_ARRAY_TASK_ID:?Submit this file as a Slurm array}"
+export VEC_RUN_DIR="runs/${SLURM_ARRAY_JOB_ID}/${SEED}"
+mkdir -p "$VEC_RUN_DIR"
+printf 'array_job=%s task=%s seed=%s out=%s\n' \
+  "$SLURM_ARRAY_JOB_ID" "$SLURM_ARRAY_TASK_ID" "$SEED" "$VEC_RUN_DIR"
+python --version
+python -m pip freeze --local > "logs/packages-${SLURM_ARRAY_JOB_ID}-${SEED}.txt"
+
+if [[ ! -f scripts/run-model.sh ]] || grep -q 'Replace this example with your VEC command' scripts/run-model.sh; then
+  echo 'Create and edit scripts/run-model.sh from scripts/run-model.example.sh first.' >&2
+  exit 2
+fi
+bash scripts/run-model.sh
