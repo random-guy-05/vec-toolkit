@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900">
+<rect width="1400" height="900" fill="#0B1020"/>
+<text x="80" y="68" font-family="DejaVu Sans" font-size="19" font-weight="700" fill="#57D3C8" text-anchor="start">VEC FAILURE MODE GALLERY</text>
+<text x="80" y="130" font-family="DejaVu Sans" font-size="48" font-weight="700" fill="#F7F8FA" text-anchor="start">Reversed gene response</text>
+<text x="80" y="178" font-family="DejaVu Sans" font-size="24" font-weight="400" fill="#B9C2D0" text-anchor="start">The model moves responsive genes in the wrong direction.</text>
+<rect x="70" y="250" width="600" height="430" rx="28" fill="#141B2D"/>
+<text x="370" y="295" font-family="DejaVu Sans" font-size="18" font-weight="700" fill="#82D982" text-anchor="middle">HEALTHY</text>
+<rect x="730" y="250" width="600" height="430" rx="28" fill="#141B2D"/>
+<text x="1030" y="295" font-family="DejaVu Sans" font-size="18" font-weight="700" fill="#EC7CA7" text-anchor="middle">FAILED</text>
+<circle cx="220" cy="400" r="14" fill="#57D3C8"/>
+<circle cx="270" cy="500" r="14" fill="#82D982"/>
+<circle cx="330" cy="370" r="14" fill="#9E8CFF"/>
+<circle cx="370" cy="480" r="14" fill="#57D3C8"/>
+<circle cx="440" cy="430" r="14" fill="#82D982"/>
+<circle cx="500" cy="540" r="14" fill="#9E8CFF"/>
+<circle cx="230" cy="600" r="14" fill="#57D3C8"/>
+<circle cx="340" cy="600" r="14" fill="#82D982"/>
+<circle cx="480" cy="615" r="14" fill="#9E8CFF"/>
+<circle cx="530" cy="360" r="14" fill="#57D3C8"/>
+<circle cx="410" cy="550" r="14" fill="#82D982"/>
+<line x1="900" y1="540" x2="900" y2="400" stroke="#82D982" stroke-width="5" stroke-linecap="round"/>
+<polygon points="900,400 909.5755543056633,412.81829784875094 890.4244456943367,412.81829784875094" fill="#82D982"/>
+<line x1="1010" y1="540" x2="1010" y2="400" stroke="#82D982" stroke-width="5" stroke-linecap="round"/>
+<polygon points="1010,400 1019.5755543056633,412.81829784875094 1000.4244456943367,412.81829784875094" fill="#82D982"/>
+<line x1="1120" y1="540" x2="1120" y2="400" stroke="#82D982" stroke-width="5" stroke-linecap="round"/>
+<polygon points="1120,400 1129.5755543056632,412.81829784875094 1110.4244456943368,412.81829784875094" fill="#82D982"/>
+<line x1="930" y1="405" x2="930" y2="545" stroke="#EC7CA7" stroke-width="5" stroke-linecap="round"/>
+<polygon points="930,545 920.4244456943367,532.181702151249 939.5755543056633,532.181702151249" fill="#EC7CA7"/>
+<line x1="1040" y1="405" x2="1040" y2="545" stroke="#EC7CA7" stroke-width="5" stroke-linecap="round"/>
+<polygon points="1040,545 1030.4244456943368,532.181702151249 1049.5755543056632,532.181702151249" fill="#EC7CA7"/>
+<line x1="1150" y1="405" x2="1150" y2="545" stroke="#EC7CA7" stroke-width="5" stroke-linecap="round"/>
+<polygon points="1150,545 1140.4244456943368,532.181702151249 1159.5755543056632,532.181702151249" fill="#EC7CA7"/>
+<text x="1030" y="610" font-family="DejaVu Sans" font-size="24" font-weight="700" fill="#F7F8FA" text-anchor="middle">up &lt;-&gt; down</text>
+<rect x="70" y="720" width="1260" height="110" rx="20" fill="#1B2440"/>
+<text x="105" y="755" font-family="DejaVu Sans" font-size="16" font-weight="700" fill="#F3C969" text-anchor="start">LIKELY SYMPTOM</text>
+<text x="105" y="795" font-family="DejaVu Sans" font-size="20" font-weight="400" fill="#F7F8FA" text-anchor="start">DCS / de_direction falls; DES can still look partly</text>
+<text x="105" y="821" font-family="DejaVu Sans" font-size="20" font-weight="400" fill="#F7F8FA" text-anchor="start">reasonable.</text>
+<text x="735" y="755" font-family="DejaVu Sans" font-size="16" font-weight="700" fill="#57D3C8" text-anchor="start">DEBUG NEXT</text>
+<text x="735" y="795" font-family="DejaVu Sans" font-size="20" font-weight="400" fill="#F7F8FA" text-anchor="start">Plot predicted vs observed/reference change; inspect</text>
+<text x="735" y="821" font-family="DejaVu Sans" font-size="20" font-weight="400" fill="#F7F8FA" text-anchor="start">sign agreement.</text>
+<line x1="70" y1="846" x2="1330" y2="846" stroke="#2B3550" stroke-width="2" stroke-linecap="round"/>
+<text x="70" y="878" font-family="DejaVu Sans" font-size="16" font-weight="400" fill="#B9C2D0" text-anchor="start">virtualembryo.ai/challenge - source snapshot 2026-10-05</text>
+<text x="1330" y="878" font-family="DejaVu Sans" font-size="16" font-weight="400" fill="#B9C2D0" text-anchor="end">Community visual resource - MIT</text>
+</svg>

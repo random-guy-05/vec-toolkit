@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900">
+<rect width="1400" height="900" fill="#0B1020"/>
+<text x="80" y="68" font-family="DejaVu Sans" font-size="19" font-weight="700" fill="#57D3C8" text-anchor="start">VEC FAILURE MODE GALLERY</text>
+<text x="80" y="130" font-family="DejaVu Sans" font-size="48" font-weight="700" fill="#F7F8FA" text-anchor="start">Neighborhood scramble</text>
+<text x="80" y="178" font-family="DejaVu Sans" font-size="24" font-weight="400" fill="#B9C2D0" text-anchor="start">Global geometry and cell states look right, but states are assigned to wrong</text>
+<text x="80" y="210" font-family="DejaVu Sans" font-size="24" font-weight="400" fill="#B9C2D0" text-anchor="start">locations.</text>
+<rect x="70" y="250" width="600" height="430" rx="28" fill="#141B2D"/>
+<text x="370" y="295" font-family="DejaVu Sans" font-size="18" font-weight="700" fill="#82D982" text-anchor="middle">HEALTHY</text>
+<rect x="730" y="250" width="600" height="430" rx="28" fill="#141B2D"/>
+<text x="1030" y="295" font-family="DejaVu Sans" font-size="18" font-weight="700" fill="#EC7CA7" text-anchor="middle">FAILED</text>
+<circle cx="398.0" cy="470.0" r="7" fill="#57D3C8"/>
+<circle cx="346.793386661042" cy="483.6930547873477" r="7" fill="#6CB6FF"/>
+<circle cx="372.99272681932297" cy="447.58240367695623" r="7" fill="#9E8CFF"/>
+<circle cx="393.5130887134773" cy="489.5980212182256" r="7" fill="#57D3C8"/>
+<circle cx="328.614154090178" cy="465.39956056635" r="7" fill="#6CB6FF"/>
+<circle cx="408.27280535116995" cy="454.18202520530997" r="7" fill="#9E8CFF"/>
+<circle cx="357.5530803866349" cy="500.4667776206776" r="7" fill="#57D3C8"/>
+<circle cx="345.4887884852797" cy="440.1541809480747" r="7" fill="#6CB6FF"/>
+<circle cx="422.74845978866887" cy="482.08844936625457" r="7" fill="#9E8CFF"/>
+<circle cx="315.2003140055694" cy="484.90048581728473" r="7" fill="#57D3C8"/>
+<circle cx="396.15143644995356" cy="433.15412048485575" r="7" fill="#6CB6FF"/>
+<circle cx="390.5735537135335" cy="510.6526657694144" r="7" fill="#9E8CFF"/>
+<circle cx="309.033574802424" cy="447.88819055843476" r="7" fill="#57D3C8"/>
+<circle cx="441.58242613470645" cy="459.27745371719953" r="7" fill="#6CB6FF"/>
+<circle cx="326.56847943676405" cy="510.87430613196136" r="7" fill="#9E8CFF"/>
+<circle cx="358.50255377737784" cy="418.7805463277414" r="7" fill="#57D3C8"/>
+<circle cx="435.0571433969722" cy="504.15966528410206" r="7" fill="#6CB6FF"/>
+<circle cx="282.64563872177814" cy="473.2440768785281" r="7" fill="#9E8CFF"/>
+<circle cx="433.3809099600456" cy="428.02255948048753" r="7" fill="#57D3C8"/>
+<circle cx="367.36317586086926" cy="530.7263462741853" r="7" fill="#6CB6FF"/>
+<circle cx="305.77272238992396" cy="422.416164119361" r="7" fill="#9E8CFF"/>
+<circle cx="470.84672567479794" cy="477.39112180269177" r="7" fill="#57D3C8"/>
+<circle cx="285.0999341070193" cy="509.716808997485" r="7" fill="#6CB6FF"/>
+<circle cx="391.4629479397323" cy="401.62830647756533" r="7" fill="#9E8CFF"/>
+<circle cx="427.91565720555997" cy="531.6264217738168" r="7" fill="#57D3C8"/>
+<circle cx="259.15062613769584" cy="449.14261601642016" r="7" fill="#6CB6FF"/>
+<circle cx="476.7434232137922" cy="436.1852156436744" r="7" fill="#9E8CFF"/>
+<circle cx="325.66207008573906" cy="543.4107898023855" r="7" fill="#57D3C8"/>
+<circle cx="324.17318916605956" cy="394.54734637305995" r="7" fill="#6CB6FF"/>
+<circle cx="486.27002316595883" cy="506.65713093975836" r="7" fill="#9E8CFF"/>
+<circle cx="242.42616067663988" cy="494.17275802069406" r="7" fill="#57D3C8"/>
+<circle cx="440.36359641854875" cy="394.8071066162318" r="7" fill="#6CB6FF"/>
+<circle cx="397.95364710215085" cy="558.1877080468412" r="7" fill="#9E8CFF"/>
+<circle cx="253.8104129608189" cy="415.86154282122453" r="7" fill="#57D3C8"/>
+<circle cx="516.0221222781227" cy="459.1180442754072" r="7" fill="#6CB6FF"/>
+<circle cx="271.58043448236134" cy="543.1949789522527" r="7" fill="#9E8CFF"/>
+<circle cx="1058.0" cy="470.0" r="7" fill="#57D3C8"/>
+<circle cx="1006.793386661042" cy="483.6930547873477" r="7" fill="#82D982"/>
+<circle cx="1032.992726819323" cy="447.58240367695623" r="7" fill="#EC7CA7"/>
+<circle cx="1053.5130887134774" cy="489.5980212182256" r="7" fill="#57D3C8"/>
+<circle cx="988.614154090178" cy="465.39956056635" r="7" fill="#82D982"/>
+<circle cx="1068.2728053511698" cy="454.18202520530997" r="7" fill="#EC7CA7"/>
+<circle cx="1017.5530803866349" cy="500.4667776206776" r="7" fill="#57D3C8"/>
+<circle cx="1005.4887884852798" cy="440.1541809480747" r="7" fill="#82D982"/>
+<circle cx="1082.748459788669" cy="482.08844936625457" r="7" fill="#EC7CA7"/>
+<circle cx="975.2003140055695" cy="484.90048581728473" r="7" fill="#57D3C8"/>
+<circle cx="1056.1514364499535" cy="433.15412048485575" r="7" fill="#82D982"/>
+<circle cx="1050.5735537135336" cy="510.6526657694144" r="7" fill="#EC7CA7"/>
+<circle cx="969.033574802424" cy="447.88819055843476" r="7" fill="#57D3C8"/>
+<circle cx="1101.5824261347066" cy="459.27745371719953" r="7" fill="#82D982"/>
+<circle cx="986.568479436764" cy="510.87430613196136" r="7" fill="#EC7CA7"/>
+<circle cx="1018.5025537773778" cy="418.7805463277414" r="7" fill="#57D3C8"/>
+<circle cx="1095.0571433969722" cy="504.15966528410206" r="7" fill="#82D982"/>
+<circle cx="942.6456387217781" cy="473.2440768785281" r="7" fill="#EC7CA7"/>
+<circle cx="1093.3809099600455" cy="428.02255948048753" r="7" fill="#57D3C8"/>
+<circle cx="1027.3631758608692" cy="530.7263462741853" r="7" fill="#82D982"/>
+<circle cx="965.772722389924" cy="422.416164119361" r="7" fill="#EC7CA7"/>
+<circle cx="1130.8467256747979" cy="477.39112180269177" r="7" fill="#57D3C8"/>
+<circle cx="945.0999341070193" cy="509.716808997485" r="7" fill="#82D982"/>
+<circle cx="1051.4629479397322" cy="401.62830647756533" r="7" fill="#EC7CA7"/>
+<circle cx="1087.91565720556" cy="531.6264217738168" r="7" fill="#57D3C8"/>
+<circle cx="919.1506261376959" cy="449.14261601642016" r="7" fill="#82D982"/>
+<circle cx="1136.743423213792" cy="436.1852156436744" r="7" fill="#EC7CA7"/>
+<circle cx="985.6620700857391" cy="543.4107898023855" r="7" fill="#57D3C8"/>
+<circle cx="984.1731891660595" cy="394.54734637305995" r="7" fill="#82D982"/>
+<circle cx="1146.2700231659587" cy="506.65713093975836" r="7" fill="#EC7CA7"/>
+<circle cx="902.4261606766399" cy="494.17275802069406" r="7" fill="#57D3C8"/>
+<circle cx="1100.3635964185487" cy="394.8071066162318" r="7" fill="#82D982"/>
+<circle cx="1057.9536471021509" cy="558.1877080468412" r="7" fill="#EC7CA7"/>
+<circle cx="913.8104129608189" cy="415.86154282122453" r="7" fill="#57D3C8"/>
+<circle cx="1176.0221222781227" cy="459.1180442754072" r="7" fill="#82D982"/>
+<circle cx="931.5804344823614" cy="543.1949789522527" r="7" fill="#EC7CA7"/>
+<rect x="70" y="720" width="1260" height="110" rx="20" fill="#1B2440"/>
+<text x="105" y="755" font-family="DejaVu Sans" font-size="16" font-weight="700" fill="#F3C969" text-anchor="start">LIKELY SYMPTOM</text>
+<text x="105" y="795" font-family="DejaVu Sans" font-size="20" font-weight="400" fill="#F7F8FA" text-anchor="start">NFS / neighborhood_mmd worsens; global shape can stay good.</text>
+<text x="735" y="755" font-family="DejaVu Sans" font-size="16" font-weight="700" fill="#57D3C8" text-anchor="start">DEBUG NEXT</text>
+<text x="735" y="795" font-family="DejaVu Sans" font-size="20" font-weight="400" fill="#F7F8FA" text-anchor="start">Inspect local neighbors and expression-position</text>
+<text x="735" y="821" font-family="DejaVu Sans" font-size="20" font-weight="400" fill="#F7F8FA" text-anchor="start">coupling.</text>
+<line x1="70" y1="846" x2="1330" y2="846" stroke="#2B3550" stroke-width="2" stroke-linecap="round"/>
+<text x="70" y="878" font-family="DejaVu Sans" font-size="16" font-weight="400" fill="#B9C2D0" text-anchor="start">virtualembryo.ai/challenge - source snapshot 2026-10-05</text>
+<text x="1330" y="878" font-family="DejaVu Sans" font-size="16" font-weight="400" fill="#B9C2D0" text-anchor="end">Community visual resource - MIT</text>
+</svg>
