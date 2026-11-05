@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1240" height="1754" viewBox="0 0 1240 1754">
+<rect width="1240" height="1754" fill="#0B1020"/>
+<text x="70" y="70" font-family="DejaVu Sans" font-size="18" font-weight="700" fill="#57D3C8" text-anchor="start">P3 SURVIVAL GUIDE</text>
+<text x="70" y="145" font-family="DejaVu Sans" font-size="44" font-weight="700" fill="#F7F8FA" text-anchor="start">Final workflow: from retraining to upload</text>
+<circle cx="120" cy="285" r="32" fill="#57D3C8"/>
+<text x="120" y="295" font-family="DejaVu Sans" font-size="24" font-weight="700" fill="#0B1020" text-anchor="middle">A</text>
+<text x="180" y="281" font-family="DejaVu Sans" font-size="27" font-weight="700" fill="#F7F8FA" text-anchor="start">Lock training inputs</text>
+<text x="180" y="320" font-family="DejaVu Sans" font-size="22" font-weight="400" fill="#B9C2D0" text-anchor="start">Record released validation data + every external source.</text>
+<line x1="120" y1="350" x2="120" y2="393" stroke="#2B3550" stroke-width="4" stroke-linecap="round"/>
+<polygon points="120,393 110.4244456943367,380.18170215124906 129.5755543056633,380.18170215124906" fill="#2B3550"/>
+<circle cx="120" cy="475" r="32" fill="#6CB6FF"/>
+<text x="120" y="485" font-family="DejaVu Sans" font-size="24" font-weight="700" fill="#0B1020" text-anchor="middle">B</text>
+<text x="180" y="471" font-family="DejaVu Sans" font-size="27" font-weight="700" fill="#F7F8FA" text-anchor="start">Retrain once, compare internally</text>
+<text x="180" y="510" font-family="DejaVu Sans" font-size="22" font-weight="400" fill="#B9C2D0" text-anchor="start">Use historical/pseudo splits; do not pretend local targets</text>
+<text x="180" y="540" font-family="DejaVu Sans" font-size="22" font-weight="400" fill="#B9C2D0" text-anchor="start">reveal test rank.</text>
+<line x1="120" y1="540" x2="120" y2="583" stroke="#2B3550" stroke-width="4" stroke-linecap="round"/>
+<polygon points="120,583 110.4244456943367,570.181702151249 129.5755543056633,570.181702151249" fill="#2B3550"/>
+<circle cx="120" cy="665" r="32" fill="#82D982"/>
+<text x="120" y="675" font-family="DejaVu Sans" font-size="24" font-weight="700" fill="#0B1020" text-anchor="middle">C</text>
+<text x="180" y="661" font-family="DejaVu Sans" font-size="27" font-weight="700" fill="#F7F8FA" text-anchor="start">Choose candidate</text>
+<text x="180" y="700" font-family="DejaVu Sans" font-size="22" font-weight="400" fill="#B9C2D0" text-anchor="start">Use uncertainty/stability and biological diagnostics, not</text>
+<text x="180" y="730" font-family="DejaVu Sans" font-size="22" font-weight="400" fill="#B9C2D0" text-anchor="start">one lucky score.</text>
+<line x1="120" y1="730" x2="120" y2="773" stroke="#2B3550" stroke-width="4" stroke-linecap="round"/>
+<polygon points="120,773 110.4244456943367,760.181702151249 129.5755543056633,760.181702151249" fill="#2B3550"/>
+<circle cx="120" cy="855" r="32" fill="#F3C969"/>
+<text x="120" y="865" font-family="DejaVu Sans" font-size="24" font-weight="700" fill="#0B1020" text-anchor="middle">D</text>
+<text x="180" y="851" font-family="DejaVu Sans" font-size="27" font-weight="700" fill="#F7F8FA" text-anchor="start">Freeze exact artifact</text>
+<text x="180" y="890" font-family="DejaVu Sans" font-size="22" font-weight="400" fill="#B9C2D0" text-anchor="start">Hash it. Make it read-only. Keep board + slot identity</text>
+<text x="180" y="920" font-family="DejaVu Sans" font-size="22" font-weight="400" fill="#B9C2D0" text-anchor="start">beside it.</text>
+<line x1="120" y1="920" x2="120" y2="963" stroke="#2B3550" stroke-width="4" stroke-linecap="round"/>
+<polygon points="120,963 110.4244456943367,950.181702151249 129.5755543056633,950.181702151249" fill="#2B3550"/>
+<circle cx="120" cy="1045" r="32" fill="#9E8CFF"/>
+<text x="120" y="1055" font-family="DejaVu Sans" font-size="24" font-weight="700" fill="#0B1020" text-anchor="middle">E</text>
+<text x="180" y="1041" font-family="DejaVu Sans" font-size="27" font-weight="700" fill="#F7F8FA" text-anchor="start">Run format check</text>
+<text x="180" y="1080" font-family="DejaVu Sans" font-size="22" font-weight="400" fill="#B9C2D0" text-anchor="start">Require PASS on the exact frozen file.</text>
+<line x1="120" y1="1110" x2="120" y2="1153" stroke="#2B3550" stroke-width="4" stroke-linecap="round"/>
+<polygon points="120,1153 110.4244456943367,1140.181702151249 129.5755543056633,1140.181702151249" fill="#2B3550"/>
+<circle cx="120" cy="1235" r="32" fill="#EC7CA7"/>
+<text x="120" y="1245" font-family="DejaVu Sans" font-size="24" font-weight="700" fill="#0B1020" text-anchor="middle">F</text>
+<text x="180" y="1231" font-family="DejaVu Sans" font-size="27" font-weight="700" fill="#F7F8FA" text-anchor="start">Official upload</text>
+<text x="180" y="1270" font-family="DejaVu Sans" font-size="22" font-weight="400" fill="#B9C2D0" text-anchor="start">Double-check board and artifact hash before spending one</text>
+<text x="180" y="1300" font-family="DejaVu Sans" font-size="22" font-weight="400" fill="#B9C2D0" text-anchor="start">of two attempts.</text>
+<rect x="70" y="1460" width="1100" height="150" rx="24" fill="#1B2440"/>
+<text x="620" y="1510" font-family="DejaVu Sans" font-size="21" font-weight="700" fill="#57D3C8" text-anchor="middle">Before clicking "official submit"</text>
+<text x="620" y="1560" font-family="DejaVu Sans" font-size="27" font-weight="700" fill="#F7F8FA" text-anchor="middle">RIGHT BOARD  -  RIGHT FILE  -  RIGHT HASH  -  FORMAT PASS</text>
+<line x1="70" y1="1700" x2="1170" y2="1700" stroke="#2B3550" stroke-width="2" stroke-linecap="round"/>
+<text x="70" y="1732" font-family="DejaVu Sans" font-size="16" font-weight="400" fill="#B9C2D0" text-anchor="start">virtualembryo.ai/challenge - source snapshot 2026-10-05</text>
+<text x="1170" y="1732" font-family="DejaVu Sans" font-size="16" font-weight="400" fill="#B9C2D0" text-anchor="end">Community visual resource - MIT</text>
+</svg>

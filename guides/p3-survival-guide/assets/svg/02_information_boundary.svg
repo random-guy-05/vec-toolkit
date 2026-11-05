@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1240" height="1754" viewBox="0 0 1240 1754">
+<rect width="1240" height="1754" fill="#0B1020"/>
+<text x="70" y="70" font-family="DejaVu Sans" font-size="18" font-weight="700" fill="#57D3C8" text-anchor="start">P3 SURVIVAL GUIDE</text>
+<text x="70" y="145" font-family="DejaVu Sans" font-size="44" font-weight="700" fill="#F7F8FA" text-anchor="start">What becomes usable - and what stays hidden</text>
+<text x="70" y="200" font-family="DejaVu Sans" font-size="24" font-weight="400" fill="#B9C2D0" text-anchor="start">The final phase changes the legal information boundary.</text>
+<rect x="70" y="300" width="1100" height="240" rx="24" fill="#141B2D"/>
+<rect x="100" y="328" width="150" height="42" rx="21" fill="#57D3C8"/>
+<text x="175.0" y="357" font-family="DejaVu Sans" font-size="20" font-weight="700" fill="#0B1020" text-anchor="middle">T1</text>
+<text x="100" y="405" font-family="DejaVu Sans" font-size="18" font-weight="700" fill="#82D982" text-anchor="start">RELEASED AT P3</text>
+<text x="100" y="445" font-family="DejaVu Sans" font-size="24" font-weight="700" fill="#F7F8FA" text-anchor="start">E10.5 validation released</text>
+<text x="640" y="405" font-family="DejaVu Sans" font-size="18" font-weight="700" fill="#EC7CA7" text-anchor="start">STILL HIDDEN</text>
+<text x="640" y="445" font-family="DejaVu Sans" font-size="24" font-weight="700" fill="#F7F8FA" text-anchor="start">E12.5 test stays hidden</text>
+<rect x="70" y="575" width="1100" height="240" rx="24" fill="#141B2D"/>
+<rect x="100" y="603" width="150" height="42" rx="21" fill="#6CB6FF"/>
+<text x="175.0" y="632" font-family="DejaVu Sans" font-size="20" font-weight="700" fill="#0B1020" text-anchor="middle">T2 heart</text>
+<text x="100" y="680" font-family="DejaVu Sans" font-size="18" font-weight="700" fill="#82D982" text-anchor="start">RELEASED AT P3</text>
+<text x="100" y="720" font-family="DejaVu Sans" font-size="24" font-weight="700" fill="#F7F8FA" text-anchor="start">E8.5 + E10.5 validation released</text>
+<text x="640" y="680" font-family="DejaVu Sans" font-size="18" font-weight="700" fill="#EC7CA7" text-anchor="start">STILL HIDDEN</text>
+<text x="640" y="720" font-family="DejaVu Sans" font-size="24" font-weight="700" fill="#F7F8FA" text-anchor="start">E12.5 extrap test stays hidden</text>
+<rect x="70" y="850" width="1100" height="240" rx="24" fill="#141B2D"/>
+<rect x="100" y="878" width="150" height="42" rx="21" fill="#9E8CFF"/>
+<text x="175.0" y="907" font-family="DejaVu Sans" font-size="20" font-weight="700" fill="#0B1020" text-anchor="middle">T2 embryo</text>
+<text x="100" y="955" font-family="DejaVu Sans" font-size="18" font-weight="700" fill="#82D982" text-anchor="start">RELEASED AT P3</text>
+<text x="100" y="995" font-family="DejaVu Sans" font-size="24" font-weight="700" fill="#F7F8FA" text-anchor="start">E7.5 validation released</text>
+<text x="640" y="955" font-family="DejaVu Sans" font-size="18" font-weight="700" fill="#EC7CA7" text-anchor="start">STILL HIDDEN</text>
+<text x="640" y="995" font-family="DejaVu Sans" font-size="24" font-weight="700" fill="#F7F8FA" text-anchor="start">E7.75 interp test stays hidden</text>
+<rect x="70" y="1125" width="1100" height="240" rx="24" fill="#141B2D"/>
+<rect x="100" y="1153" width="150" height="42" rx="21" fill="#EC7CA7"/>
+<text x="175.0" y="1182" font-family="DejaVu Sans" font-size="20" font-weight="700" fill="#0B1020" text-anchor="middle">T3</text>
+<text x="100" y="1230" font-family="DejaVu Sans" font-size="18" font-weight="700" fill="#82D982" text-anchor="start">RELEASED AT P3</text>
+<text x="100" y="1270" font-family="DejaVu Sans" font-size="24" font-weight="700" fill="#F7F8FA" text-anchor="start">Gata4 KO validation released</text>
+<text x="640" y="1230" font-family="DejaVu Sans" font-size="18" font-weight="700" fill="#EC7CA7" text-anchor="start">STILL HIDDEN</text>
+<text x="640" y="1270" font-family="DejaVu Sans" font-size="24" font-weight="700" fill="#F7F8FA" text-anchor="start">beta-catenin KO E8.75 stays hidden</text>
+<rect x="70" y="1410" width="1100" height="185" rx="24" fill="#1B2440"/>
+<text x="110" y="1460" font-family="DejaVu Sans" font-size="18" font-weight="700" fill="#F3C969" text-anchor="start">RULE OF THUMB</text>
+<text x="110" y="1510" font-family="DejaVu Sans" font-size="24" font-weight="400" fill="#F7F8FA" text-anchor="start">Released validation answers can improve final retraining. Hidden</text>
+<text x="110" y="1544" font-family="DejaVu Sans" font-size="24" font-weight="400" fill="#F7F8FA" text-anchor="start">test answers are never distributed. External data still has to</text>
+<text x="110" y="1578" font-family="DejaVu Sans" font-size="24" font-weight="400" fill="#F7F8FA" text-anchor="start">respect the held-out-stage/genotype rules and be disclosed.</text>
+<line x1="70" y1="1700" x2="1170" y2="1700" stroke="#2B3550" stroke-width="2" stroke-linecap="round"/>
+<text x="70" y="1732" font-family="DejaVu Sans" font-size="16" font-weight="400" fill="#B9C2D0" text-anchor="start">virtualembryo.ai/challenge - source snapshot 2026-10-05</text>
+<text x="1170" y="1732" font-family="DejaVu Sans" font-size="16" font-weight="400" fill="#B9C2D0" text-anchor="end">Community visual resource - MIT</text>
+</svg>
