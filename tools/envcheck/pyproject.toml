@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vec-envcheck"
+version = "1.0.0"
+description = "Environment and dependency diagnostics for VEC community tooling."
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+dependencies = []
+
+[project.optional-dependencies]
+memory = ["psutil>=5.9"]
+dev = ["pytest>=8", "ruff>=0.6", "psutil>=5.9"]
+
+[project.scripts]
+vec-envcheck = "vec_envcheck.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
