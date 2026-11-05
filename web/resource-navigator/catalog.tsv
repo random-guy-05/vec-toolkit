@@ -1,0 +1,138 @@
+kind	category	tasks	title	url
+build	Agents & reproducibility	Agent	VEC Evidence Check — offline run-package audit with a synthetic Spanish walkthrough	https://github.com/bestdeeplearning-star/vec-evidence-check
+build	Modeling & baselines	T2	Cell-Type-Conditioned Interpolation Baseline	https://github.com/Shashwat-srivastav/VirtualEmbryo-basline
+teach	Scoring & learning	T1,T2,T3	Virtual Embryo Intuition Lab	https://github.com/i-habib/virtual-embryo-community/tree/main/intuition-lab
+build	Data & eligibility	General	Virtual Embryo External Data Catalog	https://github.com/i-habib/external-data-catalog
+teach	Start here	T1	Task-1 Baseline → Real Submission Walkthrough	https://github.com/cadentann/virtual-embryo-community-kit/tree/main/modules/task1_walkthrough
+build	Data & eligibility	General	VEC Read-Only .h5ad Data Inspector	https://github.com/cadentann/virtual-embryo-community-kit/tree/main/modules/data_inspector
+build	Scoring & learning	General	VecBench	https://github.com/AJK0921/vecbench
+teach	Start here	T1	Task 1 first-submission tutorial (temporal scRNA-seq extrapolation)	https://scigantic.com/sample/virtual-embryo-challenge-t1
+teach	Start here	T1,T2,T3,Agent	从零到第一次提交 - Virtual Embryo Challenge 双语入门教程（中文 / English）	https://github.com/xxx12e/vec-community-kit/blob/main/docs/tutorial_zh.md
+build	Agents & reproducibility	Agent	Agent-Track Evidence Skeleton - configuration lock, guard and audit hooks, evidence collection and upload packaging for the Claude Code CLI	https://github.com/xxx12e/vec-community-kit/tree/main/vec_agent_evidence
+build	Scoring & learning	General	Local Scoring Wrapper for veckit - the scorer's protocol on pseudo splits of released stages, with multi-seed summaries	https://github.com/xxx12e/vec-community-kit/tree/main/vec_local_score
+build	Modeling & baselines	T1,T2,T3	VEC Baseline Generators and Submission Writer - the published baseline recipes as contract-checked files, with an explicit cell count	https://github.com/xxx12e/vec-community-kit/tree/main/vec_baselines
+build	Submission & files	T1,T2,T3	VEC Submission Validator - local format checks against the published board contracts, each rule labelled by source	https://github.com/xxx12e/vec-community-kit/tree/main/vec_submit_check
+build	Submission & files	T1,T2,T3	vec-submit-check: local submission format validator, plus a Chinese getting-started guide	https://github.com/gh-dv-openclaw/vec-submit-check
+build	Data & eligibility	General	EmbryoMatch: A Literature-Backed Public Dataset Registry for the Virtual Embryo Challenge	https://github.com/ShaoliZhao/virtual-embryo-EmbryoMatch
+teach	Methods & planning	General	记录我们从第一天开始尝试过的全部方法	https://github.com/wqty123/virtual-embryo-challenge-methods.git
+build	Submission & files	T1,T2,T3	Virtual Embryo Submission Viewer: 3D explorer and pre-upload coverage check	https://github.com/Shashwat-srivastav/Virtual-Embryo-Submission-Viewer
+build	Scoring & learning	T1,T2,T3	VEC ScoreLens — Multi-Task Prediction Diagnostics	https://github.com/cadentann/vec-scorelens
+build	Rules & operations	General	VEC Rules and Contract Watch (zh/en) - a daily changelog of the challenge pages, board contract, phase and scorer	https://github.com/xxx12e/vec-community-kit/tree/main/vec_rules_watch
+build	Agents & reproducibility	Agent	Trajectory Lens: read an agent run log as one offline page (Claude Code, Codex, OpenCode)	https://github.com/xxx12e/vec-community-kit/tree/main/vec_trajectory_lens
+build	Agents & reproducibility	Agent	OpenCode support for the Agent-Track Evidence Skeleton (opencode-lock / opencode-package)	https://github.com/xxx12e/vec-community-kit/tree/main/vec_agent_evidence#opencode-runs-opencode-lock-and-opencode-package-checked-against-the-source-untested-live
+build	Submission & files	T1,T2,T3	Virtual Embryo Submission Blender	https://github.com/i-habib/virtual-embryo-submission-blender
+teach	Modeling & baselines	T1,T2,T3	Virtual Embryo Ensemble Atlas	https://github.com/i-habib/virtual-embryo-ensemble-lab
+build	Scoring & learning	General	VEC BatchRank — Batch Candidate Selection and Stability Ranking for Veckit	https://github.com/random-guy-05/vec-batchrank
+build	Scoring & learning	T1,T2,T3	VEC Diff — Scorer-Aware Comparison of .h5ad Prediction Files	https://github.com/random-guy-05/vec-diff
+build	Scoring & learning	General	VEC SampleCheck — Cell-Count Sensitivity Testing for Local Scoring	https://github.com/random-guy-05/vec-samplecheck
+build	Scoring & learning	General	VEC Score Delta — Direction-Aware Comparison of veckit results	https://github.com/random-guy-05/vec-score-delta
+build	Scoring & learning	T2,T3	VEC SpatialQC — Geometry Sanity Checks for T2/T3 predictions	https://github.com/random-guy-05/vec-spatialqc
+build	Scoring & learning	T1,T2,T3	VEC CollapseCheck — Pre-Submission Population-Collapse Detector	https://github.com/random-guy-05/vec-collapsecheck
+build	Submission & files	T1,T2,T3	VEC Slim — Safely Remove Non-Scoring AnnData Baggage from Submissions	https://github.com/random-guy-05/vec-slim
+expand	Start here	T1,T2,T3,Agent	VEC Multilingual Starter — Zero-to-First-Submission Guides in Nine Languages	https://github.com/random-guy-05/vec-multilingual-starter
+teach	Data & eligibility	General	Virtual Embryo Data Gotchas: seven file pitfalls with runnable checks, plus Gotcha Doctor	https://github.com/Shashwat-srivastav/virtualembryo-data-gotchas
+build	Data & eligibility	General	Cell-Type Vocabulary Diff: find renamed cell-type labels between stages	https://github.com/Shashwat-srivastav/virtualembryo-celltype-vocab-diff
+build	Scoring & learning	T2,T3	veckit fix: shape metrics scored rotated copies of the same embryo as mirror images (issue #7)	https://github.com/aristoteleo/veckit/pull/9
+build	Data & eligibility	General	Cross-Stage Cell-Type Harmonization Map	https://github.com/Anky9972/celltype-harmonization
+build	Data & eligibility	T1,T2,T3	Marker-Gene Consistency Checker	https://github.com/Anky9972/celltype-marker-check
+build	Data & eligibility	General	Preventing report-overwrite races in VEC Data Inspector	https://github.com/cadentann/virtual-embryo-community-kit/pull/1
+build	Agents & reproducibility	Agent	VEC Evidence Kit: lossless trajectory packet checks	https://github.com/HyunsikParker/vec-evidence-kit
+build	Agents & reproducibility	Agent	VEC Agent Autonomy Lab	https://github.com/ShaoliZhao/VE-Agent-Autonomy
+build	Modeling & baselines	T1,T2,T3	VEC Modeling Strategy Handbook	https://github.com/ShaoliZhao/VE-Modeling-Strategy-Handbook
+build	Scoring & learning	General	VEC SplitForge — leakage-audited pseudo-validation split builder	https://github.com/random-guy-05/vec-splitforge
+build	Environments & performance	General	VEC ReproBox — tested Docker/devcontainer environment for the VEC scorer	https://github.com/random-guy-05/vec-reprobox
+build	Scoring & learning	General	VEC Bootstrap — cell-sampling uncertainty for local VEC scores	https://github.com/random-guy-05/vec-bootstrap
+build	Scoring & learning	T1,T2,T3	VEC MetricLens — gene-level and spatial debugging for local VEC scores	https://github.com/random-guy-05/vec-metriclens
+build	Data & eligibility	General	Opt-in attention-aware CLI exit status for VEC Data Inspector	https://github.com/cadentann/virtual-embryo-community-kit/pull/2
+build	Modeling & baselines	T3	VEC Perturbation Specificity Lab	https://github.com/ShaoliZhao/-VE-Perturbation-Specificity
+build	Modeling & baselines	T2	VEC 3D Morphodynamics Lab	https://github.com/ShaoliZhao/VE-3D-Morphodynamics
+build	Modeling & baselines	T1,T2,T3	VEC Generality Model Zoo	https://github.com/ShaoliZhao/VE-Generality-Model-Zoo
+build	Data & eligibility	T1	Count Recovery: exact integer UMI counts from the log-normalised Task 1 RNA files	https://github.com/i-habib/virtual-embryo-community/tree/main/count-recovery
+build	Data & eligibility	General	Panel Normalise: put external raw counts on the release normalisation, with gene-name rescue	https://github.com/i-habib/virtual-embryo-community/tree/main/panel-normalise
+teach	Start here	General	Virtual Embryo for ML people: what the data and prediction targets mean, with a Colab data tour	https://github.com/i-habib/virtual-embryo-community/tree/main/ml-guide
+build	Data & eligibility	General	Data Safety Kit: mechanical external-data rule checks and a source-disclosure writer	https://github.com/i-habib/virtual-embryo-community/tree/main/data-safety
+build	Agents & reproducibility	Agent	Agent Harness Lab: deterministic dry-run tasks to test an agent harness before a locked Agent Team run	https://github.com/i-habib/virtual-embryo-community/tree/main/agent-harness-lab
+build	Modeling & baselines	T1	VEC T1 Branching Forecast Lab	https://github.com/finnick123/VE-T1-Branching-Forecast
+build	Modeling & baselines	T1,T2,T3	VEC Cross-Species Transfer Lab	https://github.com/finnick123/VE-Cross-Species-Transfer
+build	Modeling & baselines	T1,T2,T3	VEC Distributional Decoder Lab	https://github.com/finnick123/VE-Distributional-Decoder
+build	Start here	General	Korean VEC Score Explainer: offline interactive tutorial and practice notebook	https://github.com/ByungwoongYoo/vec-ko-tutorial
+create	Visual references	T1,T2,T3,Agent	VEC Visual Cheatsheet Pack - twelve editable reference graphics for the Challenge	https://github.com/random-guy-05/vec-visual-cheatsheets
+create	Visual references	General	VEC P3 Survival Guide - illustrated final-phase guide for 20 October	https://github.com/random-guy-05/vec-p3-survival-guide
+create	Visual references	T1,T2,T3	VEC Metric Cards - nine visual reference cards for the official scoring metrics	https://github.com/random-guy-05/vec-metric-cards
+create	Visual references	T1,T2,T3	VEC Failure Mode Gallery - visual atlas of common prediction failures and metric symptoms	https://github.com/random-guy-05/vec-failure-gallery
+build	Submission & files	T1	VEC LogCheck — heuristic warning for raw-count H5ADs	https://github.com/random-guy-05/vec-logcheck
+build	Submission & files	T1,T2,T3	VEC PanelGuard — safely repair gene-order mismatches	https://github.com/random-guy-05/vec-panelguard
+build	Agents & reproducibility	T1,T2,T3	VEC P3 Freeze — immutable bundles for final submissions	https://github.com/random-guy-05/vec-p3-freeze
+build	Agents & reproducibility	General	VEC RunLog — append-only provenance for scoring runs	https://github.com/random-guy-05/vec-runlog
+build	Agents & reproducibility	General	VEC Determinism — scorer-aware exporter reproducibility	https://github.com/random-guy-05/vec-determinism
+build	Agents & reproducibility	General	VEC MethodCard — reproducibility record for methods and artifacts	https://github.com/random-guy-05/vec-methodcard
+build	Environments & performance	General	VEC Profile — runtime and memory profiler for local scoring	https://github.com/random-guy-05/vec-profile
+build	Environments & performance	General	VEC EnvCheck — quick diagnostics for local environments	https://github.com/random-guy-05/vec-envcheck
+expand	Start here	T1,T2,T3	VEC RU Starter: Russian-language guide and executed starter notebook (T1/T2/T3)	https://github.com/ttimesai-star/vec-ru-starter
+teach	Data & eligibility	General	VEC R Data Tour — inspect Challenge H5ADs with Bioconductor	https://github.com/random-guy-05/vec-r-data-tour
+teach	Start here	General	VEC Community Resource Navigator — searchable community directory	https://random-guy-05.github.io/vec-resource-navigator/
+build	Environments & performance	General	VEC Slurm Starter — cluster job templates for scoring and model runs	https://github.com/random-guy-05/vec-slurm-starter
+organize	Workshops & peer learning	General	VEC Peer Workshop Kit — facilitator-ready workshop for a reproducible first workflow	https://github.com/random-guy-05/vec-workshop-kit
+expand	Start here	General	VEC Peer Workshop — reproducible first workflow (Español)	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/first-workflow/es.md
+expand	Start here	General	VEC 同伴工作坊：可复现的起步流程（简体中文）	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/first-workflow/zh-CN.md
+expand	Start here	General	Atelier VEC entre pairs : flux reproductible (français)	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/first-workflow/fr.md
+expand	Start here	General	VEC सहकर्मी कार्यशाला: दोहराने योग्य कार्यप्रवाह (हिंदी)	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/first-workflow/hi.md
+expand	Start here	General	VEC ピアワークショップ：再現可能なワークフロー（日本語）	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/first-workflow/ja.md
+expand	Start here	General	VEC 동료 워크숍: 재현 가능한 워크플로 (한국어)	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/first-workflow/ko.md
+expand	Start here	General	Oficina VEC entre pares: fluxo reproduzível (português do Brasil)	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/first-workflow/pt-BR.md
+expand	Start here	General	ورشة VEC بين الزملاء: سير عمل قابل لإعادة الإنتاج (العربية)	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/first-workflow/ar.md
+organize	Workshops & peer learning	T2	Task 2 Workshop: Reasoning Across Space and Time (English)	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t2-spatial/en.md
+expand	Workshops & peer learning	T2	Taller Task 2: razonar sobre espacio y tiempo (español)	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t2-spatial/es.md
+expand	Workshops & peer learning	T2	Task 2 工作坊：理解时空预测（简体中文）	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t2-spatial/zh-CN.md
+expand	Workshops & peer learning	T2	Atelier Task 2 : espace, temps et coordonnées locales (français)	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t2-spatial/fr.md
+expand	Workshops & peer learning	T2	Task 2 ワークショップ：時空間予測を読み解く（日本語）	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t2-spatial/ja.md
+expand	Workshops & peer learning	T2	Task 2 워크숍: 시공간 예측 이해하기 (한국어)	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t2-spatial/ko.md
+expand	Workshops & peer learning	T2	Oficina Task 2: raciocinar sobre espaço e tempo (português do Brasil)	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t2-spatial/pt-BR.md
+organize	Workshops & peer learning	T3	Task 3 Workshop: Predict the Perturbation Response (English)	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t3-perturbation/en.md
+expand	Workshops & peer learning	T3	Taller Task 3: predecir la respuesta a una perturbación (español)	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t3-perturbation/es.md
+expand	Workshops & peer learning	T3	Task 3 工作坊：预测扰动响应（简体中文）	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t3-perturbation/zh-CN.md
+expand	Workshops & peer learning	T3	Atelier Task 3 : réponse à une perturbation (français)	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t3-perturbation/fr.md
+expand	Workshops & peer learning	T3	Task 3 ワークショップ：摂動応答を予測する（日本語）	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t3-perturbation/ja.md
+expand	Workshops & peer learning	T3	Task 3 워크숍: perturbation 반응 예측하기 (한국어)	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t3-perturbation/ko.md
+expand	Workshops & peer learning	T3	Oficina Task 3: resposta à perturbação (português do Brasil)	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t3-perturbation/pt-BR.md
+build	Environments & performance	General	VEC PBS + LSF Starter — research-cluster job templates beyond Slurm	https://github.com/random-guy-05/vec-pbs-lsf-starter
+build	Data & eligibility	T1,T2,T3	VEC Cohort Audit — metadata-only cell composition profiles across stages	https://github.com/random-guy-05/vec-cohort-audit
+build	Rules & operations	General	VEC Resource Link Audit — conservative checker for shared community links	https://github.com/random-guy-05/vec-resource-link-audit
+build	Scoring & learning	T3	VEC Replicate Range — paired Task 3 biological-replicate sensitivity report	https://github.com/random-guy-05/vec-replicate-range
+teach	Rules & operations	General	VEC Rule Scenario Trainer — 33 rule cases in English, Spanish, and Simplified Chinese	https://random-guy-05.github.io/vec-rule-scenario-trainer/
+build	Submission & files	General	VEC P3 Attempt Ledger — offline tracker for two scored submissions per board	https://github.com/random-guy-05/vec-p3-attempt-ledger
+organize	Workshops & peer learning	T1	Task 1 Workshop: Forecasting a Changing Cell Population	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t1-temporal/en.md
+expand	Workshops & peer learning	T1	Task-1-Workshop auf Deutsch: Eine sich verändernde Zellpopulation prognostizieren	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t1-temporal/de.md
+expand	Workshops & peer learning	T1	Laboratorio Task 1 in italiano: prevedere una popolazione cellulare in cambiamento	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t1-temporal/it.md
+expand	Workshops & peer learning	T1	Task 1 Atölyesi: Değişen bir hücre popülasyonunu tahmin etme	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t1-temporal/tr.md
+expand	Workshops & peer learning	T1	Taller Task 1: Pronosticar una población celular cambiante	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t1-temporal/es.md
+expand	Workshops & peer learning	T1	Task 1 工作坊：预测不断变化的细胞群体	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t1-temporal/zh-CN.md
+expand	Workshops & peer learning	T1	Atelier Task 1 : prévoir une population cellulaire en évolution	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t1-temporal/fr.md
+expand	Workshops & peer learning	T1	Task 1 ワークショップ：変化する細胞集団を予測する	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t1-temporal/ja.md
+expand	Workshops & peer learning	T1	Task 1 워크숍: 변화하는 세포 집단 예측하기	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t1-temporal/ko.md
+expand	Workshops & peer learning	T1	Oficina Task 1: prever uma população celular em transformação	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t1-temporal/pt-BR.md
+expand	Workshops & peer learning	T1	Task 1 कार्यशाला: बदलती कोशिका आबादी का पूर्वानुमान	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t1-temporal/hi.md
+expand	Workshops & peer learning	T1	ورشة Task 1: التنبؤ بمجموعة خلوية متغيرة	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t1-temporal/ar.md
+expand	Workshops & peer learning	T2	Task-2-Workshop auf Deutsch: Räumliche und zeitliche Vorhersagen einordnen	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t2-spatial/de.md
+expand	Workshops & peer learning	T2	Task 2 Workshop in italiano: ragionare tra spazio e tempo	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t2-spatial/it.md
+expand	Workshops & peer learning	T2	Task 2 Atölyesi: Uzay ve zaman boyunca akıl yürütme	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t2-spatial/tr.md
+expand	Workshops & peer learning	T2	Task 2 कार्यशाला: स्थान और समय के साथ तर्क करना	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t2-spatial/hi.md
+expand	Workshops & peer learning	T2	ورشة Task 2: التفكير عبر المكان والزمن	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t2-spatial/ar.md
+expand	Workshops & peer learning	T3	Task-3-Workshop auf Deutsch: Die Antwort auf eine Perturbation vorhersagen	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t3-perturbation/de.md
+expand	Workshops & peer learning	T3	Laboratorio Task 3 in italiano: prevedere la risposta a una perturbazione	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t3-perturbation/it.md
+expand	Workshops & peer learning	T3	Task 3 Atölyesi: Perturbasyon yanıtını tahmin etme	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t3-perturbation/tr.md
+expand	Workshops & peer learning	T3	Task 3 कार्यशाला: perturbation प्रतिक्रिया का पूर्वानुमान	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t3-perturbation/hi.md
+expand	Workshops & peer learning	T3	ورشة Task 3: التنبؤ باستجابة الاضطراب	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t3-perturbation/ar.md
+expand	Start here	General	VEC Peer-Workshop auf Deutsch: Einen reproduzierbaren Workflow starten	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/first-workflow/de.md
+expand	Start here	General	Laboratorio VEC tra pari in italiano: avviare un flusso riproducibile	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/first-workflow/it.md
+expand	Start here	General	VEC Akran Atölyesi: Tekrarlanabilir bir iş akışına başlama	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/first-workflow/tr.md
+build	Start here	T1,T2,T3,Agent	VEC Pathway Builder — multilingual guided routes to a useful next step	https://random-guy-05.github.io/vec-pathway-builder/
+expand	Start here	General	Lokakarya VEC bersama rekan: Memulai Alur Kerja yang Dapat Direproduksi (Bahasa Indonesia)	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/first-workflow/id.md
+expand	Start here	General	Hội thảo VEC cùng đồng nghiệp: Bắt đầu với quy trình có thể tái lập (Tiếng Việt)	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/first-workflow/vi.md
+expand	Workshops & peer learning	T1	Lokakarya Task 1: Memprediksi Populasi Sel yang Berubah (Bahasa Indonesia)	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t1-temporal/id.md
+expand	Workshops & peer learning	T1	Hội thảo Task 1: Dự đoán quần thể tế bào đang thay đổi (Tiếng Việt)	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t1-temporal/vi.md
+expand	Workshops & peer learning	T2	Lokakarya Task 2: Menalar Ruang dan Waktu (Bahasa Indonesia)	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t2-spatial/id.md
+expand	Workshops & peer learning	T2	Hội thảo Task 2: Suy luận về không gian và thời gian (Tiếng Việt)	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t2-spatial/vi.md
+expand	Workshops & peer learning	T3	Lokakarya Task 3: Memprediksi Respons Perturbasi (Bahasa Indonesia)	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t3-perturbation/id.md
+expand	Workshops & peer learning	T3	Hội thảo Task 3: Dự đoán phản ứng với perturbation (Tiếng Việt)	https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t3-perturbation/vi.md
+expand	Start here	T1,T2,T3,Agent	VEC Pathway Builder — Indonesian and Vietnamese interface expansion	https://github.com/random-guy-05/vec-pathway-builder/commit/02addaa

@@ -1,0 +1,1435 @@
+[
+  {
+    "kind": "build",
+    "category": "Agents & reproducibility",
+    "tasks": [
+      "Agent"
+    ],
+    "title": "VEC Evidence Check — offline run-package audit with a synthetic Spanish walkthrough",
+    "url": "https://github.com/bestdeeplearning-star/vec-evidence-check",
+    "status": "Accepted"
+  },
+  {
+    "kind": "build",
+    "category": "Modeling & baselines",
+    "tasks": [
+      "T2"
+    ],
+    "title": "Cell-Type-Conditioned Interpolation Baseline",
+    "url": "https://github.com/Shashwat-srivastav/VirtualEmbryo-basline",
+    "status": "Accepted"
+  },
+  {
+    "kind": "teach",
+    "category": "Scoring & learning",
+    "tasks": [
+      "T1",
+      "T2",
+      "T3"
+    ],
+    "title": "Virtual Embryo Intuition Lab",
+    "url": "https://github.com/i-habib/virtual-embryo-community/tree/main/intuition-lab",
+    "status": "Accepted"
+  },
+  {
+    "kind": "build",
+    "category": "Data & eligibility",
+    "tasks": [
+      "General"
+    ],
+    "title": "Virtual Embryo External Data Catalog",
+    "url": "https://github.com/i-habib/external-data-catalog",
+    "status": "Accepted"
+  },
+  {
+    "kind": "teach",
+    "category": "Start here",
+    "tasks": [
+      "T1"
+    ],
+    "title": "Task-1 Baseline → Real Submission Walkthrough",
+    "url": "https://github.com/cadentann/virtual-embryo-community-kit/tree/main/modules/task1_walkthrough",
+    "status": "Accepted"
+  },
+  {
+    "kind": "build",
+    "category": "Data & eligibility",
+    "tasks": [
+      "General"
+    ],
+    "title": "VEC Read-Only .h5ad Data Inspector",
+    "url": "https://github.com/cadentann/virtual-embryo-community-kit/tree/main/modules/data_inspector",
+    "status": "Accepted"
+  },
+  {
+    "kind": "build",
+    "category": "Scoring & learning",
+    "tasks": [
+      "General"
+    ],
+    "title": "VecBench",
+    "url": "https://github.com/AJK0921/vecbench",
+    "status": "Accepted"
+  },
+  {
+    "kind": "teach",
+    "category": "Start here",
+    "tasks": [
+      "T1"
+    ],
+    "title": "Task 1 first-submission tutorial (temporal scRNA-seq extrapolation)",
+    "url": "https://scigantic.com/sample/virtual-embryo-challenge-t1",
+    "status": "Accepted"
+  },
+  {
+    "kind": "teach",
+    "category": "Start here",
+    "tasks": [
+      "T1",
+      "T2",
+      "T3",
+      "Agent"
+    ],
+    "title": "从零到第一次提交 - Virtual Embryo Challenge 双语入门教程（中文 / English）",
+    "url": "https://github.com/xxx12e/vec-community-kit/blob/main/docs/tutorial_zh.md",
+    "status": "Accepted"
+  },
+  {
+    "kind": "build",
+    "category": "Agents & reproducibility",
+    "tasks": [
+      "Agent"
+    ],
+    "title": "Agent-Track Evidence Skeleton - configuration lock, guard and audit hooks, evidence collection and upload packaging for the Claude Code CLI",
+    "url": "https://github.com/xxx12e/vec-community-kit/tree/main/vec_agent_evidence",
+    "status": "Accepted"
+  },
+  {
+    "kind": "build",
+    "category": "Scoring & learning",
+    "tasks": [
+      "General"
+    ],
+    "title": "Local Scoring Wrapper for veckit - the scorer's protocol on pseudo splits of released stages, with multi-seed summaries",
+    "url": "https://github.com/xxx12e/vec-community-kit/tree/main/vec_local_score",
+    "status": "Accepted"
+  },
+  {
+    "kind": "build",
+    "category": "Modeling & baselines",
+    "tasks": [
+      "T1",
+      "T2",
+      "T3"
+    ],
+    "title": "VEC Baseline Generators and Submission Writer - the published baseline recipes as contract-checked files, with an explicit cell count",
+    "url": "https://github.com/xxx12e/vec-community-kit/tree/main/vec_baselines",
+    "status": "Accepted"
+  },
+  {
+    "kind": "build",
+    "category": "Submission & files",
+    "tasks": [
+      "T1",
+      "T2",
+      "T3"
+    ],
+    "title": "VEC Submission Validator - local format checks against the published board contracts, each rule labelled by source",
+    "url": "https://github.com/xxx12e/vec-community-kit/tree/main/vec_submit_check",
+    "status": "Accepted"
+  },
+  {
+    "kind": "build",
+    "category": "Submission & files",
+    "tasks": [
+      "T1",
+      "T2",
+      "T3"
+    ],
+    "title": "vec-submit-check: local submission format validator, plus a Chinese getting-started guide",
+    "url": "https://github.com/gh-dv-openclaw/vec-submit-check",
+    "status": "Accepted"
+  },
+  {
+    "kind": "build",
+    "category": "Data & eligibility",
+    "tasks": [
+      "General"
+    ],
+    "title": "EmbryoMatch: A Literature-Backed Public Dataset Registry for the Virtual Embryo Challenge",
+    "url": "https://github.com/ShaoliZhao/virtual-embryo-EmbryoMatch",
+    "status": "Accepted"
+  },
+  {
+    "kind": "teach",
+    "category": "Methods & planning",
+    "tasks": [
+      "General"
+    ],
+    "title": "记录我们从第一天开始尝试过的全部方法",
+    "url": "https://github.com/wqty123/virtual-embryo-challenge-methods.git",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Submission & files",
+    "tasks": [
+      "T1",
+      "T2",
+      "T3"
+    ],
+    "title": "Virtual Embryo Submission Viewer: 3D explorer and pre-upload coverage check",
+    "url": "https://github.com/Shashwat-srivastav/Virtual-Embryo-Submission-Viewer",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Scoring & learning",
+    "tasks": [
+      "T1",
+      "T2",
+      "T3"
+    ],
+    "title": "VEC ScoreLens — Multi-Task Prediction Diagnostics",
+    "url": "https://github.com/cadentann/vec-scorelens",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Rules & operations",
+    "tasks": [
+      "General"
+    ],
+    "title": "VEC Rules and Contract Watch (zh/en) - a daily changelog of the challenge pages, board contract, phase and scorer",
+    "url": "https://github.com/xxx12e/vec-community-kit/tree/main/vec_rules_watch",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Agents & reproducibility",
+    "tasks": [
+      "Agent"
+    ],
+    "title": "Trajectory Lens: read an agent run log as one offline page (Claude Code, Codex, OpenCode)",
+    "url": "https://github.com/xxx12e/vec-community-kit/tree/main/vec_trajectory_lens",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Agents & reproducibility",
+    "tasks": [
+      "Agent"
+    ],
+    "title": "OpenCode support for the Agent-Track Evidence Skeleton (opencode-lock / opencode-package)",
+    "url": "https://github.com/xxx12e/vec-community-kit/tree/main/vec_agent_evidence#opencode-runs-opencode-lock-and-opencode-package-checked-against-the-source-untested-live",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Submission & files",
+    "tasks": [
+      "T1",
+      "T2",
+      "T3"
+    ],
+    "title": "Virtual Embryo Submission Blender",
+    "url": "https://github.com/i-habib/virtual-embryo-submission-blender",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "teach",
+    "category": "Modeling & baselines",
+    "tasks": [
+      "T1",
+      "T2",
+      "T3"
+    ],
+    "title": "Virtual Embryo Ensemble Atlas",
+    "url": "https://github.com/i-habib/virtual-embryo-ensemble-lab",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Scoring & learning",
+    "tasks": [
+      "General"
+    ],
+    "title": "VEC BatchRank — Batch Candidate Selection and Stability Ranking for Veckit",
+    "url": "https://github.com/random-guy-05/vec-batchrank",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Scoring & learning",
+    "tasks": [
+      "T1",
+      "T2",
+      "T3"
+    ],
+    "title": "VEC Diff — Scorer-Aware Comparison of .h5ad Prediction Files",
+    "url": "https://github.com/random-guy-05/vec-diff",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Scoring & learning",
+    "tasks": [
+      "General"
+    ],
+    "title": "VEC SampleCheck — Cell-Count Sensitivity Testing for Local Scoring",
+    "url": "https://github.com/random-guy-05/vec-samplecheck",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Scoring & learning",
+    "tasks": [
+      "General"
+    ],
+    "title": "VEC Score Delta — Direction-Aware Comparison of veckit results",
+    "url": "https://github.com/random-guy-05/vec-score-delta",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Scoring & learning",
+    "tasks": [
+      "T2",
+      "T3"
+    ],
+    "title": "VEC SpatialQC — Geometry Sanity Checks for T2/T3 predictions",
+    "url": "https://github.com/random-guy-05/vec-spatialqc",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Scoring & learning",
+    "tasks": [
+      "T1",
+      "T2",
+      "T3"
+    ],
+    "title": "VEC CollapseCheck — Pre-Submission Population-Collapse Detector",
+    "url": "https://github.com/random-guy-05/vec-collapsecheck",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Submission & files",
+    "tasks": [
+      "T1",
+      "T2",
+      "T3"
+    ],
+    "title": "VEC Slim — Safely Remove Non-Scoring AnnData Baggage from Submissions",
+    "url": "https://github.com/random-guy-05/vec-slim",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Start here",
+    "tasks": [
+      "T1",
+      "T2",
+      "T3",
+      "Agent"
+    ],
+    "title": "VEC Multilingual Starter — Zero-to-First-Submission Guides in Nine Languages",
+    "url": "https://github.com/random-guy-05/vec-multilingual-starter",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "teach",
+    "category": "Data & eligibility",
+    "tasks": [
+      "General"
+    ],
+    "title": "Virtual Embryo Data Gotchas: seven file pitfalls with runnable checks, plus Gotcha Doctor",
+    "url": "https://github.com/Shashwat-srivastav/virtualembryo-data-gotchas",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Data & eligibility",
+    "tasks": [
+      "General"
+    ],
+    "title": "Cell-Type Vocabulary Diff: find renamed cell-type labels between stages",
+    "url": "https://github.com/Shashwat-srivastav/virtualembryo-celltype-vocab-diff",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Scoring & learning",
+    "tasks": [
+      "T2",
+      "T3"
+    ],
+    "title": "veckit fix: shape metrics scored rotated copies of the same embryo as mirror images (issue #7)",
+    "url": "https://github.com/aristoteleo/veckit/pull/9",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Data & eligibility",
+    "tasks": [
+      "General"
+    ],
+    "title": "Cross-Stage Cell-Type Harmonization Map",
+    "url": "https://github.com/Anky9972/celltype-harmonization",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Data & eligibility",
+    "tasks": [
+      "T1",
+      "T2",
+      "T3"
+    ],
+    "title": "Marker-Gene Consistency Checker",
+    "url": "https://github.com/Anky9972/celltype-marker-check",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Data & eligibility",
+    "tasks": [
+      "General"
+    ],
+    "title": "Preventing report-overwrite races in VEC Data Inspector",
+    "url": "https://github.com/cadentann/virtual-embryo-community-kit/pull/1",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Agents & reproducibility",
+    "tasks": [
+      "Agent"
+    ],
+    "title": "VEC Evidence Kit: lossless trajectory packet checks",
+    "url": "https://github.com/HyunsikParker/vec-evidence-kit",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Agents & reproducibility",
+    "tasks": [
+      "Agent"
+    ],
+    "title": "VEC Agent Autonomy Lab",
+    "url": "https://github.com/ShaoliZhao/VE-Agent-Autonomy",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Modeling & baselines",
+    "tasks": [
+      "T1",
+      "T2",
+      "T3"
+    ],
+    "title": "VEC Modeling Strategy Handbook",
+    "url": "https://github.com/ShaoliZhao/VE-Modeling-Strategy-Handbook",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Scoring & learning",
+    "tasks": [
+      "General"
+    ],
+    "title": "VEC SplitForge — leakage-audited pseudo-validation split builder",
+    "url": "https://github.com/random-guy-05/vec-splitforge",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Environments & performance",
+    "tasks": [
+      "General"
+    ],
+    "title": "VEC ReproBox — tested Docker/devcontainer environment for the VEC scorer",
+    "url": "https://github.com/random-guy-05/vec-reprobox",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Scoring & learning",
+    "tasks": [
+      "General"
+    ],
+    "title": "VEC Bootstrap — cell-sampling uncertainty for local VEC scores",
+    "url": "https://github.com/random-guy-05/vec-bootstrap",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Scoring & learning",
+    "tasks": [
+      "T1",
+      "T2",
+      "T3"
+    ],
+    "title": "VEC MetricLens — gene-level and spatial debugging for local VEC scores",
+    "url": "https://github.com/random-guy-05/vec-metriclens",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Data & eligibility",
+    "tasks": [
+      "General"
+    ],
+    "title": "Opt-in attention-aware CLI exit status for VEC Data Inspector",
+    "url": "https://github.com/cadentann/virtual-embryo-community-kit/pull/2",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Modeling & baselines",
+    "tasks": [
+      "T3"
+    ],
+    "title": "VEC Perturbation Specificity Lab",
+    "url": "https://github.com/ShaoliZhao/-VE-Perturbation-Specificity",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Modeling & baselines",
+    "tasks": [
+      "T2"
+    ],
+    "title": "VEC 3D Morphodynamics Lab",
+    "url": "https://github.com/ShaoliZhao/VE-3D-Morphodynamics",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Modeling & baselines",
+    "tasks": [
+      "T1",
+      "T2",
+      "T3"
+    ],
+    "title": "VEC Generality Model Zoo",
+    "url": "https://github.com/ShaoliZhao/VE-Generality-Model-Zoo",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Data & eligibility",
+    "tasks": [
+      "T1"
+    ],
+    "title": "Count Recovery: exact integer UMI counts from the log-normalised Task 1 RNA files",
+    "url": "https://github.com/i-habib/virtual-embryo-community/tree/main/count-recovery",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Data & eligibility",
+    "tasks": [
+      "General"
+    ],
+    "title": "Panel Normalise: put external raw counts on the release normalisation, with gene-name rescue",
+    "url": "https://github.com/i-habib/virtual-embryo-community/tree/main/panel-normalise",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "teach",
+    "category": "Start here",
+    "tasks": [
+      "General"
+    ],
+    "title": "Virtual Embryo for ML people: what the data and prediction targets mean, with a Colab data tour",
+    "url": "https://github.com/i-habib/virtual-embryo-community/tree/main/ml-guide",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Data & eligibility",
+    "tasks": [
+      "General"
+    ],
+    "title": "Data Safety Kit: mechanical external-data rule checks and a source-disclosure writer",
+    "url": "https://github.com/i-habib/virtual-embryo-community/tree/main/data-safety",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Agents & reproducibility",
+    "tasks": [
+      "Agent"
+    ],
+    "title": "Agent Harness Lab: deterministic dry-run tasks to test an agent harness before a locked Agent Team run",
+    "url": "https://github.com/i-habib/virtual-embryo-community/tree/main/agent-harness-lab",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Modeling & baselines",
+    "tasks": [
+      "T1"
+    ],
+    "title": "VEC T1 Branching Forecast Lab",
+    "url": "https://github.com/finnick123/VE-T1-Branching-Forecast",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Modeling & baselines",
+    "tasks": [
+      "T1",
+      "T2",
+      "T3"
+    ],
+    "title": "VEC Cross-Species Transfer Lab",
+    "url": "https://github.com/finnick123/VE-Cross-Species-Transfer",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Modeling & baselines",
+    "tasks": [
+      "T1",
+      "T2",
+      "T3"
+    ],
+    "title": "VEC Distributional Decoder Lab",
+    "url": "https://github.com/finnick123/VE-Distributional-Decoder",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Start here",
+    "tasks": [
+      "General"
+    ],
+    "title": "Korean VEC Score Explainer: offline interactive tutorial and practice notebook",
+    "url": "https://github.com/ByungwoongYoo/vec-ko-tutorial",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "create",
+    "category": "Visual references",
+    "tasks": [
+      "T1",
+      "T2",
+      "T3",
+      "Agent"
+    ],
+    "title": "VEC Visual Cheatsheet Pack - twelve editable reference graphics for the Challenge",
+    "url": "https://github.com/random-guy-05/vec-visual-cheatsheets",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "create",
+    "category": "Visual references",
+    "tasks": [
+      "General"
+    ],
+    "title": "VEC P3 Survival Guide - illustrated final-phase guide for 20 October",
+    "url": "https://github.com/random-guy-05/vec-p3-survival-guide",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "create",
+    "category": "Visual references",
+    "tasks": [
+      "T1",
+      "T2",
+      "T3"
+    ],
+    "title": "VEC Metric Cards - nine visual reference cards for the official scoring metrics",
+    "url": "https://github.com/random-guy-05/vec-metric-cards",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "create",
+    "category": "Visual references",
+    "tasks": [
+      "T1",
+      "T2",
+      "T3"
+    ],
+    "title": "VEC Failure Mode Gallery - visual atlas of common prediction failures and metric symptoms",
+    "url": "https://github.com/random-guy-05/vec-failure-gallery",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Submission & files",
+    "tasks": [
+      "T1"
+    ],
+    "title": "VEC LogCheck — heuristic warning for raw-count H5ADs",
+    "url": "https://github.com/random-guy-05/vec-logcheck",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Submission & files",
+    "tasks": [
+      "T1",
+      "T2",
+      "T3"
+    ],
+    "title": "VEC PanelGuard — safely repair gene-order mismatches",
+    "url": "https://github.com/random-guy-05/vec-panelguard",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Agents & reproducibility",
+    "tasks": [
+      "T1",
+      "T2",
+      "T3"
+    ],
+    "title": "VEC P3 Freeze — immutable bundles for final submissions",
+    "url": "https://github.com/random-guy-05/vec-p3-freeze",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Agents & reproducibility",
+    "tasks": [
+      "General"
+    ],
+    "title": "VEC RunLog — append-only provenance for scoring runs",
+    "url": "https://github.com/random-guy-05/vec-runlog",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Agents & reproducibility",
+    "tasks": [
+      "General"
+    ],
+    "title": "VEC Determinism — scorer-aware exporter reproducibility",
+    "url": "https://github.com/random-guy-05/vec-determinism",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Agents & reproducibility",
+    "tasks": [
+      "General"
+    ],
+    "title": "VEC MethodCard — reproducibility record for methods and artifacts",
+    "url": "https://github.com/random-guy-05/vec-methodcard",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Environments & performance",
+    "tasks": [
+      "General"
+    ],
+    "title": "VEC Profile — runtime and memory profiler for local scoring",
+    "url": "https://github.com/random-guy-05/vec-profile",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Environments & performance",
+    "tasks": [
+      "General"
+    ],
+    "title": "VEC EnvCheck — quick diagnostics for local environments",
+    "url": "https://github.com/random-guy-05/vec-envcheck",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Start here",
+    "tasks": [
+      "T1",
+      "T2",
+      "T3"
+    ],
+    "title": "VEC RU Starter: Russian-language guide and executed starter notebook (T1/T2/T3)",
+    "url": "https://github.com/ttimesai-star/vec-ru-starter",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "teach",
+    "category": "Data & eligibility",
+    "tasks": [
+      "General"
+    ],
+    "title": "VEC R Data Tour — inspect Challenge H5ADs with Bioconductor",
+    "url": "https://github.com/random-guy-05/vec-r-data-tour",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "teach",
+    "category": "Start here",
+    "tasks": [
+      "General"
+    ],
+    "title": "VEC Community Resource Navigator — searchable community directory",
+    "url": "https://random-guy-05.github.io/vec-resource-navigator/",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Environments & performance",
+    "tasks": [
+      "General"
+    ],
+    "title": "VEC Slurm Starter — cluster job templates for scoring and model runs",
+    "url": "https://github.com/random-guy-05/vec-slurm-starter",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "organize",
+    "category": "Workshops & peer learning",
+    "tasks": [
+      "General"
+    ],
+    "title": "VEC Peer Workshop Kit — facilitator-ready workshop for a reproducible first workflow",
+    "url": "https://github.com/random-guy-05/vec-workshop-kit",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Start here",
+    "tasks": [
+      "General"
+    ],
+    "title": "VEC Peer Workshop — reproducible first workflow (Español)",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/first-workflow/es.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Start here",
+    "tasks": [
+      "General"
+    ],
+    "title": "VEC 同伴工作坊：可复现的起步流程（简体中文）",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/first-workflow/zh-CN.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Start here",
+    "tasks": [
+      "General"
+    ],
+    "title": "Atelier VEC entre pairs : flux reproductible (français)",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/first-workflow/fr.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Start here",
+    "tasks": [
+      "General"
+    ],
+    "title": "VEC सहकर्मी कार्यशाला: दोहराने योग्य कार्यप्रवाह (हिंदी)",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/first-workflow/hi.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Start here",
+    "tasks": [
+      "General"
+    ],
+    "title": "VEC ピアワークショップ：再現可能なワークフロー（日本語）",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/first-workflow/ja.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Start here",
+    "tasks": [
+      "General"
+    ],
+    "title": "VEC 동료 워크숍: 재현 가능한 워크플로 (한국어)",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/first-workflow/ko.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Start here",
+    "tasks": [
+      "General"
+    ],
+    "title": "Oficina VEC entre pares: fluxo reproduzível (português do Brasil)",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/first-workflow/pt-BR.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Start here",
+    "tasks": [
+      "General"
+    ],
+    "title": "ورشة VEC بين الزملاء: سير عمل قابل لإعادة الإنتاج (العربية)",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/first-workflow/ar.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "organize",
+    "category": "Workshops & peer learning",
+    "tasks": [
+      "T2"
+    ],
+    "title": "Task 2 Workshop: Reasoning Across Space and Time (English)",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t2-spatial/en.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Workshops & peer learning",
+    "tasks": [
+      "T2"
+    ],
+    "title": "Taller Task 2: razonar sobre espacio y tiempo (español)",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t2-spatial/es.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Workshops & peer learning",
+    "tasks": [
+      "T2"
+    ],
+    "title": "Task 2 工作坊：理解时空预测（简体中文）",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t2-spatial/zh-CN.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Workshops & peer learning",
+    "tasks": [
+      "T2"
+    ],
+    "title": "Atelier Task 2 : espace, temps et coordonnées locales (français)",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t2-spatial/fr.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Workshops & peer learning",
+    "tasks": [
+      "T2"
+    ],
+    "title": "Task 2 ワークショップ：時空間予測を読み解く（日本語）",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t2-spatial/ja.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Workshops & peer learning",
+    "tasks": [
+      "T2"
+    ],
+    "title": "Task 2 워크숍: 시공간 예측 이해하기 (한국어)",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t2-spatial/ko.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Workshops & peer learning",
+    "tasks": [
+      "T2"
+    ],
+    "title": "Oficina Task 2: raciocinar sobre espaço e tempo (português do Brasil)",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t2-spatial/pt-BR.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "organize",
+    "category": "Workshops & peer learning",
+    "tasks": [
+      "T3"
+    ],
+    "title": "Task 3 Workshop: Predict the Perturbation Response (English)",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t3-perturbation/en.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Workshops & peer learning",
+    "tasks": [
+      "T3"
+    ],
+    "title": "Taller Task 3: predecir la respuesta a una perturbación (español)",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t3-perturbation/es.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Workshops & peer learning",
+    "tasks": [
+      "T3"
+    ],
+    "title": "Task 3 工作坊：预测扰动响应（简体中文）",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t3-perturbation/zh-CN.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Workshops & peer learning",
+    "tasks": [
+      "T3"
+    ],
+    "title": "Atelier Task 3 : réponse à une perturbation (français)",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t3-perturbation/fr.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Workshops & peer learning",
+    "tasks": [
+      "T3"
+    ],
+    "title": "Task 3 ワークショップ：摂動応答を予測する（日本語）",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t3-perturbation/ja.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Workshops & peer learning",
+    "tasks": [
+      "T3"
+    ],
+    "title": "Task 3 워크숍: perturbation 반응 예측하기 (한국어)",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t3-perturbation/ko.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Workshops & peer learning",
+    "tasks": [
+      "T3"
+    ],
+    "title": "Oficina Task 3: resposta à perturbação (português do Brasil)",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t3-perturbation/pt-BR.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Environments & performance",
+    "tasks": [
+      "General"
+    ],
+    "title": "VEC PBS + LSF Starter — research-cluster job templates beyond Slurm",
+    "url": "https://github.com/random-guy-05/vec-pbs-lsf-starter",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Data & eligibility",
+    "tasks": [
+      "T1",
+      "T2",
+      "T3"
+    ],
+    "title": "VEC Cohort Audit — metadata-only cell composition profiles across stages",
+    "url": "https://github.com/random-guy-05/vec-cohort-audit",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Rules & operations",
+    "tasks": [
+      "General"
+    ],
+    "title": "VEC Resource Link Audit — conservative checker for shared community links",
+    "url": "https://github.com/random-guy-05/vec-resource-link-audit",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Scoring & learning",
+    "tasks": [
+      "T3"
+    ],
+    "title": "VEC Replicate Range — paired Task 3 biological-replicate sensitivity report",
+    "url": "https://github.com/random-guy-05/vec-replicate-range",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "teach",
+    "category": "Rules & operations",
+    "tasks": [
+      "General"
+    ],
+    "title": "VEC Rule Scenario Trainer — 33 rule cases in English, Spanish, and Simplified Chinese",
+    "url": "https://random-guy-05.github.io/vec-rule-scenario-trainer/",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Submission & files",
+    "tasks": [
+      "General"
+    ],
+    "title": "VEC P3 Attempt Ledger — offline tracker for two scored submissions per board",
+    "url": "https://github.com/random-guy-05/vec-p3-attempt-ledger",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "organize",
+    "category": "Workshops & peer learning",
+    "tasks": [
+      "T1"
+    ],
+    "title": "Task 1 Workshop: Forecasting a Changing Cell Population",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t1-temporal/en.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Workshops & peer learning",
+    "tasks": [
+      "T1"
+    ],
+    "title": "Task-1-Workshop auf Deutsch: Eine sich verändernde Zellpopulation prognostizieren",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t1-temporal/de.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Workshops & peer learning",
+    "tasks": [
+      "T1"
+    ],
+    "title": "Laboratorio Task 1 in italiano: prevedere una popolazione cellulare in cambiamento",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t1-temporal/it.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Workshops & peer learning",
+    "tasks": [
+      "T1"
+    ],
+    "title": "Task 1 Atölyesi: Değişen bir hücre popülasyonunu tahmin etme",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t1-temporal/tr.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Workshops & peer learning",
+    "tasks": [
+      "T1"
+    ],
+    "title": "Taller Task 1: Pronosticar una población celular cambiante",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t1-temporal/es.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Workshops & peer learning",
+    "tasks": [
+      "T1"
+    ],
+    "title": "Task 1 工作坊：预测不断变化的细胞群体",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t1-temporal/zh-CN.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Workshops & peer learning",
+    "tasks": [
+      "T1"
+    ],
+    "title": "Atelier Task 1 : prévoir une population cellulaire en évolution",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t1-temporal/fr.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Workshops & peer learning",
+    "tasks": [
+      "T1"
+    ],
+    "title": "Task 1 ワークショップ：変化する細胞集団を予測する",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t1-temporal/ja.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Workshops & peer learning",
+    "tasks": [
+      "T1"
+    ],
+    "title": "Task 1 워크숍: 변화하는 세포 집단 예측하기",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t1-temporal/ko.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Workshops & peer learning",
+    "tasks": [
+      "T1"
+    ],
+    "title": "Oficina Task 1: prever uma população celular em transformação",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t1-temporal/pt-BR.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Workshops & peer learning",
+    "tasks": [
+      "T1"
+    ],
+    "title": "Task 1 कार्यशाला: बदलती कोशिका आबादी का पूर्वानुमान",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t1-temporal/hi.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Workshops & peer learning",
+    "tasks": [
+      "T1"
+    ],
+    "title": "ورشة Task 1: التنبؤ بمجموعة خلوية متغيرة",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t1-temporal/ar.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Workshops & peer learning",
+    "tasks": [
+      "T2"
+    ],
+    "title": "Task-2-Workshop auf Deutsch: Räumliche und zeitliche Vorhersagen einordnen",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t2-spatial/de.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Workshops & peer learning",
+    "tasks": [
+      "T2"
+    ],
+    "title": "Task 2 Workshop in italiano: ragionare tra spazio e tempo",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t2-spatial/it.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Workshops & peer learning",
+    "tasks": [
+      "T2"
+    ],
+    "title": "Task 2 Atölyesi: Uzay ve zaman boyunca akıl yürütme",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t2-spatial/tr.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Workshops & peer learning",
+    "tasks": [
+      "T2"
+    ],
+    "title": "Task 2 कार्यशाला: स्थान और समय के साथ तर्क करना",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t2-spatial/hi.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Workshops & peer learning",
+    "tasks": [
+      "T2"
+    ],
+    "title": "ورشة Task 2: التفكير عبر المكان والزمن",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t2-spatial/ar.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Workshops & peer learning",
+    "tasks": [
+      "T3"
+    ],
+    "title": "Task-3-Workshop auf Deutsch: Die Antwort auf eine Perturbation vorhersagen",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t3-perturbation/de.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Workshops & peer learning",
+    "tasks": [
+      "T3"
+    ],
+    "title": "Laboratorio Task 3 in italiano: prevedere la risposta a una perturbazione",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t3-perturbation/it.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Workshops & peer learning",
+    "tasks": [
+      "T3"
+    ],
+    "title": "Task 3 Atölyesi: Perturbasyon yanıtını tahmin etme",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t3-perturbation/tr.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Workshops & peer learning",
+    "tasks": [
+      "T3"
+    ],
+    "title": "Task 3 कार्यशाला: perturbation प्रतिक्रिया का पूर्वानुमान",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t3-perturbation/hi.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Workshops & peer learning",
+    "tasks": [
+      "T3"
+    ],
+    "title": "ورشة Task 3: التنبؤ باستجابة الاضطراب",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t3-perturbation/ar.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Start here",
+    "tasks": [
+      "General"
+    ],
+    "title": "VEC Peer-Workshop auf Deutsch: Einen reproduzierbaren Workflow starten",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/first-workflow/de.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Start here",
+    "tasks": [
+      "General"
+    ],
+    "title": "Laboratorio VEC tra pari in italiano: avviare un flusso riproducibile",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/first-workflow/it.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Start here",
+    "tasks": [
+      "General"
+    ],
+    "title": "VEC Akran Atölyesi: Tekrarlanabilir bir iş akışına başlama",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/first-workflow/tr.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "build",
+    "category": "Start here",
+    "tasks": [
+      "T1",
+      "T2",
+      "T3",
+      "Agent"
+    ],
+    "title": "VEC Pathway Builder — multilingual guided routes to a useful next step",
+    "url": "https://random-guy-05.github.io/vec-pathway-builder/",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Start here",
+    "tasks": [
+      "General"
+    ],
+    "title": "Lokakarya VEC bersama rekan: Memulai Alur Kerja yang Dapat Direproduksi (Bahasa Indonesia)",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/first-workflow/id.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Start here",
+    "tasks": [
+      "General"
+    ],
+    "title": "Hội thảo VEC cùng đồng nghiệp: Bắt đầu với quy trình có thể tái lập (Tiếng Việt)",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/first-workflow/vi.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Workshops & peer learning",
+    "tasks": [
+      "T1"
+    ],
+    "title": "Lokakarya Task 1: Memprediksi Populasi Sel yang Berubah (Bahasa Indonesia)",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t1-temporal/id.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Workshops & peer learning",
+    "tasks": [
+      "T1"
+    ],
+    "title": "Hội thảo Task 1: Dự đoán quần thể tế bào đang thay đổi (Tiếng Việt)",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t1-temporal/vi.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Workshops & peer learning",
+    "tasks": [
+      "T2"
+    ],
+    "title": "Lokakarya Task 2: Menalar Ruang dan Waktu (Bahasa Indonesia)",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t2-spatial/id.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Workshops & peer learning",
+    "tasks": [
+      "T2"
+    ],
+    "title": "Hội thảo Task 2: Suy luận về không gian và thời gian (Tiếng Việt)",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t2-spatial/vi.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Workshops & peer learning",
+    "tasks": [
+      "T3"
+    ],
+    "title": "Lokakarya Task 3: Memprediksi Respons Perturbasi (Bahasa Indonesia)",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t3-perturbation/id.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Workshops & peer learning",
+    "tasks": [
+      "T3"
+    ],
+    "title": "Hội thảo Task 3: Dự đoán phản ứng với perturbation (Tiếng Việt)",
+    "url": "https://github.com/random-guy-05/vec-workshop-series/blob/main/workshops/t3-perturbation/vi.md",
+    "status": "Filed · not yet reviewed"
+  },
+  {
+    "kind": "expand",
+    "category": "Start here",
+    "tasks": [
+      "T1",
+      "T2",
+      "T3",
+      "Agent"
+    ],
+    "title": "VEC Pathway Builder — Indonesian and Vietnamese interface expansion",
+    "url": "https://github.com/random-guy-05/vec-pathway-builder/commit/02addaa",
+    "status": "Filed · not yet reviewed"
+  }
+]
