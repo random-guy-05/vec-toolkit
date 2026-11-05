@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Offline manual ledger for VEC P3 scored submissions and format checks, tracked separately per board.">
+  <title>VEC P3 Attempt Ledger</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --page: #f4f7fb;
+      --surface: #fff;
+      --ink: #17283e;
+      --muted: #586a81;
+      --line: #d9e1ec;
+      --blue: #155ec9;
+      --blue-ink: #fff;
+      --orange: #a04c08;
+      --orange-bg: #fff3e3;
+      --green: #166244;
+      --red: #902d2d;
+      --focus: #eea700;
+      --shadow: 0 14px 36px rgb(18 40 67 / 9%);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --page: #101722;
+        --surface: #192435;
+        --ink: #eef4fb;
+        --muted: #b9c4d2;
+        --line: #35455a;
+        --blue: #92bcff;
+        --blue-ink: #101d33;
+        --orange: #ffd28f;
+        --orange-bg: #3b2e1d;
+        --green: #9de4be;
+        --red: #ffb4ab;
+        --focus: #ffd167;
+        --shadow: 0 14px 36px rgb(0 0 0 / 24%);
+      }
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--page); color: var(--ink); font: 16px/1.55 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    a { color: var(--blue); text-underline-offset: .18em; }
+    :focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+    .shell { width: min(980px, calc(100% - 28px)); margin: 0 auto; padding: 34px 0 56px; }
+    .eyebrow { color: var(--muted); font-size: .79rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+    h1 { margin: 7px 0 10px; font-size: clamp(2rem, 6vw, 3.25rem); line-height: 1.05; letter-spacing: -.045em; }
+    header p { max-width: 760px; margin: 0; color: var(--muted); }
+    .warning { margin: 23px 0; padding: 15px 17px; border: 1px solid color-mix(in srgb, var(--orange) 35%, var(--line)); border-left: 4px solid var(--orange); border-radius: 11px; background: var(--orange-bg); }
+    .warning strong { color: var(--orange); }
+    .toolbar, .add-board, .board, .empty, .storage-status { border: 1px solid var(--line); border-radius: 14px; background: var(--surface); box-shadow: var(--shadow); }
+    .toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 18px; padding: 13px 15px; }
+    .toolbar-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    button, input { font: inherit; }
+    button { min-height: 42px; padding: 9px 13px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); color: var(--ink); font-weight: 750; cursor: pointer; }
+    button.primary { border-color: var(--blue); background: var(--blue); color: var(--blue-ink); }
+    button.danger { color: var(--red); }
+    button:disabled { cursor: not-allowed; opacity: .45; }
+    input[type="text"] { min-width: 0; min-height: 42px; padding: 9px 11px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); color: var(--ink); }
+    .storage-status { margin-bottom: 18px; padding: 12px 15px; color: var(--muted); box-shadow: none; }
+    .storage-status.warning-text { border-color: color-mix(in srgb, var(--orange) 50%, var(--line)); color: var(--orange); }
+    .add-board { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin-bottom: 18px; padding: 16px; }
+    .add-board label { grid-column: 1 / -1; font-weight: 750; }
+    .empty { padding: 28px; color: var(--muted); text-align: center; box-shadow: none; }
+    .boards { display: grid; gap: 14px; }
+    .board { overflow: hidden; }
+    .board-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 18px; border-bottom: 1px solid var(--line); }
+    .board-head h2 { overflow-wrap: anywhere; margin: 0; font-size: 1.25rem; }
+    .remaining { padding: 5px 10px; border: 1px solid var(--line); border-radius: 999px; font-size: .9rem; font-weight: 800; white-space: nowrap; }
+    .slots { display: flex; gap: 8px; padding: 14px 18px 4px; }
+    .slot { flex: 1; min-height: 9px; border-radius: 99px; background: var(--line); }
+    .slot.used { background: var(--blue); }
+    .event-form { display: grid; grid-template-columns: 1fr auto auto; align-items: end; gap: 9px; padding: 14px 18px 18px; }
+    .note-field { display: grid; gap: 5px; }
+    .note-field label { color: var(--muted); font-size: .82rem; font-weight: 700; }
+    .events { display: grid; gap: 8px; margin: 0; padding: 0 18px 18px; list-style: none; }
+    .events:empty { display: none; }
+    .event { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 14px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 9px; }
+    .event-type { font-weight: 750; }
+    .event-type.scored { color: var(--blue); }
+    .event-type.format { color: var(--green); }
+    .event-meta { color: var(--muted); font-size: .86rem; }
+    .source { margin: 18px 2px 0; color: var(--muted); font-size: .9rem; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+    @media (max-width: 680px) {
+      .shell { width: min(100% - 18px, 980px); padding-top: 22px; }
+      .toolbar { align-items: flex-start; }
+      .toolbar-actions { width: 100%; }
+      .toolbar-actions button { flex: 1; }
+      .add-board { grid-template-columns: 1fr; }
+      .add-board label { grid-column: auto; }
+      .event-form { grid-template-columns: 1fr 1fr; }
+      .note-field { grid-column: 1 / -1; }
+      .event-form button { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div class="eyebrow">Virtual Embryo Challenge · Final phase</div>
+      <h1>P3 Attempt Ledger</h1>
+      <p>A small local ledger to help a team keep official scored submissions separate from format checks, board by board.</p>
+    </header>
+
+    <aside class="warning">
+      <strong>Two scored submissions per board for the whole P3 phase.</strong> Each is published when made and cannot be withdrawn. Format checks are unlimited and spend no scored attempt. This manual ledger is not connected to the Challenge portal; the portal's count is authoritative.
+    </aside>
+
+    <div class="toolbar">
+      <div><strong id="total-summary">0 boards · 0 scored submissions</strong></div>
+      <div class="toolbar-actions">
+        <button id="export" type="button">Export backup</button>
+        <button id="restore" type="button">Restore backup</button>
+        <input id="backup-file" class="sr-only" type="file" accept="application/json,.json" aria-label="Choose a ledger backup JSON file">
+      </div>
+    </div>
+
+    <div id="storage-status" class="storage-status" role="status" aria-live="polite"></div>
+
+    <form id="add-board" class="add-board">
+      <label for="board-name">Add a board to track</label>
+      <input id="board-name" type="text" maxlength="100" autocomplete="off" placeholder="Use the board name shown in your Challenge account" required>
+      <button class="primary" type="submit">Add board</button>
+    </form>
+
+    <div id="boards" class="boards"></div>
+    <div id="empty" class="empty" hidden>No boards yet. Add the P3 boards your team plans to submit to.</div>
+
+    <p class="source"><a href="https://virtualembryo.ai/challenge/rules" target="_blank" rel="noopener noreferrer">Official Challenge Rules §11</a> · Recheck the live rule before submitting; rules can change.</p>
+  </main>
+
+  <script>
+    "use strict";
+    const KEY = "vec-p3-attempt-ledger:v1";
+    const LIMIT = 2;
+    const model = { version: 1, boards: [] };
+    const boardsElement = document.getElementById("boards");
+    const statusElement = document.getElementById("storage-status");
+    const emptyElement = document.getElementById("empty");
+    let storageAvailable = true;
+
+    function validModel(value) {
+      if (!value || value.version !== 1 || !Array.isArray(value.boards)) throw new Error("Backup needs schema version 1 and a boards array.");
+      const names = new Set();
+      const boards = value.boards.map((board, index) => {
+        if (!board || typeof board.name !== "string" || !board.name.trim() || !Array.isArray(board.events)) throw new Error(`Board ${index + 1} is malformed.`);
+        const name = board.name.trim();
+        const folded = name.toLocaleLowerCase();
+        if (names.has(folded)) throw new Error(`Duplicate board name: ${name}`);
+        names.add(folded);
+        let scored = 0;
+        const events = board.events.map((event, eventIndex) => {
+          if (!event || !["scored", "format"].includes(event.type) || typeof event.at !== "string" || !Number.isFinite(Date.parse(event.at))) throw new Error(`Event ${eventIndex + 1} for ${name} is malformed.`);
+          if (event.type === "scored") scored++;
+          if (event.note !== undefined && (typeof event.note !== "string" || event.note.length > 100)) throw new Error(`Event note for ${name} is invalid or too long.`);
+          return { type: event.type, at: event.at, note: event.note || "" };
+        });
+        if (scored > LIMIT) throw new Error(`${name} has more than ${LIMIT} scored submissions.`);
+        return { name, events };
+      });
+      return { version: 1, boards };
+    }
+
+    function load() {
+      try {
+        const raw = localStorage.getItem(KEY);
+        if (!raw) return;
+        const loaded = validModel(JSON.parse(raw));
+        model.boards = loaded.boards;
+      } catch (error) {
+        storageAvailable = false;
+        statusElement.classList.add("warning-text");
+        statusElement.textContent = `Browser storage is unavailable or contains an invalid ledger. You can still use this page for this session; export a backup before closing. Details: ${error.message}`;
+      }
+    }
+
+    function persist() {
+      if (!storageAvailable) return;
+      try {
+        localStorage.setItem(KEY, JSON.stringify(model));
+        statusElement.classList.remove("warning-text");
+        statusElement.textContent = "Saved in this browser only. Export a backup before changing browsers or clearing site data.";
+      } catch (error) {
+        storageAvailable = false;
+        statusElement.classList.add("warning-text");
+        statusElement.textContent = `Could not save to browser storage. Export a JSON backup before closing. Details: ${error.message}`;
+      }
+    }
+
+    function formatDate(value) {
+      const date = new Date(value);
+      return new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(date);
+    }
+
+    function addEvent(boardIndex, type) {
+      const board = model.boards[boardIndex];
+      const scoredCount = board.events.filter(event => event.type === "scored").length;
+      if (type === "scored" && scoredCount >= LIMIT) return;
+      const note = document.getElementById(`note-${boardIndex}`).value.trim().slice(0, 100);
+      board.events.push({ type, at: new Date().toISOString(), note });
+      document.getElementById(`note-${boardIndex}`).value = "";
+      persist();
+      render();
+    }
+
+    function render() {
+      boardsElement.replaceChildren();
+      emptyElement.hidden = model.boards.length > 0;
+      let totalScored = 0;
+      for (const [index, board] of model.boards.entries()) {
+        const scoredCount = board.events.filter(event => event.type === "scored").length;
+        const formatCount = board.events.filter(event => event.type === "format").length;
+        totalScored += scoredCount;
+        const card = document.createElement("section");
+        card.className = "board";
+        const head = document.createElement("div");
+        head.className = "board-head";
+        const heading = document.createElement("h2");
+        heading.textContent = board.name;
+        const remaining = document.createElement("span");
+        remaining.className = "remaining";
+        remaining.textContent = `${scoredCount}/${LIMIT} scored · ${LIMIT - scoredCount} left`;
+        head.append(heading, remaining);
+        card.append(head);
+
+        const slots = document.createElement("div");
+        slots.className = "slots";
+        slots.setAttribute("role", "img");
+        slots.setAttribute("aria-label", `${scoredCount} of ${LIMIT} scored submission attempts recorded`);
+        for (let slotIndex = 0; slotIndex < LIMIT; slotIndex++) {
+          const slot = document.createElement("span");
+          slot.className = `slot${slotIndex < scoredCount ? " used" : ""}`;
+          slots.append(slot);
+        }
+        card.append(slots);
+
+        const form = document.createElement("div");
+        form.className = "event-form";
+        const noteField = document.createElement("div");
+        noteField.className = "note-field";
+        const label = document.createElement("label");
+        label.htmlFor = `note-${index}`;
+        label.textContent = "Optional short label (no file paths)";
+        const input = document.createElement("input");
+        input.type = "text";
+        input.id = `note-${index}`;
+        input.maxLength = 100;
+        input.placeholder = "e.g. frozen candidate B";
+        noteField.append(label, input);
+        const scoredButton = document.createElement("button");
+        scoredButton.type = "button";
+        scoredButton.className = "primary";
+        scoredButton.textContent = "Record scored submission";
+        scoredButton.disabled = scoredCount >= LIMIT;
+        scoredButton.title = scoredCount >= LIMIT ? "The P3 cap for this board is recorded as used." : "Record this after making the official submission in the Challenge portal.";
+        scoredButton.addEventListener("click", () => addEvent(index, "scored"));
+        const formatButton = document.createElement("button");
+        formatButton.type = "button";
+        formatButton.textContent = "Record format check";
+        formatButton.addEventListener("click", () => addEvent(index, "format"));
+        form.append(noteField, scoredButton, formatButton);
+        card.append(form);
+
+        const list = document.createElement("ul");
+        list.className = "events";
+        list.setAttribute("aria-label", `History for ${board.name}`);
+        for (const event of [...board.events].reverse()) {
+          const row = document.createElement("li");
+          row.className = "event";
+          const type = document.createElement("span");
+          type.className = `event-type ${event.type}`;
+          type.textContent = event.type === "scored" ? "Official scored submission" : "Format check · does not use a scored attempt";
+          const metadata = document.createElement("span");
+          metadata.className = "event-meta";
+          metadata.textContent = `${formatDate(event.at)}${event.note ? ` · ${event.note}` : ""}`;
+          row.append(type, metadata);
+          list.append(row);
+        }
+        card.append(list);
+        if (formatCount > 0) card.dataset.formatChecks = String(formatCount);
+        boardsElement.append(card);
+      }
+      document.getElementById("total-summary").textContent = `${model.boards.length} ${model.boards.length === 1 ? "board" : "boards"} · ${totalScored} scored ${totalScored === 1 ? "submission" : "submissions"}`;
+    }
+
+    function downloadBackup() {
+      const blob = new Blob([JSON.stringify(model, null, 2) + "\n"], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = "vec-p3-attempt-ledger-backup.json";
+      document.body.append(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    document.getElementById("add-board").addEventListener("submit", event => {
+      event.preventDefault();
+      const input = document.getElementById("board-name");
+      const name = input.value.trim();
+      if (!name) return;
+      if (model.boards.some(board => board.name.toLocaleLowerCase() === name.toLocaleLowerCase())) {
+        statusElement.textContent = "That board is already on the ledger. Use the existing row to record an event.";
+        return;
+      }
+      model.boards.push({ name, events: [] });
+      input.value = "";
+      persist();
+      render();
+      document.getElementById("board-name").focus();
+    });
+
+    document.getElementById("export").addEventListener("click", downloadBackup);
+    document.getElementById("restore").addEventListener("click", () => document.getElementById("backup-file").click());
+    document.getElementById("backup-file").addEventListener("change", async event => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      try {
+        const restored = validModel(JSON.parse(await file.text()));
+        if (!window.confirm(`Replace this browser's current ledger with ${restored.boards.length} board(s) from the selected backup? Export the current ledger first if you need to keep it.`)) return;
+        model.boards = restored.boards;
+        persist();
+        render();
+        statusElement.textContent = "Backup restored in this browser. Export a fresh backup for safekeeping.";
+      } catch (error) {
+        statusElement.classList.add("warning-text");
+        statusElement.textContent = `Backup not restored. ${error.message}`;
+      } finally {
+        event.target.value = "";
+      }
+    });
+
+    load();
+    if (!statusElement.textContent) {
+      statusElement.textContent = "Saved in this browser only. Export a backup before changing browsers or clearing site data.";
+    }
+    render();
+  </script>
+</body>
+</html>
