@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+#BSUB -J vec-cpu-score
+#BSUB -n 4
+#BSUB -R "rusage[mem=16000]"
+#BSUB -W 01:00
+#BSUB -o logs/cpu-score.%J.out
+#BSUB -e logs/cpu-score.%J.err
+
+set -euo pipefail
+cd "${LS_SUBCWD:-$PWD}"
+
+mkdir -p "runs/${LSB_JOBID:-manual}"
+python -m your_model.score --input data/released_input.h5ad --output "runs/${LSB_JOBID:-manual}/scores.json"

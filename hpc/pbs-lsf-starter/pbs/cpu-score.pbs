@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+#PBS -N vec-cpu-score
+#PBS -l select=1:ncpus=4:mem=16gb
+#PBS -l walltime=01:00:00
+#PBS -j oe
+
+set -euo pipefail
+cd "${PBS_O_WORKDIR:?Submit from the project directory}"
+
+mkdir -p "runs/${PBS_JOBID:-manual}"
+python -m your_model.score --input data/released_input.h5ad --output "runs/${PBS_JOBID:-manual}/scores.json"

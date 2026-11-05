@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+#BSUB -J vec-gpu-model
+#BSUB -n 8
+#BSUB -R "rusage[mem=32000]"
+#BSUB -gpu "num=1"
+#BSUB -W 08:00
+#BSUB -o logs/gpu-model.%J.out
+#BSUB -e logs/gpu-model.%J.err
+
+set -euo pipefail
+cd "${LS_SUBCWD:-$PWD}"
+
+mkdir -p "runs/${LSB_JOBID:-manual}"
+python -m your_model.train --device cuda --output "runs/${LSB_JOBID:-manual}"

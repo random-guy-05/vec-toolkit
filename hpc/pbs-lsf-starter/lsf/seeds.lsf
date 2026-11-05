@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+#BSUB -J "vec-seeds[1-5]%2"
+#BSUB -n 4
+#BSUB -R "rusage[mem=16000]"
+#BSUB -W 04:00
+#BSUB -o logs/seed.%J.%I.out
+#BSUB -e logs/seed.%J.%I.err
+
+set -euo pipefail
+cd "${LS_SUBCWD:-$PWD}"
+seed="${LSB_JOBINDEX:?Expected LSF array index}"
+run_dir="runs/${LSB_JOBID:-manual}/${seed}"
+mkdir -p "$run_dir"
+
+python -m your_model.train --seed "$seed" --output "$run_dir"

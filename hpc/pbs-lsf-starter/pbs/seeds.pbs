@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+#PBS -N vec-seeds
+#PBS -J 1-5%2
+#PBS -l select=1:ncpus=4:mem=16gb
+#PBS -l walltime=04:00:00
+#PBS -j oe
+
+set -euo pipefail
+cd "${PBS_O_WORKDIR:?Submit from the project directory}"
+seed="${PBS_ARRAY_INDEX:?Expected PBS array index}"
+run_dir="runs/${PBS_JOBID:-manual}/${seed}"
+mkdir -p "$run_dir"
+
+python -m your_model.train --seed "$seed" --output "$run_dir"
