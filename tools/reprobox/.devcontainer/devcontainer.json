@@ -1,0 +1,19 @@
+{
+  "name": "VEC ReproBox",
+  "build": {
+    "dockerfile": "../Dockerfile",
+    "context": ".."
+  },
+  "remoteUser": "vec",
+  "workspaceFolder": "/workspace",
+  "forwardPorts": [8888],
+  "postCreateCommand": "python scripts/smoke_test.py",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-toolsai.jupyter"
+      ]
+    }
+  }
+}

@@ -1,0 +1,10 @@
+# The scorer is pinned because metric behavior is part of the reproducibility contract.
+veckit==0.1.2
+# Bounded scientific stack: broad enough for security/bugfix releases, narrow enough to avoid major API jumps.
+anndata>=0.10,<0.13
+numpy>=1.24,<3
+scipy>=1.10,<2
+pandas>=2,<4
+scikit-learn>=1.3,<2
+h5py>=3.9,<4
+jupyterlab>=4,<5
