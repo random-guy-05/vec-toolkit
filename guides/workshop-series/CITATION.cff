@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "Please cite the specific workshop edition you use."
+title: "VEC Multilingual Peer Workshop Series"
+abstract: "Facilitator-ready, language-accessible workshops for helping Virtual Embryo Challenge participants understand reproducibility, spatial-temporal prediction, and perturbation response."
+authors:
+  - family-names: Mana
+    given-names: Arnav
+version: 1.0.0
+date-released: 2026-10-14
+url: https://github.com/random-guy-05/vec-workshop-series
+license: MIT
