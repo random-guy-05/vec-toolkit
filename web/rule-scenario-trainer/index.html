@@ -1,0 +1,659 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="An offline scenario quiz for Virtual Embryo Challenge rules about external data, Agent Team runs, P3 submissions and the Generality Award.">
+  <title>VEC Rule Scenario Trainer</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --page: #f5f7fb;
+      --surface: #fff;
+      --ink: #13233a;
+      --muted: #52647c;
+      --line: #d8e0eb;
+      --blue: #165dcc;
+      --blue-ink: #fff;
+      --green: #126044;
+      --green-bg: #e8f7ef;
+      --red: #8b2525;
+      --red-bg: #fff0ee;
+      --focus: #f0a500;
+      --shadow: 0 16px 42px rgb(19 35 58 / 9%);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --page: #101722;
+        --surface: #182333;
+        --ink: #eef4fb;
+        --muted: #b5c1d1;
+        --line: #35455a;
+        --blue: #8cb8ff;
+        --blue-ink: #0c1930;
+        --green: #a3e8c3;
+        --green-bg: #18392d;
+        --red: #ffb3ac;
+        --red-bg: #422625;
+        --focus: #ffd167;
+        --shadow: 0 16px 42px rgb(0 0 0 / 24%);
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--page);
+      color: var(--ink);
+      font: 16px/1.55 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    a { color: var(--blue); text-underline-offset: .18em; }
+    a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible + label {
+      outline: 3px solid var(--focus);
+      outline-offset: 3px;
+    }
+    .shell { width: min(900px, calc(100% - 32px)); margin: 0 auto; padding: 34px 0 64px; }
+    header { margin-bottom: 22px; }
+    .eyebrow { color: var(--muted); font-size: .8rem; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
+    h1 { max-width: 700px; margin: 7px 0 10px; font-size: clamp(2rem, 7vw, 3.35rem); line-height: 1.05; letter-spacing: -.04em; }
+    header p { max-width: 720px; margin: 0; color: var(--muted); }
+    .notice { margin: 22px 0; padding: 14px 16px; border: 1px solid var(--line); border-left: 4px solid var(--blue); border-radius: 10px; background: var(--surface); color: var(--muted); }
+    .notice strong { color: var(--ink); }
+    .card { overflow: hidden; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); box-shadow: var(--shadow); }
+    .toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; padding: 18px 22px; border-bottom: 1px solid var(--line); }
+    .topic { display: grid; gap: 5px; min-width: min(100%, 300px); }
+    .topic > label { font-size: .82rem; font-weight: 700; }
+    .language-help { color: var(--muted); font-size: .76rem; }
+    select { max-width: 100%; padding: 10px 36px 10px 12px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); color: var(--ink); font: inherit; }
+    .progress { min-width: 130px; color: var(--muted); font-size: .92rem; text-align: right; }
+    .progress strong { color: var(--ink); }
+    .bar { height: 6px; background: var(--line); }
+    .bar span { display: block; width: 0; height: 100%; background: var(--blue); transition: width .2s ease; }
+    .question-wrap { padding: clamp(20px, 5vw, 34px); }
+    .category { display: inline-block; margin-bottom: 10px; padding: 3px 9px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); font-size: .78rem; font-weight: 700; }
+    h2 { margin: 0 0 12px; font-size: clamp(1.25rem, 4vw, 1.65rem); line-height: 1.3; }
+    .prompt { margin: 0 0 20px; color: var(--muted); }
+    fieldset { display: grid; gap: 10px; margin: 0; padding: 0; border: 0; }
+    fieldset legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+    .choice { display: flex; align-items: flex-start; gap: 12px; padding: 13px 15px; border: 1px solid var(--line); border-radius: 11px; cursor: pointer; transition: border-color .12s ease, background .12s ease; }
+    .choice:hover { border-color: var(--blue); }
+    .choice input { flex: 0 0 auto; width: 18px; height: 18px; margin: 3px 0 0; accent-color: var(--blue); }
+    .choice span { flex: 1; }
+    .choice:has(input:checked) { border-color: var(--blue); background: color-mix(in srgb, var(--blue) 9%, var(--surface)); }
+    .choice.correct { border-color: var(--green); background: var(--green-bg); }
+    .choice.incorrect { border-color: var(--red); background: var(--red-bg); }
+    .feedback { display: none; margin-top: 18px; padding: 15px 16px; border-radius: 11px; }
+    .feedback.visible { display: block; }
+    .feedback.good { color: var(--green); background: var(--green-bg); }
+    .feedback.bad { color: var(--red); background: var(--red-bg); }
+    .feedback p { margin: 7px 0 0; color: var(--ink); }
+    .feedback a { display: inline-block; margin-top: 8px; font-weight: 700; }
+    .controls { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; margin-top: 22px; }
+    button { min-height: 44px; padding: 10px 16px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); color: var(--ink); font: inherit; font-weight: 750; cursor: pointer; }
+    button.primary { border-color: var(--blue); background: var(--blue); color: var(--blue-ink); }
+    button:disabled { opacity: .48; cursor: not-allowed; }
+    .summary { display: none; padding: clamp(24px, 7vw, 52px); text-align: center; }
+    .summary.visible { display: block; }
+    .score { margin: 8px 0 4px; font-size: clamp(2.7rem, 10vw, 5rem); font-weight: 800; letter-spacing: -.06em; line-height: 1; }
+    .summary p { max-width: 560px; margin: 12px auto 22px; color: var(--muted); }
+    .source-list { display: grid; gap: 8px; margin-top: 20px; padding: 18px 22px; border-top: 1px solid var(--line); color: var(--muted); font-size: .9rem; }
+    .source-list strong { color: var(--ink); }
+    footer { margin-top: 15px; color: var(--muted); font-size: .82rem; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+    @media (max-width: 560px) {
+      .shell { width: min(100% - 20px, 900px); padding-top: 22px; }
+      .toolbar { align-items: flex-start; padding: 16px; }
+      .progress { width: 100%; text-align: left; }
+      .controls button { flex: 1; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div class="eyebrow" data-i18n="eyebrow">Virtual Embryo Challenge · Practice</div>
+      <h1 id="page-title" data-i18n="title">Rule Scenario Trainer</h1>
+      <p data-i18n="lede">Try concrete cases about data eligibility, Agent Team runs, final-phase submissions, and the Generality Award. Each answer points back to the official rule.</p>
+    </header>
+
+    <aside class="notice" aria-label="Important note">
+      <strong data-i18n="noticeTitle">Learning aid, not an organiser ruling.</strong>
+      <span data-i18n="noticeBody">Rules can change. This set was checked against the official pages on 14 October 2026; open the cited source before acting on an edge case. Your answers stay in this browser and are not sent anywhere.</span>
+    </aside>
+
+    <section class="card" aria-labelledby="quiz-title">
+      <div class="toolbar">
+        <div class="topic">
+          <label for="topic-filter" data-i18n="topic">Practice topic</label>
+          <select id="topic-filter">
+            <option value="all" data-i18n="allTopics">All topics · 33 scenarios</option>
+            <option value="external" data-i18n="externalTopic">Data eligibility · 12</option>
+            <option value="agent" data-i18n="agentTopic">Agent Team · 8</option>
+            <option value="phase" data-i18n="phaseTopic">Phases and submissions · 6</option>
+            <option value="scores" data-i18n="scoresTopic">Score use and evaluation · 3</option>
+            <option value="generality" data-i18n="generalityTopic">Generality Award · 4</option>
+          </select>
+        </div>
+        <div class="topic language-picker">
+          <label for="language" data-i18n="language">Language</label>
+          <select id="language" aria-describedby="language-help">
+            <option value="en">English</option>
+            <option value="es">Español</option>
+            <option value="zh-CN">简体中文</option>
+          </select>
+          <span class="language-help" id="language-help" data-i18n="languageHelp">Changing language restarts this practice round.</span>
+        </div>
+        <div class="progress" id="progress" aria-live="polite"></div>
+      </div>
+      <div class="bar" aria-hidden="true"><span id="progress-bar"></span></div>
+
+      <div class="question-wrap" id="question-panel">
+        <span class="category" id="category"></span>
+        <h2 id="quiz-title"></h2>
+        <p class="prompt" id="prompt"></p>
+        <fieldset id="choices">
+          <legend data-i18n="chooseAnswer">Choose the best answer</legend>
+        </fieldset>
+        <div class="feedback" id="feedback" role="status" aria-live="polite"></div>
+        <div class="controls">
+          <button id="restart" type="button" data-i18n="restart">Restart topic</button>
+          <button id="action" class="primary" type="button" disabled data-i18n="check">Check answer</button>
+        </div>
+      </div>
+
+      <div class="summary" id="summary" aria-live="polite">
+        <div class="eyebrow" data-i18n="complete">Practice complete</div>
+        <div class="score" id="final-score"></div>
+        <p id="summary-copy"></p>
+        <button id="again" class="primary" type="button" data-i18n="again">Practice again</button>
+      </div>
+
+      <div class="source-list">
+        <strong data-i18n="sourceHeading">Official sources</strong>
+        <span><a href="https://virtualembryo.ai/challenge/rules" target="_blank" rel="noopener noreferrer" data-i18n="rulesSource">Challenge Rules</a> <span data-i18n="rulesDetails">· §§9–14</span></span>
+        <span><a href="https://virtualembryo.ai/challenge/data" target="_blank" rel="noopener noreferrer" data-i18n="dataSource">Challenge Data</a> <span data-i18n="dataDetails">· released stages and Task 3 replicates</span></span>
+        <span><a href="https://virtualembryo.ai/challenge/tasks" target="_blank" rel="noopener noreferrer" data-i18n="tasksSource">Challenge Tasks</a> <span data-i18n="tasksDetails">· task and split overview</span></span>
+      </div>
+    </section>
+    <footer data-i18n="footer">Offline-first · no account · no analytics · no dependency · MIT licensed</footer>
+  </main>
+
+  <script src="./translations.js?version=2026-10-14-2"></script>
+  <script>
+    "use strict";
+    const RULES = "https://virtualembryo.ai/challenge/rules";
+    const DATA = "https://virtualembryo.ai/challenge/data";
+    const TASKS = "https://virtualembryo.ai/challenge/tasks";
+    const scenarios = [
+      {
+        topic: "external", label: "Data eligibility",
+        title: "A public T1 dataset is staged at exactly E9.5. Can you use it?",
+        prompt: "Assume its licence permits use and you disclose the source in your method summary.",
+        choices: ["Yes. E9.5 is a released training stage and the exact stage is permitted.", "No. Any external data at E9.5 is held out.", "Only if you do not mention the source."], answer: 0,
+        explain: "The rules explicitly permit external data measured at exactly E9.5 because E9.5 is already a released training stage. You still disclose every external source.",
+        source: "Challenge Rules §10 · Data and What You May Use", url: RULES
+      },
+      {
+        topic: "external", label: "Data eligibility",
+        title: "A T1 external dataset is staged at E9.45. Is it in the stated T1 protected window?",
+        prompt: "The nearest released T1 stage is E9.5; the extrapolation exclusion starts after E9.5.",
+        choices: ["No. E9.45 is before E9.5, so it is outside the stated after-E9.5 window; disclose the source and exact stage.", "Yes. Every external stage close to E9.5 is held out.", "Yes, unless the source labels it as E9.5."], answer: 0,
+        explain: "The T1 extrapolation window is stated as data after E9.5 through E13.5. This is a subtle boundary: E9.45 is before E9.5, while E9.6 is after it. Disclose external sources and exact stages.",
+        source: "Challenge Rules §10 · extrapolation window", url: RULES
+      },
+      {
+        topic: "external", label: "Data eligibility",
+        title: "A T1 external dataset is staged at E9.6. Can it be used?",
+        prompt: "The Challenge's T1 extrapolation exclusion starts immediately after E9.5.",
+        choices: ["No. E9.6 is after E9.5 and inside the stated protected window.", "Yes. Only E10.5 and E12.5 themselves are excluded.", "Yes, if the source is a different assay."], answer: 0,
+        explain: "For the extrapolation targets, the rule explicitly excludes external data after E9.5 through E13.5. The rule is not limited to the target stages themselves.",
+        source: "Challenge Rules §10 · extrapolation window", url: RULES
+      },
+      {
+        topic: "external", label: "Data eligibility",
+        title: "What about external T1 data at exactly E13.5?",
+        prompt: "The T1 extrapolation exclusion is stated as after E9.5 up to and including E13.5.",
+        choices: ["Allowed; only E10.5 and E12.5 themselves are excluded.", "Excluded; the E13.5 endpoint is included.", "Allowed if the cells are labelled with somite count instead."], answer: 1,
+        explain: "E13.5 is included in the protected extrapolation window. A different staging vocabulary does not make a protected biological stage eligible.",
+        source: "Challenge Rules §10 · extrapolation window", url: RULES
+      },
+      {
+        topic: "external", label: "Data eligibility",
+        title: "A T1 external dataset is staged at E13.6. What does the rule say?",
+        prompt: "Assume the source does not contain any other protected-stage cells.",
+        choices: ["It is outside the stated E9.5–E13.5 exclusion window; disclose the source and exact stage.", "It is always prohibited because it is later than E9.5.", "It is permitted only if the source is private."], answer: 0,
+        explain: "The explicit T1 extrapolation window ends at E13.5. Data after E13.5 may be used if its source and stages are stated explicitly in the submission.",
+        source: "Challenge Rules §10 · extrapolation window", url: RULES
+      },
+      {
+        topic: "external", label: "Data eligibility",
+        title: "Can a T2 heart model train on external E8.5 heart data?",
+        prompt: "The released T2 heart stages bracketing the interpolation target are E8.25 and E8.75.",
+        choices: ["No. External data strictly between E8.25 and E8.75 is held out for interpolation.", "Yes. E8.5 is validation, so it is allowed once a validation score is returned.", "Yes, if the external data has a different gene panel."], answer: 0,
+        explain: "The heart interpolation exclusion covers external data strictly between the released E8.25 and E8.75 stages. Changing the panel or waiting for scores does not make it eligible.",
+        source: "Challenge Rules §10 · interpolation boundary", url: RULES
+      },
+      {
+        topic: "external", label: "Data eligibility",
+        title: "An outside dataset has T2 heart cells measured at exactly E8.25. Is the boundary itself excluded?",
+        prompt: "E8.25 is a released training stage.",
+        choices: ["Yes. The interpolation exclusion is strictly between E8.25 and E8.75, so the released endpoint is allowed.", "No. Every stage in the interval including endpoints is held out.", "Only if those cells are used for validation rather than training."], answer: 0,
+        explain: "The rule says strictly between the two released stages. It separately explains that the bracketing released stages themselves are permitted. Disclose the source.",
+        source: "Challenge Rules §10 · interpolation boundary", url: RULES
+      },
+      {
+        topic: "external", label: "Data eligibility",
+        title: "Can external embryo data at E7.75 be used for T2?",
+        prompt: "The released embryo stages bracketing the held-out pair are E7.25 and E8.0.",
+        choices: ["Yes. E7.75 is only a hidden test for one split, not a protected interpolation stage.", "No. External data strictly between E7.25 and E8.0 is excluded.", "Yes, if the external cells have no cell-type labels."], answer: 1,
+        explain: "The protected interpolation interval for the T2 embryo setting is strictly between E7.25 and E8.0. It includes the held-out E7.5 and E7.75 stages.",
+        source: "Challenge Rules §10 · interpolation boundary", url: RULES
+      },
+      {
+        topic: "external", label: "Data eligibility",
+        title: "A public resource spans many stages, including protected ones. You can remove those cells before training. Is the resource usable?",
+        prompt: "You document the source, the stages, and the filtering in the method summary.",
+        choices: ["Yes, provided protected-window cells are removed before training and the removal is described.", "No. A resource that contains any protected stage is banned in full.", "Yes, even if protected cells remain, because the resource is general-purpose."], answer: 0,
+        explain: "The rules allow a general-purpose resource that spans a held-out stage when cells inside the protected window are removed before training and that removal is described.",
+        source: "Challenge Rules §10 · mixed-stage resources", url: RULES
+      },
+      {
+        topic: "external", label: "Data eligibility",
+        title: "An outside model was pretrained on the held-out Gata4 knockout at E8.75. Can you use that model for T3?",
+        prompt: "The model's weights are public, but the pretraining data included the protected genotype.",
+        choices: ["Yes. Only direct use of the H5AD file is prohibited.", "No. The rule also excludes a model pretrained on held-out data.", "Yes, if the pretrained weights are frozen."], answer: 1,
+        explain: "The restriction applies by any route, including a model pretrained on held-out data. Public availability and frozen weights do not remove that restriction.",
+        source: "Challenge Rules §10 · held-out data", url: RULES
+      },
+      {
+        topic: "external", label: "Data eligibility",
+        title: "A public dataset contains a different allele of the hidden β-catenin knockout at a comparable stage. Is it eligible for T3?",
+        prompt: "The genotype is not identical to the released test files, and the dataset is publicly available.",
+        choices: ["No. Another allele of the same gene at a comparable stage is treated as held out.", "Yes. Only the exact test allele is protected.", "Yes, if the public dataset was released before the Challenge."], answer: 0,
+        explain: "The genotype rule covers another allele of the same gene at a comparable stage and perturbations that phenocopy the held-out genotype. Public release does not override the exclusion.",
+        source: "Challenge Rules §10 · genotype boundary", url: RULES
+      },
+      {
+        topic: "external", label: "Data eligibility",
+        title: "You used external data in T1, but an ablation suggests it did not change your final prediction. Must you disclose it?",
+        prompt: "The source is public and its licence allows use.",
+        choices: ["Yes. Every external source must be disclosed whether or not it changed the result.", "No. Disclose only sources that improved the score.", "No. Public sources are automatically exempt."], answer: 0,
+        explain: "External-source disclosure is required even if the source did not change the result. The disclosure is what makes compliance checkable.",
+        source: "Challenge Rules §10 · external-source disclosure", url: RULES
+      },
+      {
+        topic: "agent", label: "Agent Team",
+        title: "A locked Agent Team run is halfway through. A human reads its intermediate score and edits the prompt before it continues. Is the resulting run still Agent Team work?",
+        prompt: "The edited prompt is intended to help the agent improve its next output.",
+        choices: ["Yes, as long as the same process keeps running.", "No. The person changed the configuration after the lock; fix it and start a new locked run.", "Yes, if the person does not edit the prediction file."], answer: 1,
+        explain: "After the configuration lock, a person may not read intermediate results and steer the run or change its configuration. End that run; fix the setup and start a new run with a new lock.",
+        source: "Challenge Rules §9 · Agent Team Entries", url: RULES
+      },
+      {
+        topic: "agent", label: "Agent Team",
+        title: "An agent process crashes. You restart it with the exact same locked configuration. Does the restart invalidate the run?",
+        prompt: "No prompt, tool, permission, model, budget, or harness setting changed.",
+        choices: ["No. Restarting after a crash with unchanged configuration is allowed.", "Yes. Every process restart requires a new team and submission.", "Yes, unless the organisers restart it."], answer: 0,
+        explain: "The rules distinguish a process restart from a configuration change. Restarting a crashed run without changing its locked configuration is allowed.",
+        source: "Challenge Rules §9 · configuration lock", url: RULES
+      },
+      {
+        topic: "agent", label: "Agent Team",
+        title: "You launch three separately locked, completed Agent Team runs, then choose which completed run to submit. Is that allowed?",
+        prompt: "You do not intervene in any run after its configuration lock.",
+        choices: ["Yes. Choosing among completed runs is a human decision and is permitted.", "No. A person may never choose which run to submit.", "Only if all three runs produced identical predictions."], answer: 0,
+        explain: "The rules explicitly allow a person to choose among completed runs. The autonomy boundary applies within each locked run, not to selecting which completed run to submit.",
+        source: "Challenge Rules §9 · completed runs", url: RULES
+      },
+      {
+        topic: "agent", label: "Agent Team",
+        title: "Within one locked run, the agent evaluates several candidate predictions and selects its own final output. Is that consistent with the Agent Team track?",
+        prompt: "The agent performs the evaluation and selection autonomously after the lock.",
+        choices: ["Yes. The agent may evaluate and select its own final output.", "No. Agent Teams must submit the first output they generate.", "No. Candidate selection must always be done by a human."], answer: 0,
+        explain: "An agent may evaluate and select its own final output within a locked run. Human selection among intermediate outputs on the agent's behalf would cross the boundary.",
+        source: "Challenge Rules §9 · configuration lock", url: RULES
+      },
+      {
+        topic: "agent", label: "Agent Team",
+        title: "An Agent Team entry includes its full trajectory and its harness. Does it meet the minimum evidence requirement?",
+        prompt: "Both files correspond to the exact run that produced the submitted prediction.",
+        choices: ["Yes. Two distinct evidence kinds are present, including the required trajectory.", "No. Prompts must always be included instead of the harness.", "No. Evidence is optional until the team wins."], answer: 0,
+        explain: "At least two distinct evidence kinds are required, and one must be the trajectory. Trajectory plus harness meets that minimum if both correspond to the actual run.",
+        source: "Challenge Rules §9 · evidence kinds", url: RULES
+      },
+      {
+        topic: "agent", label: "Agent Team",
+        title: "A trajectory file is too large for the 200 MB per-file evidence cap. What is the safe approach?",
+        prompt: "The rules also cap each team at 600 MB total and require that a trace not be silently truncated.",
+        choices: ["Silently trim the beginning and keep the final 200 MB.", "Preserve the full trajectory; compress or split it into files within the per-file and team limits, and include a summary rather than replacing the trace with one.", "Upload the summary alone; the full trajectory is never required."], answer: 1,
+        explain: "Evidence is capped at 200 MB per file and 600 MB total. The rules say a trace that does not fit should be filed in full and summarised, not silently truncated. Keep every part within the limits.",
+        source: "Challenge Rules §9 · evidence size and completeness", url: RULES
+      },
+      {
+        topic: "agent", label: "Agent Team",
+        title: "An Agent Team submission has its prediction and trajectory uploaded, but no second evidence kind. What happens?",
+        prompt: "The prediction file itself is not an evidence kind.",
+        choices: ["It can be held, but it will not be scored or appear on a board until at least one more distinct evidence kind is attached.", "It is automatically scored because trajectory is the only mandatory evidence.", "It is disqualified immediately and cannot be repaired."], answer: 0,
+        explain: "An Agent Team submission is accepted and held until at least two distinct evidence kinds are attached, one of which must be the trajectory. It then enters scoring.",
+        source: "Challenge Rules §9 · evidence minimum", url: RULES
+      },
+      {
+        topic: "agent", label: "Agent Team",
+        title: "The person edits an agent-written prediction file after a locked run to fix a small formatting issue. Can it still be entered as an Agent Team prediction?",
+        prompt: "The change is a script-based edit, not a manual text edit.",
+        choices: ["Yes. Any format-only edit is allowed after the run.", "No. The prediction must be written by the agent; post-run edits by hand or script break that requirement.", "Yes, if the original file is preserved privately."], answer: 1,
+        explain: "The rules require predictions to be written by the agent and prohibit a person from editing the produced file by hand, script, or substitution. Fix the harness and run again under a new lock if needed.",
+        source: "Challenge Rules §9 · prediction authorship", url: RULES
+      },
+      {
+        topic: "phase", label: "Phases and submissions",
+        title: "In P3, how many official scored submissions can a team make on one board?",
+        prompt: "This is the whole final phase, not a daily quota.",
+        choices: ["Two for the entire phase.", "Two per day.", "Eight for the entire phase."], answer: 0,
+        explain: "P3 allows two official submissions per board for the whole phase. Each is scored when made and cannot be withdrawn; the board ranks a team by its best score.",
+        source: "Challenge Rules §11 · submission limits", url: RULES
+      },
+      {
+        topic: "phase", label: "Phases and submissions",
+        title: "Do unlimited format checks spend a P3 scored submission attempt?",
+        prompt: "Format checks report file structure, not how well a prediction scores.",
+        choices: ["No. Format checks are unlimited and do not spend scored attempts.", "Yes. Every check counts as one of the two submissions.", "Only if the file passes the format check."], answer: 0,
+        explain: "Format checks are unlimited in every phase and spend nothing. They check structure and validity, not expected score.",
+        source: "Challenge Rules §11 · format checks", url: RULES
+      },
+      {
+        topic: "phase", label: "Phases and submissions",
+        title: "A P3 scored submission is worse than expected. Can the team withdraw it and get the attempt back?",
+        prompt: "The submission was accepted and scored.",
+        choices: ["Yes. A team can withdraw any result before the deadline.", "No. A P3 submission cannot be withdrawn; only the best score on that board counts.", "Only if the score is below the floor."], answer: 1,
+        explain: "Each P3 submission is scored and published when made and cannot be withdrawn. The board ranks the team's best score, so a second attempt needs to improve or it does not help.",
+        source: "Challenge Rules §11 · P3 submissions", url: RULES
+      },
+      {
+        topic: "phase", label: "Phases and submissions",
+        title: "How many scored submissions per day are allowed in P2?",
+        prompt: "This is separate from the P3 whole-phase cap.",
+        choices: ["8 per team, task, and UTC day.", "20 per team, task, and UTC day.", "2 per team, task, and UTC day."], answer: 0,
+        explain: "P2 permits 8 scored submissions per team, per task, per UTC day. P1 permits 20 per day; P3 has 2 official submissions per board for the whole phase.",
+        source: "Challenge Rules §11 · phase-specific limits", url: RULES
+      },
+      {
+        topic: "phase", label: "Phases and submissions",
+        title: "A team has the best development score. Does that determine its final rank?",
+        prompt: "Final rankings use the hidden test sets.",
+        choices: ["Yes. Development ranking is final if the team submits before the deadline.", "No. Final rankings are determined by hidden test sets, not the development leaderboard.", "Only for Agent Teams."], answer: 1,
+        explain: "The rules state that final rankings are determined by hidden test sets, not the development leaderboard. Development scores are useful for permitted model selection, but are not final rank.",
+        source: "Challenge Rules §13 · Evaluation and Ranking", url: RULES
+      },
+      {
+        topic: "phase", label: "Phases and submissions",
+        title: "At the final-phase transition, are test-set answers released along with the validation answers?",
+        prompt: "Validation answers are released at the start of the final phase; test targets are different.",
+        choices: ["Yes. Both validation and test answers are released in P3.", "No. Validation answers are released at the phase transition; test ground truth remains hidden.", "Only to teams in the Agent Team track."], answer: 1,
+        explain: "At the final-phase transition, validation answers are released and ranking moves to hidden test sets. Test inputs may be released without labels; the hidden test ground truth remains unavailable for ranking.",
+        source: "Challenge Tasks · ground-truth boundary", url: TASKS
+      },
+      {
+        topic: "generality", label: "Generality Award",
+        title: "A team enters two tasks using unrelated model architectures. Does that satisfy the Generality Award's architecture requirement?",
+        prompt: "Both task entries perform well and have complete method summaries.",
+        choices: ["No. The same shared architecture must underlie every task entered for the award.", "Yes. Any two high-scoring tasks qualify.", "Yes, if both models were trained with the same optimizer."], answer: 0,
+        explain: "The award requires at least two tasks answered by one shared architecture. Separate unrelated models per task do not meet that requirement, regardless of scores.",
+        source: "Challenge Rules §14 · Generality Award", url: RULES
+      },
+      {
+        topic: "generality", label: "Generality Award",
+        title: "Can a shared architecture have task-specific input and prediction heads?",
+        prompt: "The tasks have different gene counts and some require spatial coordinates.",
+        choices: ["Yes. Task-specific inputs and prediction heads are allowed around the shared architecture.", "No. Every layer and output tensor must be identical across tasks.", "Only if all tasks use the same modality."], answer: 0,
+        explain: "The rules permit task-specific input and prediction heads. What matters is that the same underlying model architecture is shared across at least two entered tasks.",
+        source: "Challenge Rules §14 · Generality Award", url: RULES
+      },
+      {
+        topic: "generality", label: "Generality Award",
+        title: "A team enters only one task with a shared architecture designed to support all three. Is the team eligible for the Generality Award?",
+        prompt: "No other task is entered by the team.",
+        choices: ["Yes. Having the capacity to answer other tasks is enough.", "No. Eligibility requires entering at least two tasks and using one shared architecture.", "Yes, if that one task beats the floor score."], answer: 1,
+        explain: "The team must enter at least two tasks and answer them with one shared architecture. A planned capability that is not entered does not satisfy the minimum.",
+        source: "Challenge Rules §14 · Generality Award", url: RULES
+      },
+      {
+        topic: "generality", label: "Generality Award",
+        title: "What should a team say in its method summary to be considered for the Generality Award?",
+        prompt: "A clear explanation lets reviewers distinguish a shared architecture from separate models.",
+        choices: ["State that the team wants consideration and describe what is shared across tasks, what differs, and where the boundary is.", "Only list the tasks; the judges infer architecture from scores.", "Nothing. The award is assigned automatically to the highest total score."], answer: 0,
+        explain: "The team must say it wants consideration and describe the shared architecture: what is common, what differs, and where the boundary between tasks falls. Eligibility is judged on the method summary, not scores alone.",
+        source: "Challenge Rules §14 · Generality Award", url: RULES
+      },
+      {
+        topic: "scores", label: "Score use and evaluation",
+        title: "A participant changes a model parameter, checks the returned score, and tries another value. Is that ordinary leaderboard work?",
+        prompt: "They use the scores to choose among predictions, not to reconstruct the hidden target.",
+        choices: ["Yes. Trying parameter values and using scores to choose among predictions is permitted.", "No. Any use of a returned score for model selection is prohibited.", "Only if the first score is higher than the floor."], answer: 0,
+        explain: "The rules allow trying parameter values and using returned scores to choose among predictions. The boundary is crossed when score returns are used to solve for a hidden-target property and that recovered value is used to build a prediction.",
+        source: "Challenge Rules §10 · use of returned scores", url: RULES
+      },
+      {
+        topic: "scores", label: "Score use and evaluation",
+        title: "A team differences several scores to reconstruct a hidden target value, then builds its next prediction from that recovered value. Is that allowed?",
+        prompt: "The team uses the published skill map to convert the score pattern into an estimate of the hidden truth.",
+        choices: ["Yes. Every score-return strategy is allowed because the server publishes the scores.", "No. Recovering a hidden-target property from score returns and using it to construct a prediction is prohibited.", "Yes, if the final score is better than the earlier submissions."], answer: 1,
+        explain: "The rules prohibit using score returns, score differences, or an inverted skill map to recover a property of a held-out target and then build a submission from it. Returned scores may guide selection, not supply prediction content.",
+        source: "Challenge Rules §10 · returned scores and held-out data", url: RULES
+      },
+      {
+        topic: "scores", label: "Score use and evaluation",
+        title: "A team submits two completed candidate predictions and selects the one with the better returned score. It does not derive new target values from the scores. Is that permitted?",
+        prompt: "The score affects which candidate is chosen, but not the contents of either candidate.",
+        choices: ["Yes. Scores may be used to choose among predictions; the hidden target must not be recovered and put into a prediction.", "No. A team may never compare scores from its own submissions.", "Only if both predictions have the same score."], answer: 0,
+        explain: "The official boundary is whether the hidden truth enters the prediction's content or only its selection. Choosing between completed predictions by their scores is allowed; reconstructing the target and using the recovered value to create the prediction is not.",
+        source: "Challenge Rules §10 · use of returned scores", url: RULES
+      }
+    ];
+
+    const filter = document.getElementById("topic-filter");
+    const panel = document.getElementById("question-panel");
+    const summary = document.getElementById("summary");
+    const progress = document.getElementById("progress");
+    const progressBar = document.getElementById("progress-bar");
+    const category = document.getElementById("category");
+    const title = document.getElementById("quiz-title");
+    const prompt = document.getElementById("prompt");
+    const choices = document.getElementById("choices");
+    const feedback = document.getElementById("feedback");
+    const action = document.getElementById("action");
+    const language = document.getElementById("language");
+    const englishUI = {
+      documentTitle: "VEC Rule Scenario Trainer",
+      description: "An offline scenario quiz for Virtual Embryo Challenge rules about external data, Agent Team runs, P3 submissions and the Generality Award.",
+      eyebrow: "Virtual Embryo Challenge · Practice",
+      title: "Rule Scenario Trainer",
+      lede: "Try concrete cases about data eligibility, Agent Team runs, final-phase submissions, and the Generality Award. Each answer points back to the official rule.",
+      noticeLabel: "Important note",
+      noticeTitle: "Learning aid, not an organiser ruling.",
+      noticeBody: "Rules can change. This set was checked against the official pages on 14 October 2026; open the cited source before acting on an edge case. Your answers stay in this browser and are not sent anywhere. The Spanish and Simplified Chinese editions are community first editions and have not had independent native-speaker review; the linked official pages remain authoritative.",
+      language: "Language",
+      languageHelp: "Changing language restarts this practice round.",
+      topic: "Practice topic",
+      allTopics: "All topics · 33 scenarios",
+      externalTopic: "Data eligibility · 12",
+      agentTopic: "Agent Team · 8",
+      phaseTopic: "Phases and submissions · 6",
+      scoresTopic: "Score use and evaluation · 3",
+      generalityTopic: "Generality Award · 4",
+      chooseAnswer: "Choose the best answer",
+      restart: "Restart topic",
+      check: "Check answer",
+      next: "Next scenario",
+      seeResult: "See result",
+      complete: "Practice complete",
+      again: "Practice again",
+      correct: "That's right.",
+      notQuite: "Not quite. Best answer:",
+      openSource: "Open source:",
+      sourceHeading: "Official sources",
+      rulesSource: "Challenge Rules",
+      rulesDetails: "· §§9–14",
+      dataSource: "Challenge Data",
+      dataDetails: "· released stages and Task 3 replicates",
+      tasksSource: "Challenge Tasks",
+      tasksDetails: "· task and split overview",
+      footer: "Offline-first · no account · no analytics · no dependency · MIT licensed",
+      scenario: "Scenario",
+      progress: "{current} of {total} · {percent}% complete",
+      progressDone: "{total} of {total} · complete",
+      perfect: "Excellent. Keep the official sources close: these scenarios summarize the current page text, and organisers can clarify edge cases.",
+      review: "Review the explanations and sources for the scenarios you missed. This practice score is not an official eligibility decision.",
+      topicLabel: { external: "Data eligibility", agent: "Agent Team", phase: "Phases and submissions", scores: "Score use and evaluation", generality: "Generality Award" }
+    };
+    const requestedLocale = new URLSearchParams(window.location.search).get("lang");
+    let locale = ["en", "es", "zh-CN"].includes(requestedLocale) ? requestedLocale : "en";
+    language.value = locale;
+    let deck = [];
+    let cursor = 0;
+    let score = 0;
+    let checked = false;
+
+    function ui() {
+      return locale === "en" ? englishUI : (window.VEC_RULE_TRAINER_TRANSLATIONS?.[locale]?.ui || englishUI);
+    }
+
+    function tr(key, values = {}) {
+      let message = ui()[key] ?? englishUI[key] ?? key;
+      for (const [name, value] of Object.entries(values)) {
+        message = message.replaceAll(`{${name}}`, String(value));
+      }
+      return message;
+    }
+
+    function translatedScenario(item) {
+      if (locale === "en") return item;
+      const translation = window.VEC_RULE_TRAINER_TRANSLATIONS?.[locale]?.scenarios?.[scenarios.indexOf(item)];
+      return translation ? { ...item, ...translation } : item;
+    }
+
+    function applyLocale() {
+      document.documentElement.lang = locale;
+      document.title = tr("documentTitle");
+      document.querySelector('meta[name="description"]').content = tr("description");
+      document.querySelectorAll("[data-i18n]").forEach(element => {
+        element.textContent = tr(element.dataset.i18n);
+      });
+      document.querySelector(".notice").setAttribute("aria-label", tr("noticeLabel"));
+      document.querySelector("#choices legend").textContent = tr("chooseAnswer");
+    }
+
+    function shuffle(items) {
+      const copy = [...items];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function start() {
+      const selected = filter.value === "all" ? scenarios : scenarios.filter(item => item.topic === filter.value);
+      deck = shuffle(selected);
+      cursor = 0;
+      score = 0;
+      checked = false;
+      summary.classList.remove("visible");
+      panel.hidden = false;
+      render();
+    }
+
+    function render() {
+      const item = deck[cursor];
+      const content = translatedScenario(item);
+      category.textContent = (ui().topicLabel || englishUI.topicLabel)[item.topic] || item.label;
+      title.textContent = `${tr("scenario")} ${cursor + 1}`;
+      prompt.textContent = content.title + " " + content.prompt;
+      progress.innerHTML = tr("progress", { current: `<strong>${cursor + 1}</strong>`, total: deck.length, percent: Math.round((cursor / deck.length) * 100) });
+      progressBar.style.width = `${(cursor / deck.length) * 100}%`;
+      feedback.className = "feedback";
+      feedback.replaceChildren();
+      checked = false;
+      action.disabled = true;
+      action.textContent = tr("check");
+      choices.querySelectorAll(".choice").forEach(node => node.remove());
+      content.choices.forEach((choice, index) => {
+        const wrapper = document.createElement("div");
+        wrapper.className = "choice";
+        const input = document.createElement("input");
+        input.type = "radio";
+        input.name = "answer";
+        input.id = `choice-${index}`;
+        input.value = String(index);
+        input.addEventListener("change", () => { action.disabled = checked; });
+        const label = document.createElement("label");
+        label.htmlFor = input.id;
+        label.textContent = choice;
+        wrapper.append(input, label);
+        choices.append(wrapper);
+      });
+      panel.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
+
+    function showAnswer() {
+      const item = deck[cursor];
+      const content = translatedScenario(item);
+      const selected = choices.querySelector("input[name='answer']:checked");
+      if (!checked && !selected) return;
+      if (!checked) {
+        checked = true;
+        const correct = Number(selected.value) === item.answer;
+        if (correct) score++;
+        choices.querySelectorAll(".choice").forEach((node, index) => {
+          const input = node.querySelector("input");
+          input.disabled = true;
+          if (index === item.answer) node.classList.add("correct");
+          else if (index === Number(selected.value)) node.classList.add("incorrect");
+        });
+        feedback.className = `feedback visible ${correct ? "good" : "bad"}`;
+        const heading = document.createElement("strong");
+        heading.textContent = correct ? tr("correct") : `${tr("notQuite")} ${content.choices[item.answer]}`;
+        const explanation = document.createElement("p");
+        explanation.textContent = content.explain;
+        const source = document.createElement("a");
+        source.href = item.url;
+        source.target = "_blank";
+        source.rel = "noopener noreferrer";
+        source.textContent = `${tr("openSource")} ${item.source}`;
+        feedback.append(heading, explanation, source);
+        action.disabled = false;
+        action.textContent = cursor === deck.length - 1 ? tr("seeResult") : tr("next");
+        source.focus({ preventScroll: true });
+      } else if (cursor < deck.length - 1) {
+        cursor++;
+        render();
+        title.focus?.({ preventScroll: true });
+      } else {
+        finish();
+      }
+    }
+
+    function finish() {
+      panel.hidden = true;
+      summary.classList.add("visible");
+      document.getElementById("final-score").textContent = `${score}/${deck.length}`;
+      document.getElementById("summary-copy").textContent = score === deck.length ? tr("perfect") : tr("review");
+      progress.innerHTML = tr("progressDone", { total: deck.length });
+      progressBar.style.width = "100%";
+      summary.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
+
+    action.addEventListener("click", showAnswer);
+    document.getElementById("restart").addEventListener("click", start);
+    document.getElementById("again").addEventListener("click", start);
+    filter.addEventListener("change", start);
+    language.addEventListener("change", () => {
+      locale = language.value;
+      applyLocale();
+      start();
+    });
+    applyLocale();
+    start();
+  </script>
+</body>
+</html>
