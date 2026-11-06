@@ -12,6 +12,6 @@ stems = {path.stem for path in (ROOT / "assets" / "svg").glob("*.svg")}
 assert stems == {path.stem for path in (ROOT / "assets" / "png").glob("*.png")}
 assert stems == {path.stem for path in (ROOT / "assets" / "pdf").glob("*.pdf")}
 assert (ROOT / "VEC_FAILURE_MODE_GALLERY.pdf").stat().st_size > 10000
-for required in ["README.md", "COMMUNITY_SUBMISSION.md", "LICENSE", "docs/SOURCES.md", "docs/ALT_TEXT.md", "index.html"]:
+for required in ["README.md", "LICENSE", "docs/SOURCES.md", "docs/ALT_TEXT.md", "index.html"]:
     assert (ROOT / required).is_file(), required
 print(f"PASS: {EXPECTED} matched SVG/PNG/PDF assets + combined PDF")

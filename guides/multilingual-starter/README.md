@@ -77,7 +77,6 @@ https://virtualembryo.ai/challenge/community
 - [Metrics overview](docs/metrics_overview.md)
 - [Translation and update policy](docs/translation_policy.md)
 - [Multilingual glossary](docs/glossary.md)
-- [Community Contribution submission text](COMMUNITY_SUBMISSION.md)
 
 ## Important caveats
 
